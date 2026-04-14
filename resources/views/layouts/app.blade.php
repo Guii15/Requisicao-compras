@@ -28,11 +28,17 @@
             @endisset
 
             <!-- Page Content -->
-            <main class="py-6">
-                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    @yield('content')
-                </div>
-            </main>
+            @if(View::hasSection('fullcontent'))
+                <main>
+                    @yield('fullcontent')
+                </main>
+            @else
+                <main class="py-6">
+                    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        @yield('content')
+                    </div>
+                </main>
+            @endif
         </div>
     </body>
 </html>

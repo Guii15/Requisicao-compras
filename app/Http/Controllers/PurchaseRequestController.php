@@ -33,7 +33,20 @@ class PurchaseRequestController extends Controller
 
     public function create()
     {
-        return view('requests.create');
+        $userId = auth()->id();
+
+        $stats = [
+            'total'     => PurchaseRequest::where('user_id', $userId)->count(),
+            'pendente'  => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
+            'aprovado'  => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
+        ];
+
+        $recentes = PurchaseRequest::where('user_id', $userId)
+            ->latest()
+            ->limit(4)
+            ->get();
+
+        return view('requests.create', compact('stats', 'recentes'));
     }
 
     public function store(Request $request)
