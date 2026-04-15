@@ -11,6 +11,7 @@ class PurchaseRequest extends Model
         'user_id',
         'product_name',
         'product_code',
+        'supplier',
         'quantity',
         'reason',
         'urgency',

@@ -18,6 +18,16 @@
                        onmouseout="this.style.background='{{ request()->routeIs('requests.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('requests.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
                         Minhas Requisições
                     </a>
+                    @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.index') }}"
+                       style="color: {{ request()->routeIs('admin.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
+                              background: {{ request()->routeIs('admin.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
+                              padding:6px 14px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; margin-left:4px;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'"
+                       onmouseout="this.style.background='{{ request()->routeIs('admin.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('admin.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
+                        ⚙ Admin
+                    </a>
+                    @endif
                 </div>
             </div>
 

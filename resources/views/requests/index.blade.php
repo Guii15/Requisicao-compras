@@ -70,6 +70,7 @@
                     <tr style="background: linear-gradient(90deg, #1e3a8a, #1d4ed8);">
                         <th style="padding: 13px 16px; text-align: left; color: #ffffff; font-size: 13px; font-weight: 600; letter-spacing: 0.3px;">Vendedor</th>
                         <th style="padding: 13px 16px; text-align: left; color: #ffffff; font-size: 13px; font-weight: 600;">Produto</th>
+                        <th style="padding: 13px 16px; text-align: left; color: #ffffff; font-size: 13px; font-weight: 600;">Fornecedor</th>
                         <th style="padding: 13px 16px; text-align: center; color: #ffffff; font-size: 13px; font-weight: 600;">Qtd</th>
                         <th style="padding: 13px 16px; text-align: center; color: #ffffff; font-size: 13px; font-weight: 600;">Urgência</th>
                         <th style="padding: 13px 16px; text-align: center; color: #ffffff; font-size: 13px; font-weight: 600;">Status</th>
@@ -87,6 +88,9 @@
                                 @if($req->product_code)
                                     <span style="display: block; font-size: 12px; color: #9ca3af;">Cód: {{ $req->product_code }}</span>
                                 @endif
+                            </td>
+                            <td style="padding: 14px 16px; font-size: 14px; color: #374151;">
+                                {{ $req->supplier ?? '—' }}
                             </td>
                             <td style="padding: 14px 16px; text-align: center; font-size: 14px; color: #374151; font-weight: 600;">
                                 {{ $req->quantity }}

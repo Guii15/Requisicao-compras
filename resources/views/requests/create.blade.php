@@ -180,7 +180,7 @@
                     $labelStyle = "display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;";
                     @endphp
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;">
 
                         <div style="grid-column:1/-1;">
                             <label style="{{ $labelStyle }}">Nome do Vendedor <span style="color:#ef4444;">*</span></label>
@@ -191,24 +191,8 @@
                         </div>
 
                         <div>
-                            <label style="{{ $labelStyle }}">Nome do Produto <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="product_name" value="{{ old('product_name') }}" required
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                        </div>
-
-                        <div>
-                            <label style="{{ $labelStyle }}">Código <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                            <input type="text" name="product_code" value="{{ old('product_code') }}"
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                        </div>
-
-                        <div>
-                            <label style="{{ $labelStyle }}">Quantidade <span style="color:#ef4444;">*</span></label>
-                            <input type="number" name="quantity" min="1" value="{{ old('quantity') }}" required
+                            <label style="{{ $labelStyle }}">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                            <input type="text" name="supplier" value="{{ old('supplier') }}" placeholder="Ex: Bomvink, GPJ..."
                                    style="{{ $inputStyle }}"
                                    onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
@@ -216,8 +200,7 @@
 
                         <div>
                             <label style="{{ $labelStyle }}">Urgência <span style="color:#ef4444;">*</span></label>
-                            <select name="urgency" required
-                                    style="{{ $inputStyle }}"
+                            <select name="urgency" required style="{{ $inputStyle }}"
                                     onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                     onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
                                 <option value="">Selecione...</option>
@@ -236,14 +219,123 @@
                         </div>
 
                         <div style="grid-column:1/-1;">
-                            <label style="{{ $labelStyle }}">Justificativa <span style="color:#ef4444;">*</span></label>
-                            <textarea name="justification" rows="3" required placeholder="Descreva detalhadamente o motivo da solicitação..."
-                                      style="{{ $inputStyle }} resize:vertical; font-family:inherit;"
+                            <label style="{{ $labelStyle }}">Obs <span style="color:#9ca3af; font-weight:400; text-transform:none;">(filial 1 ou 31, etc.)</span></label>
+                            <textarea name="justification" rows="2" placeholder="Ex: Filial 31, pedido urgente..."
+                                      style="{{ $inputStyle }} resize:none; font-family:inherit;"
                                       onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                       onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">{{ old('justification') }}</textarea>
                         </div>
 
                     </div>
+
+                    {{-- Área de adicionar produto --}}
+                    <div style="margin-bottom:8px;">
+                        <label style="{{ $labelStyle }}">Produtos <span style="color:#ef4444;">*</span></label>
+                        <div style="display:grid; grid-template-columns:110px 1fr 70px auto; gap:8px; align-items:center;">
+                            <input type="text" id="inp-code" placeholder="Código"
+                                   style="{{ $inputStyle }}"
+                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
+                            <input type="text" id="inp-name" placeholder="Nome do produto"
+                                   style="{{ $inputStyle }}"
+                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'"
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault();addItem();}">
+                            <input type="number" id="inp-qty" placeholder="Qtd" min="1" value="1"
+                                   style="{{ $inputStyle }} text-align:center;"
+                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
+                            <button type="button" onclick="addItem()"
+                                    style="padding:10px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Lista de produtos adicionados --}}
+                    <div id="products-list" style="background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:20px; min-height:48px;">
+                        <div style="display:grid; grid-template-columns:110px 1fr 60px 36px; background:#05018D; padding:8px 12px;">
+                            <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Código</span>
+                            <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Produto</span>
+                            <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase; text-align:center;">Qtd</span>
+                            <span></span>
+                        </div>
+                        <div id="products-body">
+                            <div id="empty-msg" style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">
+                                Nenhum produto adicionado ainda
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Hidden inputs gerados por JS --}}
+                    <div id="hidden-inputs"></div>
+
+                    <script>
+                    let items = [];
+
+                    function addItem() {
+                        const code = document.getElementById('inp-code').value.trim();
+                        const name = document.getElementById('inp-name').value.trim();
+                        const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
+
+                        if (!name) {
+                            document.getElementById('inp-name').style.borderColor = '#ef4444';
+                            document.getElementById('inp-name').focus();
+                            return;
+                        }
+
+                        items.push({ code, name, qty });
+                        renderList();
+
+                        document.getElementById('inp-code').value = '';
+                        document.getElementById('inp-name').value = '';
+                        document.getElementById('inp-qty').value  = '1';
+                        document.getElementById('inp-code').focus();
+                    }
+
+                    function removeItem(index) {
+                        items.splice(index, 1);
+                        renderList();
+                    }
+
+                    function renderList() {
+                        const body   = document.getElementById('products-body');
+                        const hidden = document.getElementById('hidden-inputs');
+                        const empty  = document.getElementById('empty-msg');
+
+                        body.innerHTML = '';
+                        hidden.innerHTML = '';
+
+                        if (items.length === 0) {
+                            body.innerHTML = '<div id="empty-msg" style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">Nenhum produto adicionado ainda</div>';
+                            return;
+                        }
+
+                        items.forEach((item, i) => {
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
+                            row.innerHTML = `
+                                <span style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
+                                <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}</span>
+                                <span style="padding:9px 12px; font-size:13px; text-align:center; font-weight:700; color:#374151;">${item.qty}</span>
+                                <button type="button" onclick="removeItem(${i})" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 10px;">×</button>
+                            `;
+                            body.appendChild(row);
+
+                            hidden.innerHTML += `
+                                <input type="hidden" name="products[${i}][product_code]" value="${item.code}">
+                                <input type="hidden" name="products[${i}][product_name]" value="${item.name}">
+                                <input type="hidden" name="products[${i}][quantity]"     value="${item.qty}">
+                            `;
+                        });
+                    }
+
+                    document.querySelector('form').addEventListener('submit', function(e) {
+                        if (items.length === 0) {
+                            e.preventDefault();
+                            document.getElementById('inp-name').style.borderColor = '#ef4444';
+                            document.getElementById('inp-name').focus();
+                            alert('Adicione pelo menos um produto antes de enviar.');
+                        }
+                    });
+                    </script>
 
                     <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
                         <a href="{{ route('requests.index') }}"
