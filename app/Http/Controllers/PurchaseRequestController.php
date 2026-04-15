@@ -53,7 +53,7 @@ class PurchaseRequestController extends Controller
             'supplier'                => 'nullable|string|max:255',
             'urgency'                 => 'required|in:baixa,media,alta',
             'reason'                  => 'required|string|max:255',
-            'justification'           => 'nullable|string',
+            'justification'           => 'required|string|max:500',
             'products'                => 'required|array|min:1',
             'products.*.product_name' => 'required|string|max:255',
             'products.*.product_code' => 'nullable|string|max:100',
@@ -66,6 +66,7 @@ class PurchaseRequestController extends Controller
             'products.*.product_name.required' => 'Preencha o nome do produto em todos os itens.',
             'products.*.quantity.required'     => 'Preencha a quantidade em todos os itens.',
             'products.*.quantity.min'          => 'A quantidade mínima é 1.',
+            'justification.required'           => 'O campo Obs é obrigatório.',
         ]);
 
         $created = [];

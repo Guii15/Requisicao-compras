@@ -219,8 +219,8 @@
                         </div>
 
                         <div style="grid-column:1/-1;">
-                            <label style="{{ $labelStyle }}">Obs <span style="color:#9ca3af; font-weight:400; text-transform:none;">(filial 1 ou 31, etc.)</span></label>
-                            <textarea name="justification" rows="2" placeholder="Ex: Filial 31, pedido urgente..."
+                            <label style="{{ $labelStyle }}">Obs <span style="color:#ef4444;">*</span> <span style="color:#9ca3af; font-weight:400; text-transform:none;">(filial 1 ou 31, etc.)</span></label>
+                            <textarea name="justification" rows="2" placeholder="Ex: Filial 31, pedido urgente..." required
                                       style="{{ $inputStyle }} resize:none; font-family:inherit;"
                                       onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                       onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">{{ old('justification') }}</textarea>
