@@ -2,6 +2,16 @@
 
 @section('content')
 
+<style>
+.adm-mobile-cards { display: none; }
+@media (max-width: 768px) {
+    .adm-desktop-table { display: none; }
+    .adm-mobile-cards  { display: block; }
+    .adm-stats { grid-template-columns: 1fr 1fr !important; }
+    .adm-filters form { grid-template-columns: 1fr !important; }
+}
+</style>
+
 <div style="padding: 8px 0;">
 
     {{-- Cabeçalho --}}
@@ -20,7 +30,7 @@
     @endif
 
     {{-- Stats --}}
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px;">
+    <div class="adm-stats" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px;">
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; border-top:3px solid #6b7280;">
             <p style="margin:0; font-size:26px; font-weight:800; color:#374151;">{{ $stats['total'] }}</p>
             <p style="margin:4px 0 0; font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Total</p>
@@ -40,7 +50,7 @@
     </div>
 
     {{-- Filtros --}}
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div class="adm-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
         <form method="GET" action="{{ route('admin.index') }}" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end;">
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Vendedor</label>
@@ -73,8 +83,8 @@
         </form>
     </div>
 
-    {{-- Tabela --}}
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+    {{-- Tabela (desktop) --}}
+    <div class="adm-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
@@ -177,6 +187,104 @@
             </table>
         </div>
     </div>
+
+    {{-- CARDS (mobile) --}}
+    <div class="adm-mobile-cards">
+        @forelse($requests as $req)
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
+                        @if($req->product_code)
+                            <div style="font-size:12px; color:#9ca3af;">Cód: {{ $req->product_code }}</div>
+                        @endif
+                    </div>
+                    @if($req->status=='aprovado')
+                        <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Aprovado</span>
+                    @elseif($req->status=='rejeitado')
+                        <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Rejeitado</span>
+                    @else
+                        <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Pendente</span>
+                    @endif
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:12px;">
+                    <div>
+                        <span style="color:#9ca3af;">Vendedor</span>
+                        <div style="font-weight:600; color:#374151;">{{ $req->requester_name ?? '—' }}</div>
+                    </div>
+                    <div>
+                        <span style="color:#9ca3af;">Fornecedor</span>
+                        <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
+                    </div>
+                    <div>
+                        <span style="color:#9ca3af;">Quantidade</span>
+                        <div style="font-weight:700; font-size:15px; color:#374151;">{{ $req->quantity }}</div>
+                    </div>
+                    <div>
+                        <span style="color:#9ca3af;">Data</span>
+                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->format('d/m/Y') }}</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    @if($req->urgency=='alta')
+                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
+                    @elseif($req->urgency=='media')
+                        <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
+                    @else
+                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
+                    @endif
+                    <button onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
+                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
+                        Atualizar
+                    </button>
+                </div>
+
+            </div>
+
+            {{-- Modal (reutilizado) --}}
+            <div id="modal-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
+                    <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
+                    <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                    <form method="POST" action="{{ route('admin.requests.update', $req) }}">
+                        @csrf
+                        @method('PATCH')
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Status</label>
+                            <select name="status" style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                <option value="pendente"  {{ $req->status=='pendente'  ? 'selected' : '' }}>🟡 Pendente</option>
+                                <option value="aprovado"  {{ $req->status=='aprovado'  ? 'selected' : '' }}>🟢 Aprovado</option>
+                                <option value="rejeitado" {{ $req->status=='rejeitado' ? 'selected' : '' }}>🔴 Rejeitado</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                            <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
+                                      style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
+                        </div>
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <button type="button" onclick="document.getElementById('modal-{{ $req->id }}').style.display='none'"
+                                    style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <div style="text-align:center; padding:48px 16px;">
+                <p style="color:#6b7280; font-size:15px; margin:0;">Nenhuma requisição encontrada</p>
+            </div>
+        @endforelse
+    </div>
+
 </div>
 
 @endsection

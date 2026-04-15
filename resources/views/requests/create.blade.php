@@ -56,6 +56,13 @@
     flex-shrink: 0;
 }
 
+@media (max-width: 600px) {
+    .prod-add-row { grid-template-columns: 1fr 70px !important; }
+    .add-btn-full { grid-column: 1 / -1; width: 100%; }
+    .prod-list-header, .prod-list-row { grid-template-columns: 1fr 50px 36px !important; }
+    .col-code { display: none !important; }
+}
+
 @media (max-width: 768px) {
     .cr-wrapper { flex-direction: column; }
 
@@ -231,7 +238,7 @@
                     {{-- Área de adicionar produto --}}
                     <div style="margin-bottom:8px;">
                         <label style="{{ $labelStyle }}">Produtos <span style="color:#ef4444;">*</span></label>
-                        <div style="display:grid; grid-template-columns:110px 1fr 70px auto; gap:8px; align-items:center;">
+                        <div class="prod-add-row" style="display:grid; grid-template-columns:110px 1fr 70px auto; gap:8px; align-items:center;">
                             <input type="text" id="inp-code" placeholder="Código"
                                    style="{{ $inputStyle }}"
                                    onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
@@ -242,7 +249,7 @@
                             <input type="number" id="inp-qty" placeholder="Qtd" min="1" value="1"
                                    style="{{ $inputStyle }} text-align:center;"
                                    onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
-                            <button type="button" onclick="addItem()"
+                            <button type="button" onclick="addItem()" class="add-btn-full"
                                     style="padding:10px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">
                                 + Adicionar
                             </button>
@@ -251,8 +258,8 @@
 
                     {{-- Lista de produtos adicionados --}}
                     <div id="products-list" style="background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:20px; min-height:48px;">
-                        <div style="display:grid; grid-template-columns:110px 1fr 60px 36px; background:#05018D; padding:8px 12px;">
-                            <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Código</span>
+                        <div class="prod-list-header" style="display:grid; grid-template-columns:110px 1fr 60px 36px; background:#05018D; padding:8px 12px;">
+                            <span class="col-code" style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Código</span>
                             <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Produto</span>
                             <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase; text-align:center;">Qtd</span>
                             <span></span>
@@ -310,9 +317,10 @@
 
                         items.forEach((item, i) => {
                             const row = document.createElement('div');
+                            row.className = 'prod-list-row';
                             row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
                             row.innerHTML = `
-                                <span style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
+                                <span class="col-code" style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
                                 <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}</span>
                                 <span style="padding:9px 12px; font-size:13px; text-align:center; font-weight:700; color:#374151;">${item.qty}</span>
                                 <button type="button" onclick="removeItem(${i})" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 10px;">×</button>
