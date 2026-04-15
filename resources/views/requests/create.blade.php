@@ -57,7 +57,8 @@
 }
 
 @media (max-width: 600px) {
-    .prod-add-row { grid-template-columns: 1fr 70px !important; }
+    #inp-code { display: none !important; }
+    .prod-add-row { grid-template-columns: 1fr 64px !important; }
     .add-btn-full { grid-column: 1 / -1; width: 100%; }
     .prod-list-header, .prod-list-row { grid-template-columns: 1fr 50px 36px !important; }
     .col-code { display: none !important; }

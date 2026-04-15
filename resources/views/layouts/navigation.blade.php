@@ -70,6 +70,9 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden" style="background:#000050; border-top:1px solid rgba(255,255,255,0.1);">
         <div class="pt-2 pb-3 px-4">
             <a href="{{ route('requests.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px;">Minhas Requisições</a>
+            @if(Auth::user()->isAdmin())
+            <a href="{{ route('admin.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">⚙ Admin</a>
+            @endif
         </div>
         <div style="padding:12px 16px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="color:#fff; font-weight:600; font-size:15px;">{{ Auth::user()->name }}</div>
