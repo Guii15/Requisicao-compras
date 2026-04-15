@@ -43,6 +43,10 @@
                     </div>
                 </main>
             @endif
+
+            <footer style="background:#05018D; color:rgba(255,255,255,0.5); text-align:center; padding:12px 16px; font-size:12px; letter-spacing:0.3px;">
+                Desenvolvido internamente pelo setor de T.I — Binário Tecnologia
+            </footer>
         </div>
     </body>
 </html>

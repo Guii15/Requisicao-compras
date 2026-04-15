@@ -51,6 +51,11 @@
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
             </div>
             <div>
+                <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Produto</label>
+                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto"
+                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
+            </div>
+            <div>
                 <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Data inicial</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}"
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
@@ -192,6 +197,13 @@
             </div>
         @endforelse
     </div>
+
+    {{-- Paginação --}}
+    @if($requests->hasPages())
+        <div style="margin-top:20px; display:flex; justify-content:center;">
+            {{ $requests->links() }}
+        </div>
+    @endif
 
 </div>
 

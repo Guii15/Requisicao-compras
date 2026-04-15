@@ -18,6 +18,10 @@ class PurchaseRequestController extends Controller
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
         }
 
+        if ($request->filled('product_name')) {
+            $query->where('product_name', 'like', '%' . $request->product_name . '%');
+        }
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -26,7 +30,7 @@ class PurchaseRequestController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->get();
+        $requests = $query->latest()->paginate(15)->withQueryString();
 
         return view('requests.index', compact('requests'));
     }
@@ -89,7 +93,7 @@ class PurchaseRequestController extends Controller
         }
 
         if (!empty($created)) {
-            Mail::to('suporte.2@binariotecnologia.com.br')->send(new PurchaseRequestCreated($created));
+            Mail::to('compras@binariotecnologia.com.br')->send(new PurchaseRequestCreated($created));
         }
 
         $count = count($created);
