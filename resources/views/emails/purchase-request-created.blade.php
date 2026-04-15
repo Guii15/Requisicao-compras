@@ -13,10 +13,14 @@
                 <table width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #e5e7eb;">
 
                     <tr>
-                        <td style="background:#1f2937; padding:20px 24px;">
-                            <h2 style="margin:0; color:#ffffff; font-size:22px; font-weight:bold;">
+                        <td style="background:linear-gradient(90deg,#05018D,#b40000); padding:24px;">
+                            <img src="{{ asset('imagens/logo.png') }}" alt="Binário" style="max-height:40px; max-width:150px; object-fit:contain; display:block; margin-bottom:12px;">
+                            <h2 style="margin:0; color:#ffffff; font-size:20px; font-weight:bold;">
                                 Nova Requisição de Compra
                             </h2>
+                            <p style="margin:4px 0 0; color:rgba(255,255,255,0.7); font-size:13px;">
+                                Enviada por {{ $purchaseRequest->requester_name }} em {{ $purchaseRequest->created_at->format('d/m/Y \à\s H:i') }}
+                            </p>
                         </td>
                     </tr>
 
@@ -82,8 +86,8 @@
                     </tr>
 
                     <tr>
-                        <td style="background:#f3f4f6; padding:15px; text-align:center; font-size:12px; color:#6b7280;">
-                            Sistema de Requisições • Enviado automaticamente
+                        <td style="background:#f3f4f6; padding:15px; text-align:center; font-size:12px; color:#6b7280; border-top:3px solid #05018D;">
+                            Binário Tecnologia • Sistema de Requisições de Compras • Enviado automaticamente
                         </td>
                     </tr>
 

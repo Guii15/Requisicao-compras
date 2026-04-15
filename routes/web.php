@@ -5,7 +5,7 @@ use App\Http\Controllers\PurchaseRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('requests.index');
 });
 
 Route::get('/dashboard', function () {

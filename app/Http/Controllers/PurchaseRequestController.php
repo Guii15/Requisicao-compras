@@ -73,7 +73,7 @@ class PurchaseRequestController extends Controller
             'status'         => 'pendente',
         ]);
 
-        Mail::to('compras@suaempresa.com')->send(new PurchaseRequestCreated($purchaseRequest));
+        Mail::to('compras@binariotecnologia.com.br')->send(new PurchaseRequestCreated($purchaseRequest));
 
         return redirect()->route('requests.index')
             ->with('success', 'Requisição criada com sucesso!');
