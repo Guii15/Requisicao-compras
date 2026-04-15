@@ -33,36 +33,67 @@ class PurchaseRequestController extends Controller
 
     public function create()
     {
-        return view('requests.create');
+        $userId = auth()->id();
+
+        $stats = [
+            'total'    => PurchaseRequest::where('user_id', $userId)->count(),
+            'pendente' => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
+            'aprovado' => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
+        ];
+
+        $recentes = PurchaseRequest::where('user_id', $userId)->latest()->limit(4)->get();
+
+        return view('requests.create', compact('stats', 'recentes'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'requester_name' => 'required|string|max:255',
-            'product_name'   => 'required|string|max:255',
-            'product_code'   => 'nullable|string|max:100',
-            'quantity'       => 'required|integer|min:1',
-            'reason'         => 'required|string|max:255',
-            'urgency'        => 'required|in:baixa,media,alta',
-            'justification'  => 'required|string',
+        $request->validate([
+            'requester_name'          => 'required|string|max:255',
+            'supplier'                => 'nullable|string|max:255',
+            'urgency'                 => 'required|in:baixa,media,alta',
+            'reason'                  => 'required|string|max:255',
+            'justification'           => 'required|string|max:500',
+            'products'                => 'required|array|min:1',
+            'products.*.product_name' => 'required|string|max:255',
+            'products.*.product_code' => 'nullable|string|max:100',
+            'products.*.quantity'     => 'required|integer|min:1',
+        ], [
+            'requester_name.required'          => 'O nome do vendedor é obrigatório.',
+            'urgency.required'                 => 'Selecione a urgência.',
+            'reason.required'                  => 'O motivo é obrigatório.',
+            'products.required'                => 'Adicione pelo menos um produto.',
+            'products.*.product_name.required' => 'Preencha o nome do produto em todos os itens.',
+            'products.*.quantity.required'     => 'Preencha a quantidade em todos os itens.',
+            'products.*.quantity.min'          => 'A quantidade mínima é 1.',
+            'justification.required'           => 'O campo Obs é obrigatório.',
         ]);
 
-        $purchaseRequest = PurchaseRequest::create([
-            'user_id'        => Auth::id(),
-            'requester_name' => $validated['requester_name'],
-            'product_name'   => $validated['product_name'],
-            'product_code'   => $validated['product_code'] ?? null,
-            'quantity'       => $validated['quantity'],
-            'reason'         => $validated['reason'],
-            'urgency'        => $validated['urgency'],
-            'justification'  => $validated['justification'],
-            'status'         => 'pendente',
-        ]);
+        $created = [];
 
-        Mail::to('compras@suaempresa.com')->send(new PurchaseRequestCreated($purchaseRequest));
+        foreach ($request->products as $product) {
+            if (empty(trim($product['product_name'] ?? ''))) continue;
 
+            $created[] = PurchaseRequest::create([
+                'user_id'        => Auth::id(),
+                'requester_name' => $request->requester_name,
+                'supplier'       => $request->supplier,
+                'urgency'        => $request->urgency,
+                'reason'         => $request->reason,
+                'justification'  => $request->justification,
+                'product_name'   => $product['product_name'],
+                'product_code'   => $product['product_code'] ?? null,
+                'quantity'       => $product['quantity'],
+                'status'         => 'pendente',
+            ]);
+        }
+
+        if (!empty($created)) {
+            Mail::to('suporte.2@binariotecnologia.com.br')->send(new PurchaseRequestCreated($created));
+        }
+
+        $count = count($created);
         return redirect()->route('requests.index')
-            ->with('success', 'Requisição criada com sucesso!');
+            ->with('success', $count === 1 ? 'Requisição criada com sucesso!' : "{$count} requisições criadas com sucesso!");
     }
 }

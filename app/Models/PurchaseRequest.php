@@ -9,8 +9,10 @@ class PurchaseRequest extends Model
 {
     protected $fillable = [
         'user_id',
+        'requester_name',
         'product_name',
         'product_code',
+        'supplier',
         'quantity',
         'reason',
         'urgency',

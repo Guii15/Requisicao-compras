@@ -13,25 +13,28 @@ class PurchaseRequestCreated extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public PurchaseRequest $purchaseRequest;
+    public array $purchaseRequests;
+    public PurchaseRequest $first;
 
-    public function __construct(PurchaseRequest $purchaseRequest)
+    public function __construct(array $purchaseRequests)
     {
-        $this->purchaseRequest = $purchaseRequest;
+        $this->purchaseRequests = $purchaseRequests;
+        $this->first = $purchaseRequests[0];
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Nova requisição de compra',
-        );
+        $count = count($this->purchaseRequests);
+        $subject = $count === 1
+            ? "Nova requisição: {$this->first->product_name}"
+            : "Nova requisição com {$count} itens — {$this->first->requester_name}";
+
+        return new Envelope(subject: $subject);
     }
 
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.purchase-request-created',
-        );
+        return new Content(view: 'emails.purchase-request-created');
     }
 
     public function attachments(): array
