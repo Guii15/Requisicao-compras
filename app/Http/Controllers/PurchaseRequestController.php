@@ -93,7 +93,11 @@ class PurchaseRequestController extends Controller
         }
 
         if (!empty($created)) {
-            Mail::to('compras@binariotecnologia.com.br')->send(new PurchaseRequestCreated($created));
+            try {
+                Mail::to('compras@binariotecnologia.com.br')->send(new PurchaseRequestCreated($created));
+            } catch (\Exception $e) {
+                \Log::error('Falha ao enviar e-mail de requisição: ' . $e->getMessage());
+            }
         }
 
         $count = count($created);
