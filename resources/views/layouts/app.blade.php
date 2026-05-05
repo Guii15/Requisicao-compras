@@ -19,7 +19,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+        <div style="min-height:100vh; display:flex; flex-direction:column;" class="bg-gray-100">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -33,11 +33,11 @@
 
             <!-- Page Content -->
             @if(View::hasSection('fullcontent'))
-                <main>
+                <main style="flex:1;">
                     @yield('fullcontent')
                 </main>
             @else
-                <main class="py-6">
+                <main class="py-6" style="flex:1;">
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         @yield('content')
                     </div>
