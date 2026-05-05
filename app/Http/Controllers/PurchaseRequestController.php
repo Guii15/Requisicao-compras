@@ -94,9 +94,9 @@ class PurchaseRequestController extends Controller
 
         if (!empty($created)) {
             try {
-                Mail::to('compras@binariotecnologia.com.br')->send(new PurchaseRequestCreated($created));
+                Mail::to('compras@binariotecnologia.com.br')->queue(new PurchaseRequestCreated($created));
             } catch (\Exception $e) {
-                \Log::error('Falha ao enviar e-mail de requisição: ' . $e->getMessage());
+                \Log::error('Falha ao enfileirar e-mail de requisição: ' . $e->getMessage());
             }
         }
 
