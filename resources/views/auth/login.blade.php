@@ -53,9 +53,5 @@
             Entrar
         </button>
 
-        <p style="text-align:center; margin-top:20px; font-size:13px; color:#9ca3af;">
-            Não tem conta?
-            <a href="{{ route('register') }}" style="color:#05018D; font-weight:700; text-decoration:none;">Cadastre-se</a>
-        </p>
     </form>
 </x-guest-layout>

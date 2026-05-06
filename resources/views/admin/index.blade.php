@@ -15,11 +15,26 @@
 <div style="padding: 8px 0;">
 
     {{-- Cabeçalho --}}
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <div>
             <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Painel Administrativo</h1>
             <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Gerencie todas as requisições de compra</p>
         </div>
+    </div>
+
+    {{-- Abas --}}
+    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+        <a href="{{ route('admin.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:#05018D; color:#fff; border:2px solid #05018D; border-bottom:2px solid #05018D;">
+            Requisições
+        </a>
+        <a href="{{ route('admin.users.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
+            Usuários
+        </a>
     </div>
 
     {{-- Mensagem de sucesso --}}

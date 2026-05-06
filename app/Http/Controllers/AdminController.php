@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PurchaseRequestApproved;
 
@@ -67,5 +69,47 @@ class AdminController extends Controller
         }
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
+    }
+
+    public function users()
+    {
+        $users = User::orderBy('name')->get();
+        return view('admin.users', compact('users'));
+    }
+
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name'                  => 'required|string|max:255',
+            'email'                 => 'required|email|unique:users,email',
+            'password'              => 'required|string|min:8|confirmed',
+            'is_admin'              => 'nullable|boolean',
+        ], [
+            'name.required'         => 'O nome é obrigatório.',
+            'email.required'        => 'O e-mail é obrigatório.',
+            'email.unique'          => 'Já existe um usuário com este e-mail.',
+            'password.required'     => 'A senha é obrigatória.',
+            'password.min'          => 'A senha deve ter pelo menos 8 caracteres.',
+            'password.confirmed'    => 'As senhas não coincidem.',
+        ]);
+
+        User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'is_admin' => $request->boolean('is_admin'),
+        ]);
+
+        return back()->with('success', 'Usuário criado com sucesso!');
+    }
+
+    public function destroyUser(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Você não pode excluir sua própria conta.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'Usuário removido com sucesso!');
     }
 }
