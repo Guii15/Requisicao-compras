@@ -53,7 +53,7 @@
                         <th style="padding:11px 16px; text-align:left; color:#fff; font-size:12px; font-weight:600;">Nome</th>
                         <th style="padding:11px 16px; text-align:left; color:#fff; font-size:12px; font-weight:600;">E-mail</th>
                         <th style="padding:11px 16px; text-align:center; color:#fff; font-size:12px; font-weight:600;">Perfil</th>
-                        <th style="padding:11px 16px; text-align:center; color:#fff; font-size:12px; font-weight:600;">Ação</th>
+                        <th style="padding:11px 16px; text-align:center; color:#fff; font-size:12px; font-weight:600;" colspan="2">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -74,6 +74,13 @@
                                 @endif
                             </td>
                             <td style="padding:12px 16px; text-align:center;">
+                                <button onclick="document.getElementById('modal-senha-{{ $u->id }}').style.display='flex'"
+                                        style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
+                                        onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                    Senha
+                                </button>
+                            </td>
+                            <td style="padding:12px 16px; text-align:center;">
                                 @if($u->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $u) }}"
                                           onsubmit="return confirm('Tem certeza que deseja remover {{ addslashes($u->name) }}?')">
@@ -90,6 +97,38 @@
                                 @endif
                             </td>
                         </tr>
+
+                        {{-- Modal redefinir senha --}}
+                        <div id="modal-senha-{{ $u->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px;">
+                                <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Redefinir Senha</h3>
+                                <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $u->name }}</p>
+                                <form method="POST" action="{{ route('admin.users.resetPassword', $u) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div style="margin-bottom:14px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Nova senha</label>
+                                        <input type="password" name="password" placeholder="Mínimo 8 caracteres"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+                                    <div style="margin-bottom:20px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Confirmar senha</label>
+                                        <input type="password" name="password_confirmation" placeholder="Repita a nova senha"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                        <button type="button" onclick="document.getElementById('modal-senha-{{ $u->id }}').style.display='none'"
+                                                style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                            Cancelar
+                                        </button>
+                                        <button type="submit"
+                                                style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#1d4ed8); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                            Salvar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     @empty
                         <tr>
                             <td colspan="4" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:14px;">

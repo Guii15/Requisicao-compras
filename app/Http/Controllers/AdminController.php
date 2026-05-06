@@ -112,4 +112,19 @@ class AdminController extends Controller
         $user->delete();
         return back()->with('success', 'Usuário removido com sucesso!');
     }
+
+    public function resetPassword(Request $request, User $user)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'password.required'  => 'A nova senha é obrigatória.',
+            'password.min'       => 'A senha deve ter pelo menos 8 caracteres.',
+            'password.confirmed' => 'As senhas não coincidem.',
+        ]);
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        return back()->with('success', "Senha de {$user->name} redefinida com sucesso!");
+    }
 }

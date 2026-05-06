@@ -31,6 +31,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
     Route::post('/usuarios', [AdminController::class, 'storeUser'])->name('users.store');
     Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+    Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->name('users.resetPassword');
 });
 
 require __DIR__.'/auth.php';
