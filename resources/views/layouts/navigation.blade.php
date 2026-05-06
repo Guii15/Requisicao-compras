@@ -31,7 +31,28 @@
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6" style="gap:12px;">
+
+                <button id="darkToggle" onclick="toggleDark()" title="Alternar modo escuro"
+                        style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:7px 10px; cursor:pointer; color:#fff; display:flex; align-items:center;"
+                        onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span id="darkIcon">🌙</span>
+                </button>
+                <script>
+                function toggleDark() {
+                    const html = document.documentElement;
+                    const isDark = html.classList.toggle('dark');
+                    localStorage.setItem('darkMode', isDark ? '1' : '0');
+                    document.getElementById('darkIcon').textContent = isDark ? '☀️' : '🌙';
+                }
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (localStorage.getItem('darkMode') === '1') {
+                        document.getElementById('darkIcon').textContent = '☀️';
+                    }
+                });
+                </script>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:#ffffff; font-size:14px; font-weight:500; cursor:pointer;"
