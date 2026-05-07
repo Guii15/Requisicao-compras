@@ -85,6 +85,7 @@
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Urgência</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
+                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,6 +119,12 @@
                                 @endif
                             </td>
                             <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y') }}</td>
+                            <td style="padding:14px 16px; text-align:center;">
+                                <a href="{{ route('requests.export', $req) }}" target="_blank"
+                                   style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
+                                    Exportar
+                                </a>
+                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -174,19 +181,25 @@
                     </div>
                 </div>
 
-                {{-- Rodapé do card: urgência --}}
-                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:12px; color:#9ca3af;">Urgência:</span>
-                    @if($req->urgency=='alta')
-                        <span style="background:#fee2e2; color:#dc2626; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
-                    @elseif($req->urgency=='media')
-                        <span style="background:#fef3c7; color:#d97706; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
-                    @else
-                        <span style="background:#dcfce7; color:#16a34a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
-                    @endif
-                    @if($req->admin_note)
-                        <span style="margin-left:auto; font-size:12px; color:#6b7280; font-style:italic;">{{ $req->admin_note }}</span>
-                    @endif
+                {{-- Rodapé do card: urgência + exportar --}}
+                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:12px; color:#9ca3af;">Urgência:</span>
+                        @if($req->urgency=='alta')
+                            <span style="background:#fee2e2; color:#dc2626; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
+                        @elseif($req->urgency=='media')
+                            <span style="background:#fef3c7; color:#d97706; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
+                        @else
+                            <span style="background:#dcfce7; color:#16a34a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
+                        @endif
+                        @if($req->admin_note)
+                            <span style="font-size:12px; color:#6b7280; font-style:italic;">{{ $req->admin_note }}</span>
+                        @endif
+                    </div>
+                    <a href="{{ route('requests.export', $req) }}" target="_blank"
+                       style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
+                        Exportar
+                    </a>
                 </div>
 
             </div>

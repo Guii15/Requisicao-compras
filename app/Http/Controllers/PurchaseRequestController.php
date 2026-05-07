@@ -7,6 +7,7 @@ use App\Models\PurchaseRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PurchaseRequestCreated;
+use App\Http\Controllers\AdminController;
 
 class PurchaseRequestController extends Controller
 {
@@ -48,6 +49,16 @@ class PurchaseRequestController extends Controller
         $recentes = PurchaseRequest::where('user_id', $userId)->latest()->limit(4)->get();
 
         return view('requests.create', compact('stats', 'recentes'));
+    }
+
+    public function export(PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $waLink = "https://wa.me/?text=" . rawurlencode(AdminController::buildWaText($purchaseRequest));
+        return view('admin.export', ['req' => $purchaseRequest, 'waLink' => $waLink]);
     }
 
     public function store(Request $request)

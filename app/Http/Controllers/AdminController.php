@@ -113,24 +113,26 @@ class AdminController extends Controller
         return back()->with('success', 'Usuário removido com sucesso!');
     }
 
+    public static function buildWaText(PurchaseRequest $req): string
+    {
+        $urgencyLabel = ['baixa' => 'Baixa', 'media' => 'Media', 'alta' => 'Alta'][$req->urgency] ?? ucfirst($req->urgency);
+
+        return "*REQUISICAO DE COMPRA #" . str_pad($req->id, 5, '0', STR_PAD_LEFT) . "*\n"
+            . "Data: " . $req->created_at->format('d/m/Y') . "\n"
+            . "Vendedor: " . $req->requester_name . "\n"
+            . "Fornecedor: " . ($req->supplier ?: '-') . "\n"
+            . "Urgencia: " . $urgencyLabel . "\n\n"
+            . "*PRODUTO:*\n"
+            . "- " . strtoupper($req->product_name)
+            . ($req->product_code ? " (" . $req->product_code . ")" : "")
+            . " - Qtd: " . number_format($req->quantity, 0, ',', '.') . "\n\n"
+            . "*Motivo:* " . $req->reason . "\n"
+            . "*Obs:* " . $req->justification;
+    }
+
     public function export(PurchaseRequest $purchaseRequest)
     {
-        $urgencyLabel = ['baixa' => 'Baixa', 'media' => 'Média', 'alta' => 'Alta'][$purchaseRequest->urgency] ?? ucfirst($purchaseRequest->urgency);
-
-        $waText = "*REQUISIÇÃO DE COMPRA #" . str_pad($purchaseRequest->id, 5, '0', STR_PAD_LEFT) . "*\n"
-            . "📅 Data: " . $purchaseRequest->created_at->format('d/m/Y') . "\n"
-            . "👤 Vendedor: " . $purchaseRequest->requester_name . "\n"
-            . "🏢 Fornecedor: " . ($purchaseRequest->supplier ?: '—') . "\n"
-            . "⚡ Urgência: " . $urgencyLabel . "\n\n"
-            . "*PRODUTO:*\n"
-            . "• " . strtoupper($purchaseRequest->product_name)
-            . ($purchaseRequest->product_code ? " (" . $purchaseRequest->product_code . ")" : "")
-            . " — Qtd: " . number_format($purchaseRequest->quantity, 0, ',', '.') . "\n\n"
-            . "*Motivo:* " . $purchaseRequest->reason . "\n"
-            . "*Obs:* " . $purchaseRequest->justification;
-
-        $waLink = "https://wa.me/?text=" . rawurlencode($waText);
-
+        $waLink = "https://wa.me/?text=" . rawurlencode(self::buildWaText($purchaseRequest));
         return view('admin.export', ['req' => $purchaseRequest, 'waLink' => $waLink]);
     }
 
