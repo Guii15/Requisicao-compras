@@ -251,7 +251,7 @@
                     @else
                         <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
                     @endif
-                    <button onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
+                    <button onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='flex'"
                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                         Atualizar
                     </button>
@@ -259,8 +259,8 @@
 
             </div>
 
-            {{-- Modal (reutilizado) --}}
-            <div id="modal-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            {{-- Modal mobile --}}
+            <div id="modal-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
@@ -281,7 +281,7 @@
                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
                         </div>
                         <div style="display:flex; gap:10px; justify-content:flex-end;">
-                            <button type="button" onclick="document.getElementById('modal-{{ $req->id }}').style.display='none'"
+                            <button type="button" onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
                             </button>
