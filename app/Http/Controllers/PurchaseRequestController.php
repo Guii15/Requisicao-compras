@@ -105,7 +105,7 @@ class PurchaseRequestController extends Controller
 
         if (!empty($created)) {
             try {
-                Mail::to(env('COMPRAS_EMAIL'))->queue(new PurchaseRequestCreated($created));
+                Mail::to(env('COMPRAS_EMAIL'))->send(new PurchaseRequestCreated($created));
             } catch (\Exception $e) {
                 \Log::error('Falha ao enfileirar e-mail de requisição: ' . $e->getMessage());
             }

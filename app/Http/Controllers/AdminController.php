@@ -61,7 +61,7 @@ class AdminController extends Controller
             $destinatarios = array_filter([env('ENTRADA_EMAIL'), env('ENTRADA_EMAIL_2')]);
             if (!empty($destinatarios)) {
                 try {
-                    Mail::to($destinatarios)->queue(new PurchaseRequestApproved($purchaseRequest));
+                    Mail::to($destinatarios)->send(new PurchaseRequestApproved($purchaseRequest));
                 } catch (\Exception $e) {
                     \Log::error('Falha ao enfileirar e-mail de aprovação: ' . $e->getMessage());
                 }
