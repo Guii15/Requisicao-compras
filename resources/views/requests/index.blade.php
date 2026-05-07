@@ -117,6 +117,14 @@
                                 @else
                                     <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Pendente</span>
                                 @endif
+                                @if($req->admin_note)
+                                    <div style="margin-top:5px;">
+                                        <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
+                                                style="background:none; border:none; color:#6b7280; font-size:11px; cursor:pointer; text-decoration:underline; padding:0;">
+                                            Ver obs.
+                                        </button>
+                                    </div>
+                                @endif
                             </td>
                             <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y') }}</td>
                             <td style="padding:14px 16px; text-align:center;">
@@ -128,7 +136,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding:48px 16px; text-align:center;">
+                            <td colspan="8" style="padding:48px 16px; text-align:center;">
                                 <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
                                 <p style="color:#9ca3af; font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
                             </td>
@@ -193,7 +201,10 @@
                             <span style="background:#dcfce7; color:#16a34a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
                         @endif
                         @if($req->admin_note)
-                            <span style="font-size:12px; color:#6b7280; font-style:italic;">{{ $req->admin_note }}</span>
+                            <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
+                                    style="background:none; border:none; color:#6b7280; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; font-style:italic;">
+                                Ver obs.
+                            </button>
                         @endif
                     </div>
                     <a href="{{ route('requests.export', $req) }}" target="_blank"
@@ -219,5 +230,26 @@
     @endif
 
 </div>
+
+{{-- Modais de observação do compras --}}
+@foreach($requests as $req)
+    @if($req->admin_note)
+        <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
+                <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
+                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px;">
+                    {{ $req->admin_note }}
+                </div>
+                <div style="text-align:right;">
+                    <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
+                            style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+@endforeach
 
 @endsection
