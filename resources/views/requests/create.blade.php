@@ -239,7 +239,7 @@
                     {{-- Área de adicionar produto --}}
                     <div style="margin-bottom:8px;">
                         <label style="{{ $labelStyle }}">Produtos <span style="color:#ef4444;">*</span></label>
-                        <div class="prod-add-row" style="display:grid; grid-template-columns:110px 1fr 70px auto; gap:8px; align-items:center;">
+                        <div class="prod-add-row" style="display:grid; grid-template-columns:110px 1fr 90px auto; gap:8px; align-items:center;">
                             <input type="text" id="inp-code" placeholder="Código"
                                    style="{{ $inputStyle }}"
                                    onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
