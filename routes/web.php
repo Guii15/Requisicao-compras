@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::patch('/requisicoes/{purchaseRequest}', [AdminController::class, 'update'])->name('requests.update');
+    Route::get('/requisicoes/{purchaseRequest}/exportar', [AdminController::class, 'export'])->name('requests.export');
 
     Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
     Route::post('/usuarios', [AdminController::class, 'storeUser'])->name('users.store');

@@ -113,6 +113,27 @@ class AdminController extends Controller
         return back()->with('success', 'Usuário removido com sucesso!');
     }
 
+    public function export(PurchaseRequest $purchaseRequest)
+    {
+        $urgencyLabel = ['baixa' => 'Baixa', 'media' => 'Média', 'alta' => 'Alta'][$purchaseRequest->urgency] ?? ucfirst($purchaseRequest->urgency);
+
+        $waText = "*REQUISIÇÃO DE COMPRA #" . str_pad($purchaseRequest->id, 5, '0', STR_PAD_LEFT) . "*\n"
+            . "📅 Data: " . $purchaseRequest->created_at->format('d/m/Y') . "\n"
+            . "👤 Vendedor: " . $purchaseRequest->requester_name . "\n"
+            . "🏢 Fornecedor: " . ($purchaseRequest->supplier ?: '—') . "\n"
+            . "⚡ Urgência: " . $urgencyLabel . "\n\n"
+            . "*PRODUTO:*\n"
+            . "• " . strtoupper($purchaseRequest->product_name)
+            . ($purchaseRequest->product_code ? " (" . $purchaseRequest->product_code . ")" : "")
+            . " — Qtd: " . number_format($purchaseRequest->quantity, 0, ',', '.') . "\n\n"
+            . "*Motivo:* " . $purchaseRequest->reason . "\n"
+            . "*Obs:* " . $purchaseRequest->justification;
+
+        $waLink = "https://wa.me/?text=" . rawurlencode($waText);
+
+        return view('admin.export', ['req' => $purchaseRequest, 'waLink' => $waLink]);
+    }
+
     public function resetPassword(Request $request, User $user)
     {
         $request->validate([

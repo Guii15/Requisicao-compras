@@ -146,10 +146,16 @@
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y') }}</td>
                             <td style="padding:12px 16px; text-align:center;">
-                                <button onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
-                                        style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
-                                    Atualizar
-                                </button>
+                                <div style="display:flex; gap:6px; justify-content:center;">
+                                    <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
+                                       style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
+                                        Exportar
+                                    </a>
+                                    <button onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
+                                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        Atualizar
+                                    </button>
+                                </div>
                             </td>
                         </tr>
 
@@ -251,10 +257,16 @@
                     @else
                         <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
                     @endif
-                    <button onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='flex'"
-                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
-                        Atualizar
-                    </button>
+                    <div style="display:flex; gap:6px;">
+                        <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
+                           style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:8px 12px; font-size:13px; font-weight:600; text-decoration:none;">
+                            Exportar
+                        </a>
+                        <button onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='flex'"
+                                style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
+                            Atualizar
+                        </button>
+                    </div>
                 </div>
 
             </div>
