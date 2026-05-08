@@ -144,7 +144,7 @@
                                     <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Pendente</span>
                                 @endif
                             </td>
-                            <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y') }}</td>
+                            <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y H:i') }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 <div style="display:flex; gap:6px; justify-content:center;">
                                     <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
@@ -245,7 +245,7 @@
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Data</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->format('d/m/Y') }}</div>
+                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->format('d/m/Y H:i') }}</div>
                     </div>
                 </div>
 

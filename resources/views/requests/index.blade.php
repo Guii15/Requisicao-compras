@@ -126,7 +126,7 @@
                                     </div>
                                 @endif
                             </td>
-                            <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y') }}</td>
+                            <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->format('d/m/Y H:i') }}</td>
                             <td style="padding:14px 16px; text-align:center;">
                                 <a href="{{ route('requests.export', $req) }}" target="_blank"
                                    style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
@@ -185,7 +185,7 @@
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Data</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->format('d/m/Y') }}</div>
+                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->format('d/m/Y H:i') }}</div>
                     </div>
                 </div>
 

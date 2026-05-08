@@ -164,7 +164,7 @@
             </div>
             <div style="text-align:right;">
                 <div style="font-size:22px; font-weight:800; color:#374151;">#{{ str_pad($req->id, 5, '0', STR_PAD_LEFT) }}</div>
-                <div style="font-size:13px; color:#9ca3af; margin-top:2px;">{{ $req->created_at->format('d/m/Y') }}</div>
+                <div style="font-size:13px; color:#9ca3af; margin-top:2px;">{{ $req->created_at->format('d/m/Y H:i') }}</div>
             </div>
         </div>
 
@@ -189,7 +189,7 @@
             </div>
             <div class="info-box">
                 <div class="info-label">Data do Pedido</div>
-                <div class="info-value">{{ $req->created_at->format('d/m/Y') }}</div>
+                <div class="info-value">{{ $req->created_at->format('d/m/Y H:i') }}</div>
             </div>
         </div>
 
