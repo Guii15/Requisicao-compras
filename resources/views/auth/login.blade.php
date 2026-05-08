@@ -2,35 +2,34 @@
 
 <style>
 .auth-input {
-    width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14);
-    border-radius:10px; padding:11px 14px; font-size:14px; color:#f5f5f7;
-    font-family:inherit; outline:none; transition:border-color 0.2s,box-shadow 0.2s;
+    width:100%; background:var(--g-input); border:1px solid var(--g-input-border);
+    border-radius:10px; padding:11px 14px; font-size:14px; color:var(--g-input-text);
+    font-family:inherit; outline:none; transition:border-color 0.2s,box-shadow 0.2s,background 0.3s;
 }
-.auth-input:focus { border-color:#0071e3; box-shadow:0 0 0 3px rgba(0,113,227,0.2); }
-.auth-input::placeholder { color:rgba(245,245,247,0.3); }
+.auth-input:focus { border-color:var(--g-accent); box-shadow:0 0 0 3px rgba(0,113,227,0.2); }
+.auth-input::placeholder { color:var(--g-input-placeholder); }
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus,
 .auth-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px #111114 inset !important;
-    -webkit-text-fill-color: #f5f5f7 !important;
-    caret-color: #f5f5f7;
-    border-color: rgba(255,255,255,0.14) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--g-autofill) inset !important;
+    -webkit-text-fill-color: var(--g-input-text) !important;
+    caret-color: var(--g-input-text);
     transition: background-color 5000s ease-in-out 0s;
 }
 .auth-label {
-    display:block; font-size:11px; font-weight:700; color:rgba(245,245,247,0.45);
+    display:block; font-size:11px; font-weight:700; color:var(--g-label);
     margin-bottom:7px; text-transform:uppercase; letter-spacing:0.6px;
 }
 </style>
 
-<h2 style="font-size:22px; font-weight:700; color:#f5f5f7; margin:0 0 4px; letter-spacing:-0.3px;">Bem-vindo!</h2>
-<p style="font-size:13px; color:rgba(245,245,247,0.4); margin:0 0 28px;">Faça login para acessar o sistema</p>
+<h2 style="font-size:22px; font-weight:700; color:var(--g-text); margin:0 0 4px; letter-spacing:-0.3px;">Bem-vindo!</h2>
+<p style="font-size:13px; color:var(--g-text2); margin:0 0 28px;">Faça login para acessar o sistema</p>
 
 <x-auth-session-status class="mb-4" :status="session('status')" />
 
 @if ($errors->any())
-    <div style="background:rgba(255,69,58,0.12); color:#ff6b6b; border:1px solid rgba(255,69,58,0.25); padding:12px 15px; border-radius:10px; margin-bottom:20px; font-size:13px;">
+    <div style="background:var(--g-danger-bg); color:var(--g-danger); border:1px solid var(--g-danger-border); padding:12px 15px; border-radius:10px; margin-bottom:20px; font-size:13px;">
         <ul style="margin:0; padding-left:18px;">
             @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
         </ul>
@@ -41,22 +40,22 @@
     @csrf
 
     <div style="margin-bottom:18px;">
-        <label class="auth-label">E-mail <span style="color:#ff453a;">*</span></label>
+        <label class="auth-label">E-mail <span style="color:var(--g-danger);">*</span></label>
         <input type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="auth-input">
     </div>
 
     <div style="margin-bottom:18px;">
-        <label class="auth-label">Senha <span style="color:#ff453a;">*</span></label>
+        <label class="auth-label">Senha <span style="color:var(--g-danger);">*</span></label>
         <input type="password" name="password" required autocomplete="current-password" class="auth-input">
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:26px;">
-        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(245,245,247,0.45); cursor:pointer;">
-            <input type="checkbox" name="remember" style="width:15px; height:15px; accent-color:#0071e3;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--g-text2); cursor:pointer;">
+            <input type="checkbox" name="remember" style="width:15px; height:15px; accent-color:var(--g-accent); cursor:pointer;">
             Lembrar de mim
         </label>
         @if (Route::has('password.request'))
-            <a href="{{ route('password.request') }}" style="font-size:13px; color:#0071e3; text-decoration:none; font-weight:500;">
+            <a href="{{ route('password.request') }}" style="font-size:13px; color:var(--g-accent); text-decoration:none; font-weight:500;">
                 Esqueceu a senha?
             </a>
         @endif
