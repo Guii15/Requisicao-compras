@@ -372,7 +372,7 @@
                     <div style="font-size:13px; font-weight:600; color:#1e3a8a; margin-bottom:6px;">{{ $req->product_name }}</div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                         <span style="font-size:12px; color:#6b7280;">Qtd: <strong>{{ $req->quantity }}</strong></span>
-                        <span style="font-size:11px; color:#9ca3af;">{{ $req->created_at->format('d/m/Y H:i') }}</span>
+                        <span style="font-size:11px; color:#9ca3af;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
                     </div>
                     @if($req->status=='aprovado')
                         <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">Aprovado</span>
