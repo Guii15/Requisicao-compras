@@ -1,109 +1,94 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name', 'Requisição de Compras') }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('imagens/favicon.png') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('imagens/favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #000;
+        color: #f5f5f7;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+    }
+    .auth-bg {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,113,227,0.18) 0%, transparent 60%),
+                    radial-gradient(ellipse 60% 50% at 85% 110%, rgba(5,1,141,0.15) 0%, transparent 60%);
+    }
+    @keyframes floatUp {
+        0%   { transform: translateY(100vh) scale(0.8); opacity: 0; }
+        10%  { opacity: 0.6; }
+        90%  { opacity: 0.4; }
+        100% { transform: translateY(-20px) scale(1); opacity: 0; }
+    }
+    .auth-card {
+        position: relative; z-index: 1;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 20px;
+        padding: 44px 40px;
+        width: 100%;
+        max-width: 420px;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    @media (max-width: 480px) {
+        .auth-card { padding: 32px 24px; border-radius: 16px; }
+    }
+    </style>
+</head>
+<body>
+    <div class="auth-bg"></div>
+    <div id="auth-particles" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;"></div>
 
-        <title>{{ config('app.name', 'Requisição de Compras') }}</title>
-
-        <!-- Favicon -->
-        <link rel="icon" type="image/png" href="{{ asset('imagens/favicon.png') }}">
-        <link rel="shortcut icon" type="image/x-icon" href="{{ asset('imagens/favicon.ico') }}">
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-        <style>
-        * { box-sizing: border-box; }
-        .auth-wrapper {
-            min-height: 100vh;
-            display: flex;
-        }
-        .auth-left {
-            width: 42%;
-            background: #05018D;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 48px;
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-        .auth-right {
-            flex: 1;
-            background: #f8fafc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 32px;
-            overflow-y: auto;
-        }
-        .auth-card {
-            width: 100%;
-            max-width: 420px;
-        }
-        @media (max-width: 768px) {
-            .auth-wrapper { flex-direction: column; }
-            .auth-left {
-                width: 100%;
-                padding: 24px 20px;
-                flex-direction: row;
-                justify-content: center;
-                align-items: center;
-                gap: 16px;
-            }
-            .auth-left-text { display: none; }
-            .auth-left img { max-width: 120px !important; max-height: 50px !important; margin: 0 !important; }
-            .auth-circles { display: none; }
-            .auth-right { padding: 28px 16px; }
-        }
-        </style>
-    </head>
-    <body style="margin:0; font-family:'Figtree',sans-serif;">
-        <div class="auth-wrapper">
-
-            {{-- Painel esquerdo --}}
-            <div class="auth-left">
-                <div class="auth-circles" style="position:absolute; bottom:-80px; right:-80px; width:300px; height:300px; border-radius:50%; background:rgba(180,0,0,0.18); pointer-events:none;"></div>
-                <div class="auth-circles" style="position:absolute; top:-60px; left:-60px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,0.04); pointer-events:none;"></div>
-
-                <div style="position:relative; z-index:1; text-align:center; color:#fff; max-width:280px;">
-                    @if(file_exists(public_path('imagens/logo.png')))
-                        <img src="{{ asset('imagens/logo.png') }}" alt="Binário" style="max-width:190px; max-height:85px; object-fit:contain; margin:0 auto 28px; display:block;">
-                    @elseif(file_exists(public_path('images/logo.png')))
-                        <img src="{{ asset('images/logo.png') }}" alt="Binário" style="max-width:190px; max-height:85px; object-fit:contain; margin:0 auto 28px; display:block;">
-                    @else
-                        <div style="width:64px; height:64px; background:rgba(255,255,255,0.12); border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                    @endif
-
-                    <div class="auth-left-text">
-                        <h1 style="font-size:26px; font-weight:800; margin:0 0 10px; letter-spacing:-0.5px;">Requisição<br>de Compras</h1>
-                        <p style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.7; margin:0 0 28px;">
-                            Gerencie suas solicitações de compra de forma rápida e organizada.
-                        </p>
-                        <div style="width:48px; height:3px; background:linear-gradient(90deg,#fff,#b40000); border-radius:2px; margin:0 auto;"></div>
-                    </div>
+    <div style="position:relative; z-index:1; width:100%; max-width:420px;">
+        <div style="text-align:center; margin-bottom:32px;">
+            @if(file_exists(public_path('imagens/logo.png')))
+                <img src="{{ asset('imagens/logo.png') }}" alt="Binário" style="max-width:160px; max-height:68px; object-fit:contain; margin-bottom:16px;">
+            @else
+                <div style="font-size:30px; font-weight:800; color:#f5f5f7; letter-spacing:-0.5px; margin-bottom:8px;">
+                    Binário<span style="color:#0071e3;">.</span>
                 </div>
-            </div>
-
-            {{-- Painel direito (formulário) --}}
-            <div class="auth-right">
-                <div class="auth-card">
-                    {{ $slot }}
-                </div>
-            </div>
-
+            @endif
+            <p style="font-size:13px; color:rgba(245,245,247,0.4); margin:0;">Requisição de Compras</p>
         </div>
-    </body>
+
+        <div class="auth-card">
+            {{ $slot }}
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var c = document.getElementById('auth-particles');
+        var colors = ['#0071e3','#05018D','#1d4ed8','#3b82f6','#60a5fa'];
+        for (var i = 0; i < 20; i++) {
+            var p = document.createElement('div');
+            var size = Math.random() * 5 + 2;
+            var x = Math.random() * 100;
+            var delay = Math.random() * 12;
+            var dur = 8 + Math.random() * 10;
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            p.style.cssText = 'position:absolute;width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+color+';left:'+x+'%;bottom:-10px;opacity:0;animation:floatUp '+dur+'s linear '+delay+'s infinite;';
+            c.appendChild(p);
+        }
+    })();
+    </script>
+</body>
 </html>

@@ -1,57 +1,61 @@
 <x-guest-layout>
-    @php
-    $inputStyle = "width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 13px; font-size:14px; color:#374151; box-sizing:border-box; outline:none; background:#fff; font-family:inherit;";
-    $labelStyle = "display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;";
-    @endphp
 
-    <h2 style="font-size:22px; font-weight:800; color:#05018D; margin:0 0 4px;">Bem-vindo!</h2>
-    <p style="font-size:13px; color:#9ca3af; margin:0 0 28px;">Faça login para acessar o sistema</p>
+<style>
+.auth-input {
+    width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14);
+    border-radius:10px; padding:11px 14px; font-size:14px; color:#f5f5f7;
+    font-family:inherit; outline:none; transition:border-color 0.2s,box-shadow 0.2s;
+}
+.auth-input:focus { border-color:#0071e3; box-shadow:0 0 0 3px rgba(0,113,227,0.2); }
+.auth-input::placeholder { color:rgba(245,245,247,0.3); }
+.auth-label {
+    display:block; font-size:11px; font-weight:700; color:rgba(245,245,247,0.45);
+    margin-bottom:7px; text-transform:uppercase; letter-spacing:0.6px;
+}
+</style>
 
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<h2 style="font-size:22px; font-weight:700; color:#f5f5f7; margin:0 0 4px; letter-spacing:-0.3px;">Bem-vindo!</h2>
+<p style="font-size:13px; color:rgba(245,245,247,0.4); margin:0 0 28px;">Faça login para acessar o sistema</p>
 
-    @if ($errors->any())
-        <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:11px 15px; border-radius:8px; margin-bottom:18px; font-size:13px;">
-            <ul style="margin:0; padding-left:18px;">
-                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
-        </div>
-    @endif
+<x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+@if ($errors->any())
+    <div style="background:rgba(255,69,58,0.12); color:#ff6b6b; border:1px solid rgba(255,69,58,0.25); padding:12px 15px; border-radius:10px; margin-bottom:20px; font-size:13px;">
+        <ul style="margin:0; padding-left:18px;">
+            @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+        </ul>
+    </div>
+@endif
 
-        <div style="margin-bottom:16px;">
-            <label style="{{ $labelStyle }}">E-mail <span style="color:#ef4444;">*</span></label>
-            <input type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                   style="{{ $inputStyle }}"
-                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-        </div>
+<form method="POST" action="{{ route('login') }}">
+    @csrf
 
-        <div style="margin-bottom:16px;">
-            <label style="{{ $labelStyle }}">Senha <span style="color:#ef4444;">*</span></label>
-            <input type="password" name="password" required autocomplete="current-password"
-                   style="{{ $inputStyle }}"
-                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-        </div>
+    <div style="margin-bottom:18px;">
+        <label class="auth-label">E-mail <span style="color:#ff453a;">*</span></label>
+        <input type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="auth-input">
+    </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#6b7280; cursor:pointer;">
-                <input type="checkbox" name="remember" style="width:15px; height:15px; accent-color:#05018D;">
-                Lembrar de mim
-            </label>
-            @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" style="font-size:13px; color:#05018D; text-decoration:none; font-weight:600;">
-                    Esqueceu a senha?
-                </a>
-            @endif
-        </div>
+    <div style="margin-bottom:18px;">
+        <label class="auth-label">Senha <span style="color:#ff453a;">*</span></label>
+        <input type="password" name="password" required autocomplete="current-password" class="auth-input">
+    </div>
 
-        <button type="submit"
-                style="width:100%; padding:11px; border-radius:8px; background:linear-gradient(90deg, #05018D 0%, #b40000 100%); color:#fff; font-size:15px; font-weight:700; border:none; cursor:pointer; box-shadow:0 3px 12px rgba(5,1,141,0.35); font-family:inherit;">
-            Entrar
-        </button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:26px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:rgba(245,245,247,0.45); cursor:pointer;">
+            <input type="checkbox" name="remember" style="width:15px; height:15px; accent-color:#0071e3;">
+            Lembrar de mim
+        </label>
+        @if (Route::has('password.request'))
+            <a href="{{ route('password.request') }}" style="font-size:13px; color:#0071e3; text-decoration:none; font-weight:500;">
+                Esqueceu a senha?
+            </a>
+        @endif
+    </div>
 
-    </form>
+    <button type="submit"
+            style="width:100%; padding:12px; border-radius:10px; background:linear-gradient(135deg,#05018D 0%,#0071e3 100%); color:#fff; font-size:15px; font-weight:700; border:none; cursor:pointer; font-family:inherit; letter-spacing:-0.2px; box-shadow:0 4px 16px rgba(0,113,227,0.35);">
+        Entrar
+    </button>
+</form>
+
 </x-guest-layout>

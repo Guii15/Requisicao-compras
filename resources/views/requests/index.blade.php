@@ -3,247 +3,222 @@
 @section('content')
 
 <style>
-.idx-mobile-cards { display: none; }
+.req-table thead tr { background: linear-gradient(90deg, #05018D, var(--accent)); }
+.req-table th { padding:12px 16px; color:#fff; font-size:12px; font-weight:700; text-align:left; white-space:nowrap; text-transform:uppercase; letter-spacing:0.4px; }
+.req-table td { padding:14px 16px; font-size:14px; color:var(--text2); border-top:1px solid var(--border); vertical-align:middle; }
+.req-table tbody tr { transition:background 0.15s; }
+.req-table tbody tr:hover { background:var(--bg-card); }
+.req-table tbody tr:hover td { color:var(--text); }
 
-@media (max-width: 768px) {
-    .idx-desktop-table { display: none; }
-    .idx-mobile-cards  { display: block; }
-    .idx-header { flex-direction: column; align-items: flex-start !important; }
-    .idx-nova-btn { width: 100%; justify-content: center; }
-    .idx-filters form { grid-template-columns: 1fr !important; }
+.badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+.badge-alta      { background:var(--badge-alta-bg);      color:var(--badge-alta-text); }
+.badge-media     { background:var(--badge-media-bg);     color:var(--badge-media-text); }
+.badge-baixa     { background:var(--badge-baixa-bg);     color:var(--badge-baixa-text); }
+.badge-aprovado  { background:var(--badge-aprovado-bg);  color:var(--badge-aprovado-text); }
+.badge-rejeitado { background:var(--badge-rejeitado-bg); color:var(--badge-rejeitado-text); }
+.badge-pendente  { background:var(--badge-pendente-bg);  color:var(--badge-pendente-text); }
+
+.filter-input {
+    width:100%; background:var(--bg-input); border:1px solid var(--border);
+    border-radius:8px; padding:9px 12px; font-size:14px; color:var(--text);
+    font-family:inherit; outline:none; transition:border-color 0.2s;
+}
+.filter-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,113,227,0.15); }
+.filter-input::placeholder { color:var(--text3); }
+
+@media (max-width:768px) {
+    .req-desktop { display:none; }
+    .req-mobile  { display:block; }
+    .req-header  { flex-direction:column !important; align-items:flex-start !important; }
+    .req-btn     { width:100%; justify-content:center; }
+    .filter-grid { grid-template-columns:1fr !important; }
+}
+@media (min-width:769px) {
+    .req-desktop { display:block; }
+    .req-mobile  { display:none; }
 }
 </style>
 
-<div style="padding: 8px 0;">
-
-    {{-- Cabeçalho --}}
-    <div class="idx-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-        <div>
-            <h1 style="margin:0; font-size:24px; font-weight:700; color:#1e3a8a;">Minhas Requisições</h1>
-            <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Acompanhe todas as suas solicitações de compra</p>
-        </div>
-        <a href="{{ route('requests.create') }}" class="idx-nova-btn"
-           style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(90deg,#1d4ed8,#dc2626); color:#fff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px; height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Nova Requisição
-        </a>
+{{-- Header --}}
+<div class="req-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; gap:12px; flex-wrap:wrap;">
+    <div>
+        <h1 style="margin:0 0 4px; font-size:26px; font-weight:700; color:var(--text); letter-spacing:-0.5px;">Minhas Requisições</h1>
+        <p style="margin:0; font-size:14px; color:var(--text2);">Acompanhe todas as suas solicitações de compra</p>
     </div>
-
-    {{-- Mensagem de sucesso --}}
-    @if(session('success'))
-        <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; display:flex; align-items:center; gap:8px; font-size:14px;">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px; height:18px; flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {{ session('success') }}
-        </div>
-    @endif
-
-    {{-- Filtros --}}
-    <div class="idx-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <p style="margin:0 0 14px; font-size:13px; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.5px;">Filtrar Requisições</p>
-        <form method="GET" action="{{ route('requests.index') }}" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; align-items:end;">
-            <div>
-                <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Vendedor</label>
-                <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome do vendedor"
-                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
-            </div>
-            <div>
-                <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Produto</label>
-                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto"
-                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
-            </div>
-            <div>
-                <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Data inicial</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}"
-                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
-            </div>
-            <div>
-                <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Data final</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}"
-                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button type="submit" style="flex:1; background:#1d4ed8; color:#fff; padding:9px 16px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer;">Filtrar</button>
-                <a href="{{ route('requests.index') }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px 16px; border-radius:7px; font-size:14px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
-            </div>
-        </form>
-    </div>
-
-    {{-- TABELA (desktop) --}}
-    <div class="idx-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="overflow-x:auto;">
-            <table style="width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr style="background:linear-gradient(90deg,#1e3a8a,#1d4ed8);">
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Vendedor</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Urgência</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($requests as $req)
-                        <tr style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
-                            <td style="padding:14px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? 'Não informado' }}</td>
-                            <td style="padding:14px 16px; font-size:14px; color:#374151;">
-                                {{ $req->product_name }}
-                                @if($req->product_code)
-                                    <span style="display:block; font-size:12px; color:#9ca3af;">Cód: {{ $req->product_code }}</span>
-                                @endif
-                            </td>
-                            <td style="padding:14px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
-                            <td style="padding:14px 16px; text-align:center; font-size:14px; color:#374151; font-weight:600;">{{ $req->quantity }}</td>
-                            <td style="padding:14px 16px; text-align:center;">
-                                @if($req->urgency=='alta')
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
-                                @elseif($req->urgency=='media')
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
-                                @else
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
-                                @endif
-                            </td>
-                            <td style="padding:14px 16px; text-align:center;">
-                                @if($req->status=='aprovado')
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Aprovado</span>
-                                @elseif($req->status=='rejeitado')
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Rejeitado</span>
-                                @else
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Pendente</span>
-                                @endif
-                                @if($req->admin_note)
-                                    <div style="margin-top:5px;">
-                                        <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
-                                                style="background:none; border:none; color:#6b7280; font-size:11px; cursor:pointer; text-decoration:underline; padding:0;">
-                                            Ver obs.
-                                        </button>
-                                    </div>
-                                @endif
-                            </td>
-                            <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
-                            <td style="padding:14px 16px; text-align:center;">
-                                <a href="{{ route('requests.export', $req) }}" target="_blank"
-                                   style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
-                                    Exportar
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" style="padding:48px 16px; text-align:center;">
-                                <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
-                                <p style="color:#9ca3af; font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {{-- CARDS (mobile) --}}
-    <div class="idx-mobile-cards">
-        @forelse($requests as $req)
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-
-                {{-- Topo do card: produto + status --}}
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                    <div>
-                        <div style="font-size:15px; font-weight:700; color:#1e3a8a;">{{ $req->product_name }}</div>
-                        @if($req->product_code)
-                            <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
-                        @endif
-                    </div>
-                    @if($req->status=='aprovado')
-                        <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Aprovado</span>
-                    @elseif($req->status=='rejeitado')
-                        <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Rejeitado</span>
-                    @else
-                        <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Pendente</span>
-                    @endif
-                </div>
-
-                {{-- Detalhes --}}
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
-                    <div>
-                        <span style="color:#9ca3af;">Vendedor</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->requester_name ?? '—' }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Fornecedor</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Quantidade</span>
-                        <div style="font-weight:700; color:#374151; font-size:15px;">{{ $req->quantity }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Data</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div>
-                    </div>
-                </div>
-
-                {{-- Rodapé do card: urgência + exportar --}}
-                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:12px; color:#9ca3af;">Urgência:</span>
-                        @if($req->urgency=='alta')
-                            <span style="background:#fee2e2; color:#dc2626; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
-                        @elseif($req->urgency=='media')
-                            <span style="background:#fef3c7; color:#d97706; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
-                        @else
-                            <span style="background:#dcfce7; color:#16a34a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
-                        @endif
-                        @if($req->admin_note)
-                            <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
-                                    style="background:none; border:none; color:#6b7280; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; font-style:italic;">
-                                Ver obs.
-                            </button>
-                        @endif
-                    </div>
-                    <a href="{{ route('requests.export', $req) }}" target="_blank"
-                       style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
-                        Exportar
-                    </a>
-                </div>
-
-            </div>
-        @empty
-            <div style="text-align:center; padding:48px 16px;">
-                <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
-                <p style="color:#9ca3af; font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
-            </div>
-        @endforelse
-    </div>
-
-    {{-- Paginação --}}
-    @if($requests->hasPages())
-        <div style="margin-top:20px; display:flex; justify-content:center;">
-            {{ $requests->links() }}
-        </div>
-    @endif
-
+    <a href="{{ route('requests.create') }}" class="req-btn"
+       style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#05018D,var(--accent)); color:#fff; padding:10px 20px; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; white-space:nowrap; box-shadow:0 4px 14px rgba(0,113,227,0.3);">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nova Requisição
+    </a>
 </div>
 
-{{-- Modais de observação do compras --}}
+{{-- Flash --}}
+@if(session('success'))
+    <div style="background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:500;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        {{ session('success') }}
+    </div>
+@endif
+
+{{-- Filters --}}
+<div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px;">
+    <p style="margin:0 0 14px; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.8px;">Filtrar Requisições</p>
+    <form method="GET" action="{{ route('requests.index') }}">
+        <div class="filter-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end;">
+            <div>
+                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Vendedor</label>
+                <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome do vendedor" class="filter-input">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Produto</label>
+                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto" class="filter-input">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Data inicial</label>
+                <input type="date" name="date_from" value="{{ request('date_from') }}" class="filter-input">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Data final</label>
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="filter-input">
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="submit" style="flex:1; background:var(--accent); color:#fff; padding:9px 14px; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">Filtrar</button>
+                <a href="{{ route('requests.index') }}" style="flex:1; background:var(--bg-input); color:var(--text2); padding:9px 14px; border-radius:8px; font-size:14px; font-weight:500; text-decoration:none; text-align:center; border:1px solid var(--border);">Limpar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{{-- Desktop table --}}
+<div class="req-desktop" style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table class="req-table" style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>Vendedor</th>
+                    <th>Produto</th>
+                    <th>Fornecedor</th>
+                    <th style="text-align:center;">Qtd</th>
+                    <th style="text-align:center;">Urgência</th>
+                    <th style="text-align:center;">Status</th>
+                    <th style="text-align:center;">Data</th>
+                    <th style="text-align:center;">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($requests as $req)
+                    <tr>
+                        <td style="font-weight:600; color:var(--text);">{{ $req->requester_name ?? '—' }}</td>
+                        <td>
+                            <div style="font-weight:500; color:var(--text);">{{ $req->product_name }}</div>
+                            @if($req->product_code)
+                                <div style="font-size:12px; color:var(--text3); margin-top:2px;">Cód: {{ $req->product_code }}</div>
+                            @endif
+                        </td>
+                        <td>{{ $req->supplier ?? '—' }}</td>
+                        <td style="text-align:center; font-weight:700; color:var(--text);">{{ number_format($req->quantity,0,',','.') }}</td>
+                        <td style="text-align:center;">
+                            <span class="badge badge-{{ $req->urgency }}">
+                                {{ $req->urgency==='alta' ? 'Alta' : ($req->urgency==='media' ? 'Média' : 'Baixa') }}
+                            </span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="badge badge-{{ $req->status }}">
+                                {{ $req->status==='aprovado' ? 'Aprovado' : ($req->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
+                            </span>
+                            @if($req->admin_note)
+                                <div style="margin-top:4px;">
+                                    <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
+                                            style="background:none; border:none; color:var(--text3); font-size:11px; cursor:pointer; text-decoration:underline; padding:0; font-family:inherit;">
+                                        Ver obs.
+                                    </button>
+                                </div>
+                            @endif
+                        </td>
+                        <td style="text-align:center; white-space:nowrap; font-size:13px; color:var(--text3);">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
+                        <td style="text-align:center;">
+                            <a href="{{ route('requests.export', $req) }}" target="_blank"
+                               style="display:inline-block; background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:7px; padding:5px 12px; font-size:12px; font-weight:600; text-decoration:none;">
+                                Exportar
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" style="padding:52px 16px; text-align:center;">
+                            <p style="color:var(--text2); font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
+                            <p style="color:var(--text3); font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- Mobile cards --}}
+<div class="req-mobile">
+    @forelse($requests as $req)
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                <div>
+                    <div style="font-size:15px; font-weight:700; color:var(--text);">{{ $req->product_name }}</div>
+                    @if($req->product_code)
+                        <div style="font-size:12px; color:var(--text3); margin-top:2px;">Cód: {{ $req->product_code }}</div>
+                    @endif
+                </div>
+                <span class="badge badge-{{ $req->status }}">
+                    {{ $req->status==='aprovado' ? 'Aprovado' : ($req->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
+                </span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+                <div><span style="color:var(--text3);">Vendedor</span><div style="font-weight:600; color:var(--text); margin-top:2px;">{{ $req->requester_name ?? '—' }}</div></div>
+                <div><span style="color:var(--text3);">Fornecedor</span><div style="font-weight:600; color:var(--text); margin-top:2px;">{{ $req->supplier ?? '—' }}</div></div>
+                <div><span style="color:var(--text3);">Quantidade</span><div style="font-weight:700; color:var(--text); font-size:15px; margin-top:2px;">{{ number_format($req->quantity,0,',','.') }}</div></div>
+                <div><span style="color:var(--text3);">Data</span><div style="font-weight:500; color:var(--text2); margin-top:2px; font-size:12px;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div></div>
+            </div>
+            <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                <span class="badge badge-{{ $req->urgency }}">
+                    {{ $req->urgency==='alta' ? 'Alta' : ($req->urgency==='media' ? 'Média' : 'Baixa') }}
+                </span>
+                <a href="{{ route('requests.export', $req) }}" target="_blank"
+                   style="background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:7px; padding:6px 14px; font-size:13px; font-weight:600; text-decoration:none;">
+                    Exportar
+                </a>
+            </div>
+        </div>
+    @empty
+        <div style="text-align:center; padding:52px 16px; background:var(--bg-card); border:1px solid var(--border); border-radius:12px;">
+            <p style="color:var(--text2); font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
+            <p style="color:var(--text3); font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
+        </div>
+    @endforelse
+</div>
+
+{{-- Pagination --}}
+@if($requests->hasPages())
+    <div style="margin-top:20px; display:flex; justify-content:center;">
+        {{ $requests->links() }}
+    </div>
+@endif
+
+{{-- Admin note modals --}}
 @foreach($requests as $req)
     @if($req->admin_note)
-        <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-                <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
-                <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px;">
+        <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+            <div style="background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 24px 48px rgba(0,0,0,0.4);">
+                <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:var(--text);">Observação do Compras</h3>
+                <p style="margin:0 0 16px; font-size:12px; color:var(--text3);">{{ $req->product_name }}</p>
+                <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:16px; font-size:14px; color:var(--text2); line-height:1.6; margin-bottom:20px;">
                     {{ $req->admin_note }}
                 </div>
                 <div style="text-align:right;">
                     <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
-                            style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                            style="padding:9px 24px; border-radius:8px; border:1px solid var(--border); background:var(--bg-input); color:var(--text); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">
                         Fechar
                     </button>
                 </div>
