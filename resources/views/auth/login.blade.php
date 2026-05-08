@@ -8,6 +8,16 @@
 }
 .auth-input:focus { border-color:#0071e3; box-shadow:0 0 0 3px rgba(0,113,227,0.2); }
 .auth-input::placeholder { color:rgba(245,245,247,0.3); }
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #111114 inset !important;
+    -webkit-text-fill-color: #f5f5f7 !important;
+    caret-color: #f5f5f7;
+    border-color: rgba(255,255,255,0.14) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
 .auth-label {
     display:block; font-size:11px; font-weight:700; color:rgba(245,245,247,0.45);
     margin-bottom:7px; text-transform:uppercase; letter-spacing:0.6px;
