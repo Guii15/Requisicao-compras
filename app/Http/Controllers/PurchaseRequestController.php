@@ -13,7 +13,8 @@ class PurchaseRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PurchaseRequest::where('user_id', auth()->id());
+        $userId = auth()->id();
+        $query = PurchaseRequest::where('user_id', $userId);
 
         if ($request->filled('requester_name')) {
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
@@ -33,7 +34,14 @@ class PurchaseRequestController extends Controller
 
         $requests = $query->latest()->paginate(15)->withQueryString();
 
-        return view('requests.index', compact('requests'));
+        $stats = [
+            'total'     => PurchaseRequest::where('user_id', $userId)->count(),
+            'aprovado'  => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
+            'pendente'  => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
+            'rejeitado' => PurchaseRequest::where('user_id', $userId)->where('status', 'rejeitado')->count(),
+        ];
+
+        return view('requests.index', compact('requests', 'stats'));
     }
 
     public function create()

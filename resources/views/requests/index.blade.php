@@ -1,210 +1,291 @@
 @extends('layouts.app')
 
-@section('content')
+@section('fullcontent')
 
 <style>
-.req-table thead tr { background: linear-gradient(90deg, #05018D, var(--accent)); }
-.req-table th { padding:12px 16px; color:#fff; font-size:12px; font-weight:700; text-align:left; white-space:nowrap; text-transform:uppercase; letter-spacing:0.4px; }
-.req-table td { padding:14px 16px; font-size:14px; color:var(--text2); border-top:1px solid var(--border); vertical-align:middle; }
-.req-table tbody tr { transition:background 0.15s; }
-.req-table tbody tr:hover { background:var(--bg-card); }
-.req-table tbody tr:hover td { color:var(--text); }
-
-.badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
-.badge-alta      { background:var(--badge-alta-bg);      color:var(--badge-alta-text); }
-.badge-media     { background:var(--badge-media-bg);     color:var(--badge-media-text); }
-.badge-baixa     { background:var(--badge-baixa-bg);     color:var(--badge-baixa-text); }
-.badge-aprovado  { background:var(--badge-aprovado-bg);  color:var(--badge-aprovado-text); }
-.badge-rejeitado { background:var(--badge-rejeitado-bg); color:var(--badge-rejeitado-text); }
-.badge-pendente  { background:var(--badge-pendente-bg);  color:var(--badge-pendente-text); }
-
-.filter-input {
-    width:100%; background:var(--bg-input); border:1px solid var(--border);
-    border-radius:8px; padding:9px 12px; font-size:14px; color:var(--text);
-    font-family:inherit; outline:none; transition:border-color 0.2s;
+/* STATS ROW */
+.u-stats-row {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    background: var(--border); gap: 1px;
+    border-bottom: 0.5px solid var(--border);
 }
-.filter-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,113,227,0.15); }
-.filter-input::placeholder { color:var(--text3); }
-
-@media (max-width:768px) {
-    .req-desktop { display:none; }
-    .req-mobile  { display:block; }
-    .req-header  { flex-direction:column !important; align-items:flex-start !important; }
-    .req-btn     { width:100%; justify-content:center; }
-    .filter-grid { grid-template-columns:1fr !important; }
+.u-stat-item {
+    padding: 40px 24px; text-align: center;
+    background: var(--bg); transition: background 0.35s;
 }
-@media (min-width:769px) {
-    .req-desktop { display:block; }
-    .req-mobile  { display:none; }
+html.light-mode .u-stat-item { background: var(--bg2); }
+.u-stat-number {
+    font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900;
+    color: var(--text); line-height: 1;
+}
+.u-stat-label { margin-top: 8px; font-size: 14px; color: var(--text2); }
+
+/* MAIN SECTION */
+.u-section { background: var(--bg2); padding: 64px 24px 80px; transition: background 0.35s; }
+.u-inner { max-width: 1200px; margin: 0 auto; }
+
+/* SECTION HEADER */
+.u-section-header { text-align: center; margin-bottom: 48px; }
+.u-eyebrow {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+}
+.u-title {
+    font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 900;
+    color: var(--text); line-height: 1.1; margin-bottom: 12px;
+}
+.u-subtitle { font-size: 16px; color: var(--text2); }
+
+/* INPUTS / BUTTONS */
+.u-input {
+    background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 8px;
+    padding: 8px 14px; font-size: 13px; color: var(--text); font-family: inherit;
+    outline: none; transition: border-color 0.2s;
+}
+.u-input:focus { border-color: var(--accent); }
+.u-input::placeholder { color: var(--text3); }
+.u-btn-primary {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer;
+    font-family: inherit; white-space: nowrap;
+}
+.u-btn-ghost {
+    background: transparent; color: var(--text2); border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 8px 18px; font-size: 13px; cursor: pointer;
+    font-family: inherit; text-decoration: none; display: inline-block; white-space: nowrap;
+}
+.u-btn-new {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg,#05018D,var(--accent)); color: #fff;
+    padding: 10px 20px; border-radius: 10px; text-decoration: none;
+    font-weight: 600; font-size: 14px; white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0,113,227,0.3);
+}
+
+/* CARD */
+.u-card {
+    background: var(--bg-card); border: 0.5px solid var(--border);
+    border-radius: 16px; transition: background 0.35s;
+}
+
+/* TABLE */
+.u-table { width: 100%; border-collapse: collapse; }
+.u-table th {
+    font-size: 11px; font-weight: 500; color: var(--text2); text-align: left;
+    padding: 10px 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    border-bottom: 0.5px solid var(--border); white-space: nowrap;
+}
+.u-table td {
+    font-size: 13px; color: var(--text); padding: 14px 12px;
+    border-bottom: 0.5px solid var(--border); vertical-align: middle;
+}
+.u-table tr:last-child td { border-bottom: none; }
+.u-table tbody tr:hover td { background: rgba(0,0,0,0.03); }
+html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,0.03); }
+
+/* PILLS */
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.pill-aprovado  { background: var(--badge-aprovado-bg);  color: var(--badge-aprovado-text); }
+.pill-rejeitado { background: var(--badge-rejeitado-bg); color: var(--badge-rejeitado-text); }
+.pill-pendente  { background: var(--badge-pendente-bg);  color: var(--badge-pendente-text); }
+.pill-alta      { background: var(--badge-alta-bg);      color: var(--badge-alta-text); }
+.pill-media     { background: var(--badge-media-bg);     color: var(--badge-media-text); }
+.pill-baixa     { background: var(--badge-baixa-bg);     color: var(--badge-baixa-text); }
+
+@media (max-width: 768px) {
+    .u-stats-row { grid-template-columns: repeat(2,1fr); }
+    .u-stat-item { padding: 24px 16px; }
+    .u-stat-number { font-size: 36px; }
+    .u-title { font-size: 28px; }
+    .u-section { padding: 40px 16px 60px; }
+    .u-desktop { display: none !important; }
+    .u-mobile { display: block !important; }
+}
+@media (min-width: 769px) {
+    .u-desktop { display: block; }
+    .u-mobile { display: none; }
 }
 </style>
 
-{{-- Header --}}
-<div class="req-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; gap:12px; flex-wrap:wrap;">
-    <div>
-        <h1 style="margin:0 0 4px; font-size:26px; font-weight:700; color:var(--text); letter-spacing:-0.5px;">Minhas Requisições</h1>
-        <p style="margin:0; font-size:14px; color:var(--text2);">Acompanhe todas as suas solicitações de compra</p>
+{{-- Stats Row --}}
+<div class="u-stats-row">
+    <div class="u-stat-item">
+        <div class="u-stat-number">{{ $stats['total'] }}</div>
+        <div class="u-stat-label">Total de requisições</div>
     </div>
-    <a href="{{ route('requests.create') }}" class="req-btn"
-       style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#05018D,var(--accent)); color:#fff; padding:10px 20px; border-radius:10px; text-decoration:none; font-weight:600; font-size:14px; white-space:nowrap; box-shadow:0 4px 14px rgba(0,113,227,0.3);">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-        </svg>
-        Nova Requisição
-    </a>
+    <div class="u-stat-item">
+        <div class="u-stat-number">{{ $stats['aprovado'] }}</div>
+        <div class="u-stat-label">Aprovadas</div>
+    </div>
+    <div class="u-stat-item">
+        <div class="u-stat-number">{{ $stats['pendente'] }}</div>
+        <div class="u-stat-label">Aguardando aprovação</div>
+    </div>
+    <div class="u-stat-item">
+        <div class="u-stat-number">{{ $stats['rejeitado'] }}</div>
+        <div class="u-stat-label">Recusadas</div>
+    </div>
 </div>
 
-{{-- Flash --}}
-@if(session('success'))
-    <div style="background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:500;">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        {{ session('success') }}
-    </div>
-@endif
+{{-- Main Section --}}
+<div class="u-section">
+    <div class="u-inner">
 
-{{-- Filters --}}
-<div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px;">
-    <p style="margin:0 0 14px; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.8px;">Filtrar Requisições</p>
-    <form method="GET" action="{{ route('requests.index') }}">
-        <div class="filter-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end;">
-            <div>
-                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Vendedor</label>
-                <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome do vendedor" class="filter-input">
+        {{-- Header --}}
+        <div class="u-section-header">
+            <div class="u-eyebrow">Área do Vendedor</div>
+            <h1 class="u-title">Minhas Requisições</h1>
+            <p class="u-subtitle">Acompanhe todas as suas solicitações de compra</p>
+        </div>
+
+        {{-- Flash --}}
+        @if(session('success'))
+            <div style="background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:10px; padding:12px 16px; margin-bottom:24px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:500;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ session('success') }}
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Produto</label>
-                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto" class="filter-input">
-            </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Data inicial</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="filter-input">
-            </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px;">Data final</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="filter-input">
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button type="submit" style="flex:1; background:var(--accent); color:#fff; padding:9px 14px; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;">Filtrar</button>
-                <a href="{{ route('requests.index') }}" style="flex:1; background:var(--bg-input); color:var(--text2); padding:9px 14px; border-radius:8px; font-size:14px; font-weight:500; text-decoration:none; text-align:center; border:1px solid var(--border);">Limpar</a>
+        @endif
+
+        {{-- Toolbar --}}
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+            <form method="GET" action="{{ route('requests.index') }}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; flex:1;">
+                <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Vendedor" class="u-input" style="width:140px;">
+                <input type="text" name="product_name"   value="{{ request('product_name') }}"   placeholder="Produto"   class="u-input" style="width:160px;">
+                <input type="date" name="date_from"      value="{{ request('date_from') }}"       class="u-input" title="Data inicial">
+                <input type="date" name="date_to"        value="{{ request('date_to') }}"         class="u-input" title="Data final">
+                <button type="submit" class="u-btn-primary">Filtrar</button>
+                <a href="{{ route('requests.index') }}" class="u-btn-ghost">Limpar</a>
+            </form>
+            <a href="{{ route('requests.create') }}" class="u-btn-new">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nova Requisição
+            </a>
+        </div>
+
+        {{-- Desktop Table --}}
+        <div class="u-card u-desktop" style="overflow:hidden;">
+            <div style="overflow-x:auto;">
+                <table class="u-table">
+                    <thead>
+                        <tr>
+                            <th>Vendedor</th>
+                            <th>Produto</th>
+                            <th>Fornecedor</th>
+                            <th style="text-align:center;">Qtd</th>
+                            <th style="text-align:center;">Urgência</th>
+                            <th style="text-align:center;">Status</th>
+                            <th style="text-align:center;">Data</th>
+                            <th style="text-align:center;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($requests as $req)
+                            <tr>
+                                <td style="font-weight:600;">{{ $req->requester_name ?? '—' }}</td>
+                                <td>
+                                    <div style="font-weight:500;">{{ $req->product_name }}</div>
+                                    @if($req->product_code)
+                                        <div style="font-size:11px; color:var(--text2); margin-top:2px;">Cód: {{ $req->product_code }}</div>
+                                    @endif
+                                </td>
+                                <td style="color:var(--text2);">{{ $req->supplier ?? '—' }}</td>
+                                <td style="text-align:center; font-weight:700;">{{ number_format($req->quantity,0,',','.') }}</td>
+                                <td style="text-align:center;">
+                                    <span class="pill pill-{{ $req->urgency }}">
+                                        <span class="pill-dot"></span>
+                                        {{ $req->urgency==='alta' ? 'Alta' : ($req->urgency==='media' ? 'Média' : 'Baixa') }}
+                                    </span>
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="pill pill-{{ $req->status }}">
+                                        <span class="pill-dot"></span>
+                                        {{ $req->status==='aprovado' ? 'Aprovado' : ($req->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
+                                    </span>
+                                    @if($req->admin_note)
+                                        <div style="margin-top:4px;">
+                                            <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
+                                                    style="background:none; border:none; color:var(--text3); font-size:11px; cursor:pointer; text-decoration:underline; padding:0; font-family:inherit;">
+                                                Ver obs.
+                                            </button>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td style="text-align:center; white-space:nowrap; font-size:12px; color:var(--text2);">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
+                                <td style="text-align:center;">
+                                    <a href="{{ route('requests.export', $req) }}" target="_blank"
+                                       style="display:inline-block; background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:7px; padding:5px 12px; font-size:12px; font-weight:600; text-decoration:none;">
+                                        Exportar
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" style="padding:60px 16px; text-align:center;">
+                                    <p style="font-size:15px; color:var(--text2); margin:0 0 6px;">Nenhuma requisição encontrada</p>
+                                    <p style="font-size:13px; color:var(--text3); margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
-    </form>
-</div>
 
-{{-- Desktop table --}}
-<div class="req-desktop" style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
-    <div style="overflow-x:auto;">
-        <table class="req-table" style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr>
-                    <th>Vendedor</th>
-                    <th>Produto</th>
-                    <th>Fornecedor</th>
-                    <th style="text-align:center;">Qtd</th>
-                    <th style="text-align:center;">Urgência</th>
-                    <th style="text-align:center;">Status</th>
-                    <th style="text-align:center;">Data</th>
-                    <th style="text-align:center;">Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($requests as $req)
-                    <tr>
-                        <td style="font-weight:600; color:var(--text);">{{ $req->requester_name ?? '—' }}</td>
-                        <td>
-                            <div style="font-weight:500; color:var(--text);">{{ $req->product_name }}</div>
+        {{-- Mobile Cards --}}
+        <div class="u-mobile">
+            @forelse($requests as $req)
+                <div class="u-card" style="padding:16px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                        <div>
+                            <div style="font-size:15px; font-weight:700; color:var(--text);">{{ $req->product_name }}</div>
                             @if($req->product_code)
                                 <div style="font-size:12px; color:var(--text3); margin-top:2px;">Cód: {{ $req->product_code }}</div>
                             @endif
-                        </td>
-                        <td>{{ $req->supplier ?? '—' }}</td>
-                        <td style="text-align:center; font-weight:700; color:var(--text);">{{ number_format($req->quantity,0,',','.') }}</td>
-                        <td style="text-align:center;">
-                            <span class="badge badge-{{ $req->urgency }}">
-                                {{ $req->urgency==='alta' ? 'Alta' : ($req->urgency==='media' ? 'Média' : 'Baixa') }}
-                            </span>
-                        </td>
-                        <td style="text-align:center;">
-                            <span class="badge badge-{{ $req->status }}">
-                                {{ $req->status==='aprovado' ? 'Aprovado' : ($req->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
-                            </span>
-                            @if($req->admin_note)
-                                <div style="margin-top:4px;">
-                                    <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
-                                            style="background:none; border:none; color:var(--text3); font-size:11px; cursor:pointer; text-decoration:underline; padding:0; font-family:inherit;">
-                                        Ver obs.
-                                    </button>
-                                </div>
-                            @endif
-                        </td>
-                        <td style="text-align:center; white-space:nowrap; font-size:13px; color:var(--text3);">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
-                        <td style="text-align:center;">
-                            <a href="{{ route('requests.export', $req) }}" target="_blank"
-                               style="display:inline-block; background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:7px; padding:5px 12px; font-size:12px; font-weight:600; text-decoration:none;">
-                                Exportar
-                            </a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" style="padding:52px 16px; text-align:center;">
-                            <p style="color:var(--text2); font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
-                            <p style="color:var(--text3); font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
-
-{{-- Mobile cards --}}
-<div class="req-mobile">
-    @forelse($requests as $req)
-        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                <div>
-                    <div style="font-size:15px; font-weight:700; color:var(--text);">{{ $req->product_name }}</div>
-                    @if($req->product_code)
-                        <div style="font-size:12px; color:var(--text3); margin-top:2px;">Cód: {{ $req->product_code }}</div>
-                    @endif
+                        </div>
+                        <span class="pill pill-{{ $req->status }}">
+                            <span class="pill-dot"></span>
+                            {{ $req->status==='aprovado' ? 'Aprovado' : ($req->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
+                        </span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+                        <div><span style="color:var(--text3); font-size:11px;">Vendedor</span><div style="font-weight:600; color:var(--text); margin-top:2px;">{{ $req->requester_name ?? '—' }}</div></div>
+                        <div><span style="color:var(--text3); font-size:11px;">Fornecedor</span><div style="font-weight:600; color:var(--text); margin-top:2px;">{{ $req->supplier ?? '—' }}</div></div>
+                        <div><span style="color:var(--text3); font-size:11px;">Quantidade</span><div style="font-weight:700; color:var(--text); font-size:15px; margin-top:2px;">{{ number_format($req->quantity,0,',','.') }}</div></div>
+                        <div><span style="color:var(--text3); font-size:11px;">Data</span><div style="font-weight:500; color:var(--text2); margin-top:2px; font-size:12px;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div></div>
+                    </div>
+                    <div style="margin-top:12px; padding-top:10px; border-top:0.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <span class="pill pill-{{ $req->urgency }}">
+                            <span class="pill-dot"></span>
+                            {{ $req->urgency==='alta' ? 'Alta' : ($req->urgency==='media' ? 'Média' : 'Baixa') }}
+                        </span>
+                        <a href="{{ route('requests.export', $req) }}" target="_blank"
+                           style="background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:7px; padding:6px 14px; font-size:13px; font-weight:600; text-decoration:none;">
+                            Exportar
+                        </a>
+                    </div>
                 </div>
-                <span class="badge badge-{{ $req->status }}">
-                    {{ $req->status==='aprovado' ? 'Aprovado' : ($req->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
-                </span>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
-                <div><span style="color:var(--text3);">Vendedor</span><div style="font-weight:600; color:var(--text); margin-top:2px;">{{ $req->requester_name ?? '—' }}</div></div>
-                <div><span style="color:var(--text3);">Fornecedor</span><div style="font-weight:600; color:var(--text); margin-top:2px;">{{ $req->supplier ?? '—' }}</div></div>
-                <div><span style="color:var(--text3);">Quantidade</span><div style="font-weight:700; color:var(--text); font-size:15px; margin-top:2px;">{{ number_format($req->quantity,0,',','.') }}</div></div>
-                <div><span style="color:var(--text3);">Data</span><div style="font-weight:500; color:var(--text2); margin-top:2px; font-size:12px;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div></div>
-            </div>
-            <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-                <span class="badge badge-{{ $req->urgency }}">
-                    {{ $req->urgency==='alta' ? 'Alta' : ($req->urgency==='media' ? 'Média' : 'Baixa') }}
-                </span>
-                <a href="{{ route('requests.export', $req) }}" target="_blank"
-                   style="background:var(--success-bg); color:var(--success-text); border:1px solid currentColor; border-radius:7px; padding:6px 14px; font-size:13px; font-weight:600; text-decoration:none;">
-                    Exportar
-                </a>
-            </div>
+            @empty
+                <div class="u-card" style="padding:52px 16px; text-align:center;">
+                    <p style="color:var(--text2); font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
+                    <p style="color:var(--text3); font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
+                </div>
+            @endforelse
         </div>
-    @empty
-        <div style="text-align:center; padding:52px 16px; background:var(--bg-card); border:1px solid var(--border); border-radius:12px;">
-            <p style="color:var(--text2); font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
-            <p style="color:var(--text3); font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
-        </div>
-    @endforelse
-</div>
 
-{{-- Pagination --}}
-@if($requests->hasPages())
-    <div style="margin-top:20px; display:flex; justify-content:center;">
-        {{ $requests->links() }}
+        {{-- Pagination --}}
+        @if($requests->hasPages())
+            <div style="margin-top:24px; display:flex; justify-content:center;">
+                {{ $requests->links() }}
+            </div>
+        @endif
+
     </div>
-@endif
+</div>
 
 {{-- Admin note modals --}}
 @foreach($requests as $req)
