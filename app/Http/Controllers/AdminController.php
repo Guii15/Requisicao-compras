@@ -40,7 +40,30 @@ class AdminController extends Controller
             'rejeitado' => PurchaseRequest::where('status', 'rejeitado')->count(),
         ];
 
-        return view('admin.index', compact('requests', 'stats'));
+        $ranking = PurchaseRequest::select('requester_name')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('requester_name')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        $topItems = PurchaseRequest::select('product_name')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('product_name')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        $weeklyStats = collect(range(4, 0))->map(function ($weeksAgo) {
+            $start = now()->subWeeks($weeksAgo)->startOfWeek();
+            $end   = now()->subWeeks($weeksAgo)->endOfWeek();
+            return [
+                'label' => 'S' . (5 - $weeksAgo),
+                'total' => PurchaseRequest::whereBetween('created_at', [$start, $end])->count(),
+            ];
+        });
+
+        return view('admin.index', compact('requests', 'stats', 'ranking', 'topItems', 'weeklyStats'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)

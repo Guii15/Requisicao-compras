@@ -255,6 +255,12 @@
                                 + Adicionar
                             </button>
                         </div>
+                        <div style="margin-top:8px;">
+                            <input type="url" id="inp-url" placeholder="🔗 Link do produto (opcional) — cole a URL aqui"
+                                   style="{{ $inputStyle }} width:100%;"
+                                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
+                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                        </div>
                     </div>
 
                     {{-- Lista de produtos adicionados --}}
@@ -282,6 +288,7 @@
                         const code = document.getElementById('inp-code').value.trim();
                         const name = document.getElementById('inp-name').value.trim();
                         const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
+                        const url  = document.getElementById('inp-url').value.trim();
 
                         if (!name) {
                             document.getElementById('inp-name').style.borderColor = '#ef4444';
@@ -289,12 +296,13 @@
                             return;
                         }
 
-                        items.push({ code, name, qty });
+                        items.push({ code, name, qty, url });
                         renderList();
 
                         document.getElementById('inp-code').value = '';
                         document.getElementById('inp-name').value = '';
                         document.getElementById('inp-qty').value  = '1';
+                        document.getElementById('inp-url').value  = '';
                         document.getElementById('inp-code').focus();
                     }
 
@@ -322,7 +330,7 @@
                             row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
                             row.innerHTML = `
                                 <span class="col-code" style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
-                                <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}</span>
+                                <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}${item.url ? `<br><a href="${item.url}" target="_blank" style="font-size:11px;color:#05018D;">Ver link ↗</a>` : ''}</span>
                                 <span style="padding:9px 12px; font-size:13px; text-align:center; font-weight:700; color:#374151;">${item.qty}</span>
                                 <button type="button" onclick="removeItem(${i})" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 10px;">×</button>
                             `;
@@ -331,6 +339,7 @@
                             hidden.innerHTML += `
                                 <input type="hidden" name="products[${i}][product_code]" value="${item.code}">
                                 <input type="hidden" name="products[${i}][product_name]" value="${item.name}">
+                                <input type="hidden" name="products[${i}][product_url]"  value="${item.url || ''}">
                                 <input type="hidden" name="products[${i}][quantity]"     value="${item.qty}">
                             `;
                         });

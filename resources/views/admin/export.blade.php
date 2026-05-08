@@ -206,7 +206,12 @@
             <tbody>
                 <tr>
                     <td style="color:#9ca3af;">{{ $req->product_code ?: '—' }}</td>
-                    <td style="font-weight:600; color:#111827;">{{ $req->product_name }}</td>
+                    <td style="font-weight:600; color:#111827;">
+                        {{ $req->product_name }}
+                        @if($req->product_url ?? false)
+                            <br><a href="{{ $req->product_url }}" target="_blank" style="font-size:12px;color:#05018D;font-weight:400;">Ver produto ↗</a>
+                        @endif
+                    </td>
                     <td>{{ number_format($req->quantity, 0, ',', '.') }}</td>
                 </tr>
             </tbody>
