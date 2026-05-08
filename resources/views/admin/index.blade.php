@@ -289,6 +289,7 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
     <li><a href="#" onclick="showTab('requisicoes', document.querySelectorAll('.dash-tab')[2]);return false;">Requisições</a></li>
     <li><a href="#" onclick="showTab('vendedores', document.querySelectorAll('.dash-tab')[1]);return false;">Vendedores</a></li>
     <li><a href="{{ route('admin.users.index') }}">Usuários</a></li>
+    <li><a href="{{ route('requests.create') }}" style="color:var(--accent); font-weight:600;">+ Nova Requisição</a></li>
   </ul>
   <div class="nav-right">
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☀ Modo claro</button>
@@ -303,19 +304,19 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
 {{-- STATS --}}
 <div class="stats-row">
   <div class="stat-item">
-    <div class="stat-number">{{ $stats['total'] }}<span> req</span></div>
+    <div class="stat-number">{{ $stats['total'] }}</div>
     <div class="stat-label">Total de requisições</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">{{ $stats['aprovado'] }}<span> apr</span></div>
+    <div class="stat-number">{{ $stats['aprovado'] }}</div>
     <div class="stat-label">Aprovadas</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">{{ $stats['pendente'] }}<span> pend</span></div>
+    <div class="stat-number">{{ $stats['pendente'] }}</div>
     <div class="stat-label">Aguardando aprovação</div>
   </div>
   <div class="stat-item">
-    <div class="stat-number">{{ $stats['rejeitado'] }}<span> rec</span></div>
+    <div class="stat-number">{{ $stats['rejeitado'] }}</div>
     <div class="stat-label">Recusadas</div>
   </div>
 </div>
@@ -323,7 +324,7 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
 {{-- DASHBOARD --}}
 <section class="dashboard-section" id="dashboard">
   <div class="dashboard-header">
-    <div class="section-eyebrow">Painel Administrativo</div>
+    <div style="font-size:13px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:16px;">Painel Administrativo</div>
     <h2 style="font-family:'Playfair Display',serif; font-size:clamp(28px,4vw,42px); font-weight:900; color:var(--text); letter-spacing:-0.02em; margin-bottom:8px;">Gestão de Requisições</h2>
     <p style="font-size:15px; color:var(--text2); font-weight:300;">Visualize, filtre e aprove as solicitações dos vendedores</p>
   </div>

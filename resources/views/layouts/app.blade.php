@@ -65,9 +65,13 @@
 <body>
     @include('layouts.navigation')
     <main class="page-main">
-        <div class="page-inner">
-            @yield('content')
-        </div>
+        @hasSection('fullcontent')
+            @yield('fullcontent')
+        @else
+            <div class="page-inner">
+                @yield('content')
+            </div>
+        @endif
     </main>
     <footer style="background:var(--bg2); border-top:1px solid var(--border); color:var(--text3); text-align:center; padding:14px 16px; font-size:12px; letter-spacing:0.3px;">
         Desenvolvido internamente pelo setor de T.I — Binário Tecnologia
