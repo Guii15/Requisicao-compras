@@ -46,7 +46,7 @@
 }
 
 html { scroll-behavior: smooth; }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.35s, color 0.35s; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.35s, color 0.35s; padding-top: 52px; }
 
 /* NAV */
 nav {
@@ -75,85 +75,8 @@ nav {
 .nav-logout-btn { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--accent); font-family: 'DM Sans', sans-serif; }
 .nav-logout-btn:hover { text-decoration: underline; }
 
-/* HERO */
-.hero {
-  min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; text-align: center;
-  padding: 80px 24px 60px; position: relative; overflow: hidden;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,113,227,0.18) 0%, transparent 70%);
-}
-.light-mode .hero { background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,113,227,0.10) 0%, transparent 70%); }
-
-.particle {
-  position: absolute; top: -20px;
-  animation: fall linear infinite; pointer-events: none;
-}
-@keyframes fall {
-  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 0.5; }
-  100% { transform: translateY(110vh) rotate(720deg) scale(0.4); opacity: 0; }
-}
-
-.hero-eyebrow {
-  font-size: 13px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 20px;
-  opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s ease 0.2s forwards;
-}
-.hero-title {
-  font-family: 'Playfair Display', serif; font-size: clamp(48px,8vw,92px);
-  font-weight: 900; line-height: 1.02; letter-spacing: -0.02em; color: var(--text); max-width: 900px;
-  opacity: 0; transform: translateY(30px); animation: fadeUp 0.9s ease 0.4s forwards;
-}
-.hero-title em { font-style: normal; color: var(--accent); }
-.hero-sub {
-  margin-top: 24px; font-size: 19px; font-weight: 300; color: var(--text2);
-  max-width: 560px; line-height: 1.6;
-  opacity: 0; transform: translateY(20px); animation: fadeUp 0.9s ease 0.6s forwards;
-}
-.hero-actions {
-  margin-top: 40px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
-  opacity: 0; transform: translateY(20px); animation: fadeUp 0.9s ease 0.8s forwards;
-}
-.btn-primary {
-  background: var(--accent); color: #fff; border: none; border-radius: 24px;
-  padding: 14px 28px; font-size: 15px; font-family: 'DM Sans', sans-serif;
-  font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block;
-  transition: background 0.2s, transform 0.15s;
-}
-.btn-primary:hover { background: var(--accent-dark); transform: scale(1.02); }
-.btn-ghost {
-  background: transparent; color: var(--accent); border: 1px solid rgba(0,113,227,0.4); border-radius: 24px;
-  padding: 14px 28px; font-size: 15px; font-family: 'DM Sans', sans-serif;
-  font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.2s;
-}
-.btn-ghost:hover { border-color: var(--accent); background: rgba(0,113,227,0.08); }
-
 /* DIVIDER */
 .section-divider { width: 100%; height: 0.5px; background: var(--border); }
-
-/* FEATURE SECTIONS */
-.feature-section {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  text-align: center; padding: 100px 24px; position: relative; overflow: hidden;
-}
-.feature-section.dark   { background: var(--bg); }
-.feature-section.darker { background: var(--bg2); }
-.feature-section.light  { background: var(--section-light-bg); }
-.light-mode .feature-section.light { background: var(--bg3); }
-
-.section-content { max-width: 860px; position: relative; z-index: 1; }
-.section-eyebrow { font-size: 13px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
-.section-title {
-  font-family: 'Playfair Display', serif; font-size: clamp(36px,5vw,64px);
-  font-weight: 900; line-height: 1.06; letter-spacing: -0.02em; margin-bottom: 20px; color: var(--text);
-}
-.feature-section.light .section-title { color: var(--section-light-text); }
-.light-mode .feature-section.light .section-title { color: var(--text); }
-.section-title em { font-style: normal; color: var(--accent); }
-.section-body { font-size: 19px; font-weight: 300; color: var(--text2); line-height: 1.65; max-width: 600px; margin: 0 auto; }
-.feature-section.light .section-body { color: var(--section-light-sub); }
-.light-mode .feature-section.light .section-body { color: var(--text2); }
 
 /* STATS ROW */
 .stats-row {
@@ -326,10 +249,6 @@ nav {
 @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes fadeOut { to { opacity: 0; transform: translateX(40px); } }
 
-/* SCROLL REVEAL */
-.reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
-.reveal.visible { opacity: 1; transform: translateY(0); }
-
 @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
 /* FOOTER */
@@ -364,9 +283,9 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
 
 {{-- NAV --}}
 <nav>
-  <a href="#" class="nav-logo">Binário<span>.</span></a>
+  <a href="{{ route('admin.index') }}" class="nav-logo">Binário<span>.</span></a>
   <ul class="nav-links">
-    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="{{ route('admin.index') }}">Dashboard</a></li>
     <li><a href="#" onclick="showTab('requisicoes', document.querySelectorAll('.dash-tab')[2]);return false;">Requisições</a></li>
     <li><a href="#" onclick="showTab('vendedores', document.querySelectorAll('.dash-tab')[1]);return false;">Vendedores</a></li>
     <li><a href="{{ route('admin.users.index') }}">Usuários</a></li>
@@ -381,21 +300,8 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
   </div>
 </nav>
 
-{{-- HERO --}}
-<section class="hero" id="hero">
-  <div class="hero-eyebrow">Central de Inteligência Comercial</div>
-  <h1 class="hero-title">O que os seus vendedores <em>realmente</em> precisam.</h1>
-  <p class="hero-sub">Visibilidade total sobre requisições de compra, aprovações e padrões de consumo — em tempo real.</p>
-  <div class="hero-actions">
-    <a href="#dashboard" class="btn-primary">Ver o Dashboard</a>
-    <a href="#" onclick="event.preventDefault();showTab('requisicoes',document.querySelectorAll('.dash-tab')[2]);document.getElementById('dashboard').scrollIntoView({behavior:'smooth'});" class="btn-ghost">Gerenciar Requisições</a>
-  </div>
-</section>
-
-<div class="section-divider"></div>
-
 {{-- STATS --}}
-<div class="stats-row reveal">
+<div class="stats-row">
   <div class="stat-item">
     <div class="stat-number">{{ $stats['total'] }}<span> req</span></div>
     <div class="stat-label">Total de requisições</div>
@@ -414,49 +320,15 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
   </div>
 </div>
 
-<div class="section-divider"></div>
-
-{{-- FEATURE 1 --}}
-<section class="feature-section dark">
-  <div class="section-content reveal">
-    <div class="section-eyebrow">Visão Geral</div>
-    <h2 class="section-title">Cada requisição conta.<br>Nenhuma passa despercebida.</h2>
-    <p class="section-body">Acompanhe em tempo real o que seus vendedores estão solicitando, quem solicita mais, quais itens dominam as requisições e onde o processo trava.</p>
-  </div>
-</section>
-
-<div class="section-divider"></div>
-
-{{-- FEATURE 2 --}}
-<section class="feature-section light">
-  <div class="section-content reveal">
-    <div class="section-eyebrow">Perfil dos Vendedores</div>
-    <h2 class="section-title">Quem pede mais.<br>Quem <em>aprova</em> mais rápido.</h2>
-    <p class="section-body">Rankings individuais, histórico completo por vendedor e análise dos itens mais solicitados — tudo em um único lugar.</p>
-  </div>
-</section>
-
-<div class="section-divider"></div>
-
-{{-- FEATURE 3 --}}
-<section class="feature-section darker">
-  <div class="section-content reveal">
-    <div class="section-eyebrow">Inteligência de Compras</div>
-    <h2 class="section-title">Padrões que revelam <em>oportunidades.</em></h2>
-    <p class="section-body">Identifique quais itens são mais solicitados, quais fornecedores aparecem com mais frequência e onde há espaço para otimização.</p>
-  </div>
-</section>
-
-<div class="section-divider"></div>
-
 {{-- DASHBOARD --}}
 <section class="dashboard-section" id="dashboard">
-  <div class="dashboard-header reveal">
-    <div class="section-eyebrow">Dashboard Executivo</div>
-    <h2 class="section-title" style="color:var(--text)">Todos os números.<br>Uma única tela.</h2>
+  <div class="dashboard-header">
+    <div class="section-eyebrow">Painel Administrativo</div>
+    <h2 style="font-family:'Playfair Display',serif; font-size:clamp(28px,4vw,42px); font-weight:900; color:var(--text); letter-spacing:-0.02em; margin-bottom:8px;">Gestão de Requisições</h2>
+    <p style="font-size:15px; color:var(--text2); font-weight:300;">Visualize, filtre e aprove as solicitações dos vendedores</p>
   </div>
 
-  <div class="dashboard-wrap reveal">
+  <div class="dashboard-wrap">
     <div class="dash-tabs">
       <button class="dash-tab active" onclick="showTab('geral',this)">Geral</button>
       <button class="dash-tab" onclick="showTab('vendedores',this)">Vendedores</button>
@@ -733,28 +605,6 @@ function applyTheme() {
 }
 function toggleTheme() { isLight = !isLight; localStorage.setItem('binario-theme', isLight ? 'light' : 'dark'); applyTheme(); }
 applyTheme();
-
-// PARTICLES
-(function() {
-  const hero = document.getElementById('hero');
-  const colors = ['#0071e3','#05018D','#1d4ed8','#3b82f6','#60a5fa'];
-  for (let i = 0; i < 32; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const s = Math.random() * 9 + 3;
-    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*6+5}s;animation-delay:${Math.random()*8}s;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.4?'50%':'3px'};opacity:${Math.random()*.45+.1}`;
-    hero.appendChild(p);
-  }
-})();
-
-// SCROLL REVEAL
-new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
-}, { threshold: 0.12 }).observe && document.querySelectorAll('.reveal').forEach(el => {
-  new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
-  }, { threshold: 0.12 }).observe(el);
-});
 
 // TABS
 function showTab(name, btn) {
