@@ -62,7 +62,14 @@ class PurchaseRequestController extends Controller
             ->limit(10)
             ->get();
 
-        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes', 'ranking'));
+        $globalStats = [
+            'total'     => PurchaseRequest::count(),
+            'aprovado'  => PurchaseRequest::where('status', 'aprovado')->count(),
+            'pendente'  => PurchaseRequest::where('status', 'pendente')->count(),
+            'rejeitado' => PurchaseRequest::where('status', 'rejeitado')->count(),
+        ];
+
+        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes', 'ranking', 'globalStats'));
     }
 
     public function create()

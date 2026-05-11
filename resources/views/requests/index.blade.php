@@ -367,27 +367,22 @@ html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,
 
                     <div class="u-card" style="padding:24px;">
                         <div class="u-card-title">Status geral</div>
-                        @php $t = max(PurchaseRequest::count(), 1); @endphp
-                        @php
-                            $totAprov = PurchaseRequest::where('status','aprovado')->count();
-                            $totPend  = PurchaseRequest::where('status','pendente')->count();
-                            $totRej   = PurchaseRequest::where('status','rejeitado')->count();
-                        @endphp
+                        @php $gt = max($globalStats['total'], 1); @endphp
                         <div style="display:flex; flex-direction:column; gap:12px;">
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:13px; color:var(--text2); min-width:76px;">Aprovadas</span>
-                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($totAprov/$t*100) }}%; background:var(--badge-aprovado-text);"></div></div>
-                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($totAprov/$t*100) }}%</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($globalStats['aprovado']/$gt*100) }}%; background:var(--badge-aprovado-text);"></div></div>
+                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($globalStats['aprovado']/$gt*100) }}%</span>
                             </div>
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:13px; color:var(--text2); min-width:76px;">Pendentes</span>
-                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($totPend/$t*100) }}%; background:var(--badge-pendente-text);"></div></div>
-                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($totPend/$t*100) }}%</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($globalStats['pendente']/$gt*100) }}%; background:var(--badge-pendente-text);"></div></div>
+                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($globalStats['pendente']/$gt*100) }}%</span>
                             </div>
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:13px; color:var(--text2); min-width:76px;">Recusadas</span>
-                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($totRej/$t*100) }}%; background:var(--badge-rejeitado-text);"></div></div>
-                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($totRej/$t*100) }}%</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($globalStats['rejeitado']/$gt*100) }}%; background:var(--badge-rejeitado-text);"></div></div>
+                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($globalStats['rejeitado']/$gt*100) }}%</span>
                             </div>
                         </div>
                     </div>
