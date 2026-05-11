@@ -531,6 +531,7 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
                 <th>Urgência</th>
                 <th>Data</th>
                 <th>Status</th>
+                <th>Valor</th>
                 <th style="padding-right:24px">Ações</th>
               </tr>
             </thead>
@@ -554,15 +555,16 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
                   @elseif($req->status === 'rejeitado')<span class="pill pill-danger"><span class="pill-dot"></span>Recusado</span>
                   @else<span class="pill pill-warning"><span class="pill-dot"></span>Pendente</span>@endif
                 </td>
+                <td style="color:var(--text2);white-space:nowrap">{{ $req->valor ? 'R$ '.number_format($req->valor, 2, ',', '.') : '—' }}</td>
                 <td style="padding-right:24px">
                   <div style="display:flex;gap:6px;align-items:center">
-                    <button class="action-btn action-btn-primary" onclick="openModal({{ $req->id }},'{{ $req->status }}',{{ json_encode($req->admin_note ?? '') }})">Atualizar</button>
+                    <button class="action-btn action-btn-primary" onclick="openModal({{ $req->id }},'{{ $req->status }}',{{ json_encode($req->admin_note ?? '') }},{{ $req->valor ?? '' }})">Atualizar</button>
                     <a href="{{ route('admin.requests.export', $req->id) }}" target="_blank" class="action-btn action-btn-export">PDF</a>
                   </div>
                 </td>
               </tr>
               @empty
-              <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text2)">Nenhuma requisição encontrada.</td></tr>
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text2)">Nenhuma requisição encontrada.</td></tr>
               @endforelse
             </tbody>
           </table>
