@@ -200,7 +200,8 @@ html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,
 
         {{-- Tabs --}}
         <div class="u-tabs">
-            <button class="u-tab active" onclick="uShowTab('geral',this)">Geral</button>
+            <button class="u-tab active" onclick="uShowTab('geral',this)">Dashboard</button>
+            <button class="u-tab" onclick="uShowTab('vendedores',this)">Vendedores</button>
             <button class="u-tab" onclick="uShowTab('requisicoes',this)">Minhas Requisições</button>
         </div>
 
@@ -315,6 +316,83 @@ html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,
                     </div>
 
                 </div>
+            </div>
+        </div>
+
+        {{-- ══ PANEL VENDEDORES ════════════════════════════════════ --}}
+        <div class="u-panel" id="u-panel-vendedores">
+            <div style="display:grid; grid-template-columns:1fr 320px; gap:16px;">
+
+                {{-- Ranking --}}
+                <div class="u-card" style="padding:24px;">
+                    <div class="u-card-title">Ranking de requisições <span class="u-card-tag">Top vendedores</span></div>
+                    @php $maxRank = $ranking->max('total') ?: 1; @endphp
+                    @if($ranking->isEmpty())
+                        <div style="font-size:13px; color:var(--text2); text-align:center; padding:32px 0;">Nenhum dado ainda.</div>
+                    @else
+                        <div style="display:flex; flex-direction:column; gap:14px; margin-top:4px;">
+                            @foreach($ranking as $i => $vendor)
+                            <div style="display:grid; grid-template-columns:28px 36px 1fr auto auto; align-items:center; gap:12px;">
+                                <div style="font-size:13px; font-weight:500; color:var(--text2); text-align:center;">{{ $i + 1 }}</div>
+                                <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;
+                                    background:{{ ['rgba(0,113,227,0.2)','rgba(48,209,88,0.15)','rgba(255,214,10,0.15)','rgba(255,59,48,0.15)','rgba(175,82,222,0.15)'][$i % 5] }};
+                                    color:{{ ['#60a5fa','#34d399','#fbbf24','#f87171','#c084fc'][$i % 5] }};">
+                                    {{ strtoupper(substr($vendor->requester_name, 0, 2)) }}
+                                </div>
+                                <div style="min-width:0;">
+                                    <div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $vendor->requester_name }}</div>
+                                </div>
+                                <div style="width:90px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+                                    <div style="height:100%;background:var(--accent);border-radius:2px;width:{{ round($vendor->total / $maxRank * 100) }}%;"></div>
+                                </div>
+                                <div style="font-size:14px;font-weight:500;color:var(--text);min-width:28px;text-align:right;">{{ $vendor->total }}</div>
+                            </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Destaque --}}
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    @if($ranking->isNotEmpty())
+                    <div class="u-card" style="padding:24px; text-align:center;">
+                        <div class="u-card-title" style="justify-content:center;">Destaque</div>
+                        <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,113,227,0.2);color:#60a5fa;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;margin:8px auto 12px;">
+                            {{ strtoupper(substr($ranking->first()->requester_name, 0, 2)) }}
+                        </div>
+                        <div style="font-size:16px;font-weight:600;color:var(--text);">{{ $ranking->first()->requester_name }}</div>
+                        <div style="font-size:13px;color:var(--text2);margin-top:4px;">{{ $ranking->first()->total }} {{ $ranking->first()->total === 1 ? 'requisição' : 'requisições' }}</div>
+                    </div>
+                    @endif
+
+                    <div class="u-card" style="padding:24px;">
+                        <div class="u-card-title">Status geral</div>
+                        @php $t = max(PurchaseRequest::count(), 1); @endphp
+                        @php
+                            $totAprov = PurchaseRequest::where('status','aprovado')->count();
+                            $totPend  = PurchaseRequest::where('status','pendente')->count();
+                            $totRej   = PurchaseRequest::where('status','rejeitado')->count();
+                        @endphp
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:13px; color:var(--text2); min-width:76px;">Aprovadas</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($totAprov/$t*100) }}%; background:var(--badge-aprovado-text);"></div></div>
+                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($totAprov/$t*100) }}%</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:13px; color:var(--text2); min-width:76px;">Pendentes</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($totPend/$t*100) }}%; background:var(--badge-pendente-text);"></div></div>
+                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($totPend/$t*100) }}%</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:13px; color:var(--text2); min-width:76px;">Recusadas</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($totRej/$t*100) }}%; background:var(--badge-rejeitado-text);"></div></div>
+                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($totRej/$t*100) }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

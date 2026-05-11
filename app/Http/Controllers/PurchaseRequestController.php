@@ -55,7 +55,14 @@ class PurchaseRequestController extends Controller
             ->limit(6)
             ->get();
 
-        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes'));
+        $ranking = PurchaseRequest::select('requester_name')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('requester_name')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes', 'ranking'));
     }
 
     public function create()
