@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PurchaseRequestApproved;
 
@@ -96,7 +95,7 @@ class AdminController extends Controller
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'is_admin' => $request->boolean('is_admin'),
         ]);
 
@@ -146,7 +145,7 @@ class AdminController extends Controller
             'password.confirmed' => 'As senhas não coincidem.',
         ]);
 
-        $user->update(['password' => Hash::make($request->password)]);
+        $user->update(['password' => $request->password]);
 
         return back()->with('success', "Senha de {$user->name} redefinida com sucesso!");
     }
