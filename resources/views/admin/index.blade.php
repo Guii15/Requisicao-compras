@@ -80,7 +80,7 @@ nav {
 
 /* STATS ROW */
 .stats-row {
-  display: grid; grid-template-columns: repeat(4,1fr);
+  display: grid; grid-template-columns: repeat(5,1fr);
   background: var(--border); gap: 1px;
   border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border);
 }
@@ -258,6 +258,9 @@ footer { background: var(--bg3); border-top: 0.5px solid var(--border); padding:
 footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
 
 /* RESPONSIVE */
+@media (max-width: 1100px) {
+  .stats-row { grid-template-columns: repeat(3,1fr); }
+}
 @media (max-width: 900px) {
   .metrics-grid { grid-template-columns: repeat(2,1fr); }
   .main-grid { grid-template-columns: 1fr; }
@@ -318,6 +321,10 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
   <div class="stat-item">
     <div class="stat-number">{{ $stats['rejeitado'] }}</div>
     <div class="stat-label">Recusadas</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number" style="font-size:32px; line-height:1.15;">R$ {{ number_format($stats['total_gasto'] ?? 0, 2, ',', '.') }}</div>
+    <div class="stat-label">Total Gasto</div>
   </div>
 </div>
 
@@ -587,6 +594,8 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
       </select>
       <label class="modal-label">Nota (opcional)</label>
       <textarea name="admin_note" id="modal-note" class="modal-textarea" placeholder="Observação para o vendedor..."></textarea>
+      <label class="modal-label">Valor Pago (R$)</label>
+      <input type="number" name="valor" id="modal-valor" class="modal-select" placeholder="0.00" step="0.01" min="0" style="margin-bottom:16px;">
       <div class="modal-actions">
         <button type="button" class="modal-cancel" onclick="closeModal()">Cancelar</button>
         <button type="submit" class="modal-save">Salvar</button>
@@ -621,10 +630,11 @@ const routeMap = {
   {{ $req->id }}: '{{ route('admin.requests.update', $req->id) }}',
   @endforeach
 };
-function openModal(id, status, note) {
+function openModal(id, status, note, valor) {
   document.getElementById('modal-form').action = routeMap[id] || '';
   document.getElementById('modal-status').value = status;
   document.getElementById('modal-note').value = note || '';
+  document.getElementById('modal-valor').value = valor || '';
   document.getElementById('modal-title').textContent = 'Requisição #' + String(id).padStart(5,'0');
   document.getElementById('modal').classList.add('open');
 }

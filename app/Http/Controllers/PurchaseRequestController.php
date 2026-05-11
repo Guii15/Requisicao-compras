@@ -35,13 +35,27 @@ class PurchaseRequestController extends Controller
         $requests = $query->latest()->paginate(15)->withQueryString();
 
         $stats = [
-            'total'     => PurchaseRequest::where('user_id', $userId)->count(),
-            'aprovado'  => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
-            'pendente'  => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
-            'rejeitado' => PurchaseRequest::where('user_id', $userId)->where('status', 'rejeitado')->count(),
+            'total'       => PurchaseRequest::where('user_id', $userId)->count(),
+            'aprovado'    => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
+            'pendente'    => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
+            'rejeitado'   => PurchaseRequest::where('user_id', $userId)->where('status', 'rejeitado')->count(),
+            'total_gasto' => (float) PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->sum('valor'),
         ];
 
-        return view('requests.index', compact('requests', 'stats'));
+        $topItems = PurchaseRequest::where('user_id', $userId)
+            ->select('product_name')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('product_name')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        $recentes = PurchaseRequest::where('user_id', $userId)
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes'));
     }
 
     public function create()

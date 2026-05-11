@@ -34,10 +34,11 @@ class AdminController extends Controller
         $requests = $query->latest()->get();
 
         $stats = [
-            'total'     => PurchaseRequest::count(),
-            'pendente'  => PurchaseRequest::where('status', 'pendente')->count(),
-            'aprovado'  => PurchaseRequest::where('status', 'aprovado')->count(),
-            'rejeitado' => PurchaseRequest::where('status', 'rejeitado')->count(),
+            'total'       => PurchaseRequest::count(),
+            'pendente'    => PurchaseRequest::where('status', 'pendente')->count(),
+            'aprovado'    => PurchaseRequest::where('status', 'aprovado')->count(),
+            'rejeitado'   => PurchaseRequest::where('status', 'rejeitado')->count(),
+            'total_gasto' => (float) PurchaseRequest::where('status', 'aprovado')->sum('valor'),
         ];
 
         $ranking = PurchaseRequest::select('requester_name')
@@ -71,6 +72,7 @@ class AdminController extends Controller
         $request->validate([
             'status'     => 'required|in:pendente,aprovado,rejeitado',
             'admin_note' => 'nullable|string|max:500',
+            'valor'      => 'nullable|numeric|min:0',
         ]);
 
         $oldStatus = $purchaseRequest->status;
@@ -78,6 +80,7 @@ class AdminController extends Controller
         $purchaseRequest->update([
             'status'     => $request->status,
             'admin_note' => $request->admin_note,
+            'valor'      => $request->valor ?: null,
         ]);
 
         if ($request->status === 'aprovado' && $oldStatus !== 'aprovado') {
@@ -119,7 +122,7 @@ class AdminController extends Controller
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'is_admin' => $request->boolean('is_admin'),
         ]);
 
@@ -169,7 +172,7 @@ class AdminController extends Controller
             'password.confirmed' => 'As senhas não coincidem.',
         ]);
 
-        $user->update(['password' => Hash::make($request->password)]);
+        $user->update(['password' => $request->password]);
 
         return back()->with('success', "Senha de {$user->name} redefinida com sucesso!");
     }
