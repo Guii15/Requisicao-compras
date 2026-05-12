@@ -33,7 +33,38 @@ class PurchaseRequestController extends Controller
 
         $requests = $query->latest()->paginate(15)->withQueryString();
 
-        return view('requests.index', compact('requests'));
+        $userId = auth()->id();
+
+        $stats = [
+            'total'       => PurchaseRequest::where('user_id', $userId)->count(),
+            'pendente'    => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
+            'aprovado'    => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
+            'rejeitado'   => PurchaseRequest::where('user_id', $userId)->where('status', 'rejeitado')->count(),
+            'total_gasto' => (float) PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->sum('valor'),
+        ];
+
+        $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
+            $date = now()->subMonths($monthsAgo);
+            return [
+                'label' => $date->translatedFormat('M/y'),
+                'total' => (float) PurchaseRequest::where('status', 'aprovado')
+                    ->whereNotNull('valor')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->sum('valor'),
+            ];
+        });
+
+        $vendorSpending = PurchaseRequest::select('requester_name')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->groupBy('requester_name')
+            ->orderByDesc('total_gasto')
+            ->limit(10)
+            ->get();
+
+        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending'));
     }
 
     public function create()
