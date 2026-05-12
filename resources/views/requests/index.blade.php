@@ -143,9 +143,31 @@ html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,
 .pill-media     { background: var(--badge-media-bg);     color: var(--badge-media-text); }
 .pill-baixa     { background: var(--badge-baixa-bg);     color: var(--badge-baixa-text); }
 
+/* ── METRICS GRID ──────────────────────────────────────── */
+.u-metrics-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+.u-metric-card { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 16px; padding: 24px; transition: background 0.35s; }
+.u-metric-label { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+.u-metric-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
+.u-metric-delta { margin-top: 8px; font-size: 12px; color: var(--text2); }
+
+/* ── MAIN GRID ─────────────────────────────────────────── */
+.u-main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 16px; }
+.u-side-stack { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── CHART ─────────────────────────────────────────────── */
+.u-chart-area { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin-bottom: 8px; }
+.u-chart-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; }
+.u-chart-bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; opacity: 0.8; cursor: pointer; transition: opacity 0.2s; }
+.u-chart-bar:hover { opacity: 1; }
+.u-chart-bar.dim { background: rgba(255,255,255,0.12); opacity: 1; }
+html.light-mode .u-chart-bar.dim { background: rgba(0,0,0,0.1); }
+.u-chart-lbl { font-size: 11px; color: var(--text2); }
+
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 1100px) {
     .u-stats-row { grid-template-columns: repeat(3,1fr); }
+    .u-metrics-grid { grid-template-columns: repeat(2,1fr); }
+    .u-main-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
     .u-stats-row { grid-template-columns: repeat(2,1fr); }
@@ -154,6 +176,7 @@ html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,
     .u-title { font-size: 28px; }
     .u-section { padding: 40px 16px 60px; }
     .u-analytics-grid { grid-template-columns: 1fr; }
+    .u-metrics-grid { grid-template-columns: 1fr 1fr; }
     .u-desktop { display: none !important; }
     .u-mobile { display: block !important; }
 }
@@ -217,104 +240,110 @@ html:not(.light-mode) .u-table tbody tr:hover td { background: rgba(255,255,255,
 
         {{-- ══ PANEL GERAL ══════════════════════════════════════ --}}
         <div class="u-panel active" id="u-panel-geral">
-            <div class="u-analytics-grid">
 
-                {{-- Left: últimas requisições --}}
+            {{-- 4 metric cards --}}
+            <div class="u-metrics-grid">
+                <div class="u-metric-card">
+                    <div class="u-metric-label">Requisições pendentes</div>
+                    <div class="u-metric-value">{{ $stats['pendente'] }}</div>
+                    <div class="u-metric-delta">Aguardando análise</div>
+                </div>
+                <div class="u-metric-card">
+                    <div class="u-metric-label">Aprovadas</div>
+                    <div class="u-metric-value">{{ $stats['aprovado'] }}</div>
+                    <div class="u-metric-delta">{{ $stats['total'] > 0 ? round($stats['aprovado'] / $stats['total'] * 100) : 0 }}% do total</div>
+                </div>
+                <div class="u-metric-card">
+                    <div class="u-metric-label">Total histórico</div>
+                    <div class="u-metric-value">{{ $stats['total'] }}</div>
+                    <div class="u-metric-delta">Todas as requisições</div>
+                </div>
+                <div class="u-metric-card">
+                    <div class="u-metric-label">Recusadas</div>
+                    <div class="u-metric-value">{{ $stats['rejeitado'] }}</div>
+                    <div class="u-metric-delta">{{ $stats['total'] > 0 ? round($stats['rejeitado'] / $stats['total'] * 100) : 0 }}% do total</div>
+                </div>
+            </div>
+
+            {{-- Chart + recentes + side cards --}}
+            <div class="u-main-grid">
                 <div class="u-card" style="padding:24px;">
-                    <div class="u-card-title">
-                        Últimas requisições
-                        <span class="u-card-tag">{{ $recentes->count() }} mais recentes</span>
-                    </div>
-                    @if($recentes->isEmpty())
-                        <div style="padding:32px 0; text-align:center; color:var(--text2); font-size:13px;">
-                            Nenhuma requisição ainda.<br>
-                            <a href="{{ route('requests.create') }}" style="color:var(--accent); text-decoration:none; font-weight:500; margin-top:8px; display:inline-block;">Criar a primeira →</a>
+                    <div class="u-card-title">Requisições por semana <span class="u-card-tag">Últimas 5 semanas</span></div>
+                    @php $maxWeek = $weeklyStats->max('total') ?: 1; @endphp
+                    <div class="u-chart-area">
+                        @foreach($weeklyStats as $i => $week)
+                        <div class="u-chart-col">
+                            <div class="u-chart-bar {{ $i < 4 ? 'dim' : '' }}" style="height:{{ max(6, round($week['total'] / $maxWeek * 92)) }}px" title="{{ $week['total'] }} req"></div>
+                            <div class="u-chart-lbl">{{ $week['label'] }}</div>
                         </div>
-                    @else
-                        <table class="u-mini-table">
-                            <thead>
-                                <tr>
-                                    <th>Produto</th>
-                                    <th>Urgência</th>
-                                    <th>Status</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recentes as $rec)
-                                <tr>
-                                    <td>
-                                        <div style="font-weight:500;">{{ Str::limit($rec->product_name, 28) }}</div>
-                                        @if($rec->supplier)
-                                            <div style="font-size:11px; color:var(--text2); margin-top:2px;">{{ $rec->supplier }}</div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="pill pill-{{ $rec->urgency }}">
-                                            <span class="pill-dot"></span>
-                                            {{ $rec->urgency==='alta' ? 'Alta' : ($rec->urgency==='media' ? 'Média' : 'Baixa') }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="pill pill-{{ $rec->status }}">
-                                            <span class="pill-dot"></span>
-                                            {{ $rec->status==='aprovado' ? 'Aprovado' : ($rec->status==='rejeitado' ? 'Rejeitado' : 'Pendente') }}
-                                        </span>
-                                    </td>
-                                    <td style="white-space:nowrap; font-size:12px; color:var(--text2);">
-                                        {{ $rec->created_at->timezone('America/Sao_Paulo')->format('d/m/Y') }}
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @endif
+                        @endforeach
+                    </div>
+
+                    <div class="u-card-title" style="margin-top:24px;">Últimas requisições</div>
+                    <table class="u-mini-table">
+                        <thead><tr><th>Item</th><th>Urgência</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @forelse($recentes as $rec)
+                            <tr>
+                                <td>
+                                    <div style="font-weight:500;">{{ Str::limit($rec->product_name, 30) }}</div>
+                                    @if($rec->supplier)<div style="font-size:11px;color:var(--text2);margin-top:2px;">{{ $rec->supplier }}</div>@endif
+                                </td>
+                                <td><span class="pill pill-{{ $rec->urgency }}"><span class="pill-dot"></span>{{ $rec->urgency==='alta' ? 'Alta' : ($rec->urgency==='media' ? 'Média' : 'Baixa') }}</span></td>
+                                <td>
+                                    @if($rec->status==='aprovado')<span class="pill pill-aprovado"><span class="pill-dot"></span>Aprovado</span>
+                                    @elseif($rec->status==='rejeitado')<span class="pill pill-rejeitado"><span class="pill-dot"></span>Recusado</span>
+                                    @else<span class="pill pill-pendente"><span class="pill-dot"></span>Pendente</span>@endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" style="text-align:center;padding:24px 0;color:var(--text2);font-size:13px;">
+                                Nenhuma requisição ainda. <a href="{{ route('requests.create') }}" style="color:var(--accent);text-decoration:none;font-weight:500;">Criar →</a>
+                            </td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
 
-                {{-- Right: top items + status breakdown --}}
-                <div style="display:flex; flex-direction:column; gap:16px;">
-
+                <div class="u-side-stack">
                     <div class="u-card" style="padding:24px;">
                         <div class="u-card-title">Itens mais solicitados</div>
-                        @if($topItems->isEmpty())
-                            <div style="font-size:13px; color:var(--text2);">Nenhum dado ainda.</div>
-                        @else
-                            <div class="u-top-list">
-                                @foreach($topItems as $i => $item)
-                                <div class="u-top-item">
-                                    <div class="u-top-rank">{{ $i + 1 }}</div>
-                                    <div class="u-top-info">
-                                        <div class="u-top-name">{{ $item->product_name }}</div>
-                                        <div class="u-top-count">{{ $item->total }} {{ $item->total === 1 ? 'requisição' : 'requisições' }}</div>
-                                    </div>
+                        <div class="u-top-list">
+                            @forelse($topItems as $i => $item)
+                            <div class="u-top-item">
+                                <div class="u-top-rank">{{ $i + 1 }}</div>
+                                <div class="u-top-info">
+                                    <div class="u-top-name">{{ $item->product_name }}</div>
+                                    <div class="u-top-count">{{ $item->total }} {{ $item->total === 1 ? 'requisição' : 'requisições' }}</div>
                                 </div>
-                                @endforeach
                             </div>
-                        @endif
+                            @empty
+                            <div style="font-size:13px;color:var(--text2);">Nenhum dado ainda.</div>
+                            @endforelse
+                        </div>
                     </div>
 
                     <div class="u-card" style="padding:24px;">
                         <div class="u-card-title">Status geral</div>
                         @php $t = max($stats['total'], 1); @endphp
-                        <div style="display:flex; flex-direction:column; gap:12px;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:13px; color:var(--text2); min-width:76px;">Aprovadas</span>
-                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($stats['aprovado']/$t*100) }}%; background:var(--badge-aprovado-text);"></div></div>
-                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($stats['aprovado']/$t*100) }}%</span>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span style="font-size:13px;color:var(--text2);min-width:72px;">Aprovadas</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($stats['aprovado']/$t*100) }}%;background:var(--badge-aprovado-text);"></div></div>
+                                <span style="font-size:13px;font-weight:500;color:var(--text);min-width:32px;">{{ round($stats['aprovado']/$t*100) }}%</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:13px; color:var(--text2); min-width:76px;">Pendentes</span>
-                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($stats['pendente']/$t*100) }}%; background:var(--badge-pendente-text);"></div></div>
-                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($stats['pendente']/$t*100) }}%</span>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span style="font-size:13px;color:var(--text2);min-width:72px;">Pendentes</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($stats['pendente']/$t*100) }}%;background:var(--badge-pendente-text);"></div></div>
+                                <span style="font-size:13px;font-weight:500;color:var(--text);min-width:32px;">{{ round($stats['pendente']/$t*100) }}%</span>
                             </div>
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:13px; color:var(--text2); min-width:76px;">Recusadas</span>
-                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($stats['rejeitado']/$t*100) }}%; background:var(--badge-rejeitado-text);"></div></div>
-                                <span style="font-size:13px; font-weight:500; color:var(--text); min-width:32px;">{{ round($stats['rejeitado']/$t*100) }}%</span>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span style="font-size:13px;color:var(--text2);min-width:72px;">Recusadas</span>
+                                <div class="u-bar-wrap"><div class="u-bar" style="width:{{ round($stats['rejeitado']/$t*100) }}%;background:var(--badge-rejeitado-text);"></div></div>
+                                <span style="font-size:13px;font-weight:500;color:var(--text);min-width:32px;">{{ round($stats['rejeitado']/$t*100) }}%</span>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

@@ -42,9 +42,18 @@ class AdminController extends Controller
         ];
 
         $ranking = PurchaseRequest::select('requester_name')
-            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN status = ? AND valor IS NOT NULL THEN valor ELSE 0 END) as total_gasto', ['aprovado'])
             ->groupBy('requester_name')
             ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        $vendorSpending = PurchaseRequest::select('requester_name')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->groupBy('requester_name')
+            ->orderByDesc('total_gasto')
             ->limit(10)
             ->get();
 
@@ -64,7 +73,7 @@ class AdminController extends Controller
             ];
         });
 
-        return view('admin.index', compact('requests', 'stats', 'ranking', 'topItems', 'weeklyStats'));
+        return view('admin.index', compact('requests', 'stats', 'ranking', 'topItems', 'weeklyStats', 'vendorSpending'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)

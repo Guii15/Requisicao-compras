@@ -443,6 +443,27 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
               </div>
             </div>
           </div>
+
+          <div class="card">
+            <div class="card-title">Maiores gastos <span class="card-title-tag">por vendedor</span></div>
+            @php $maxSpend = $vendorSpending->max('total_gasto') ?: 1; @endphp
+            <div class="top-items-list">
+              @forelse($vendorSpending as $i => $v)
+              <div class="top-item">
+                <div class="top-item-rank">{{ $i + 1 }}</div>
+                <div class="top-item-info">
+                  <div class="top-item-name">{{ $v->requester_name }}</div>
+                  <div class="top-item-count">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
+                </div>
+                <div style="width:60px;height:4px;background:var(--border);border-radius:2px;flex-shrink:0">
+                  <div style="height:100%;width:{{ round($v->total_gasto/$maxSpend*100) }}%;background:var(--success);border-radius:2px"></div>
+                </div>
+              </div>
+              @empty
+              <div style="font-size:13px;color:var(--text2)">Nenhum gasto aprovado ainda.</div>
+              @endforelse
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -458,9 +479,14 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
             <div class="rank-item">
               <div class="rank-num">{{ $i + 1 }}</div>
               <div class="rank-avatar av-{{ $i % 5 }}">{{ strtoupper(substr($vendor->requester_name, 0, 2)) }}</div>
-              <div class="rank-info"><div class="rank-name">{{ $vendor->requester_name }}</div></div>
+              <div class="rank-info">
+                <div class="rank-name">{{ $vendor->requester_name }}</div>
+                @if($vendor->total_gasto > 0)
+                <div style="font-size:11px;color:var(--success);margin-top:2px">R$ {{ number_format($vendor->total_gasto, 2, ',', '.') }}</div>
+                @endif
+              </div>
               <div class="rank-bar-wrap"><div class="rank-bar" style="width:{{ round($vendor->total/$maxRank*100) }}%"></div></div>
-              <div class="rank-count">{{ $vendor->total }}</div>
+              <div class="rank-count">{{ $vendor->total }} req</div>
             </div>
             @empty
             <div style="font-size:13px;color:var(--text2)">Nenhum dado ainda.</div>
@@ -476,6 +502,9 @@ footer p { font-size: 12px; color: var(--text2); margin-top: 8px; }
               <div class="rank-avatar av-0" style="width:56px;height:56px;font-size:20px;margin:0 auto 12px">{{ strtoupper(substr($ranking->first()->requester_name, 0, 2)) }}</div>
               <div style="font-size:16px;font-weight:600;color:var(--text)">{{ $ranking->first()->requester_name }}</div>
               <div style="font-size:13px;color:var(--text2);margin-top:4px">{{ $ranking->first()->total }} requisições</div>
+              @if($ranking->first()->total_gasto > 0)
+              <div style="font-size:13px;color:var(--success);font-weight:600;margin-top:6px">R$ {{ number_format($ranking->first()->total_gasto, 2, ',', '.') }} aprovados</div>
+              @endif
             </div>
           </div>
           @endif

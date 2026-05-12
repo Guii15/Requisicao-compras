@@ -69,7 +69,16 @@ class PurchaseRequestController extends Controller
             'rejeitado' => PurchaseRequest::where('status', 'rejeitado')->count(),
         ];
 
-        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes', 'ranking', 'globalStats'));
+        $weeklyStats = collect(range(4, 0))->map(function ($weeksAgo) use ($userId) {
+            $start = now()->subWeeks($weeksAgo)->startOfWeek();
+            $end   = now()->subWeeks($weeksAgo)->endOfWeek();
+            return [
+                'label' => 'S' . (5 - $weeksAgo),
+                'total' => PurchaseRequest::where('user_id', $userId)->whereBetween('created_at', [$start, $end])->count(),
+            ];
+        });
+
+        return view('requests.index', compact('requests', 'stats', 'topItems', 'recentes', 'ranking', 'globalStats', 'weeklyStats'));
     }
 
     public function create()
