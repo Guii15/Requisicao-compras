@@ -19,6 +19,7 @@ class PurchaseRequest extends Model
         'justification',
         'status',
         'admin_note',
+        'valor',
     ];
 
     public function user(): BelongsTo

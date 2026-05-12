@@ -128,10 +128,18 @@
                             </td>
                             <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
                             <td style="padding:14px 16px; text-align:center;">
-                                <a href="{{ route('requests.export', $req) }}" target="_blank"
-                                   style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
-                                    Exportar
-                                </a>
+                                <div style="display:flex; gap:6px; justify-content:center;">
+                                    @if($req->status === 'pendente')
+                                    <a href="{{ route('requests.edit', $req) }}"
+                                       style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
+                                        Editar
+                                    </a>
+                                    @endif
+                                    <a href="{{ route('requests.export', $req) }}" target="_blank"
+                                       style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
+                                        Exportar
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -207,10 +215,18 @@
                             </button>
                         @endif
                     </div>
-                    <a href="{{ route('requests.export', $req) }}" target="_blank"
-                       style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
-                        Exportar
-                    </a>
+                    <div style="display:flex; gap:6px;">
+                        @if($req->status === 'pendente')
+                        <a href="{{ route('requests.edit', $req) }}"
+                           style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
+                            Editar
+                        </a>
+                        @endif
+                        <a href="{{ route('requests.export', $req) }}" target="_blank"
+                           style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
+                            Exportar
+                        </a>
+                    </div>
                 </div>
 
             </div>
