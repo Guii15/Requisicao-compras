@@ -288,7 +288,8 @@
                         const code = document.getElementById('inp-code').value.trim();
                         const name = document.getElementById('inp-name').value.trim();
                         const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
-                        const url  = document.getElementById('inp-url').value.trim();
+                        let url = document.getElementById('inp-url').value.trim();
+                        if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
 
                         if (!name) {
                             document.getElementById('inp-name').style.borderColor = '#ef4444';
