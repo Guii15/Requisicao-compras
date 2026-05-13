@@ -161,7 +161,7 @@ class PurchaseRequestController extends Controller
             'products'                => 'required|array|min:1',
             'products.*.product_name' => 'required|string|max:255',
             'products.*.product_code' => 'nullable|string|max:100',
-            'products.*.product_url'  => 'nullable|url|max:2048',
+            'products.*.product_url'  => 'nullable|string|max:2048',
             'products.*.quantity'     => 'required|integer|min:1',
         ], [
             'requester_name.required'          => 'O nome do vendedor é obrigatório.',
