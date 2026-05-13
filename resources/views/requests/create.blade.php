@@ -351,7 +351,7 @@
                                 <input type="hidden" name="products[${i}][product_code]" value="${item.code}">
                                 <input type="hidden" name="products[${i}][product_name]" value="${item.name}">
                                 <input type="hidden" name="products[${i}][quantity]"     value="${item.qty}">
-                                <input type="hidden" name="products[${i}][product_url]"  value="${item.url || ''}">
+                                ${item.url ? `<input type="hidden" name="products[${i}][product_url]" value="${item.url}">` : ''}
                             `;
                         });
                     }
