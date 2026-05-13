@@ -270,7 +270,7 @@
             </table>
         </div>
         @if($requests->hasPages())
-            <div style="padding:16px 20px; border-top:1px solid #f3f4f6;">
+            <div style="padding:16px 20px; border-top:1px solid #f3f4f6; display:flex; justify-content:center;">
                 {{ $requests->links() }}
             </div>
         @endif
@@ -383,7 +383,7 @@
             </div>
         @endforelse
         @if($requests->hasPages())
-            <div style="padding:16px 4px;">
+            <div style="padding:16px 4px; display:flex; justify-content:center;">
                 {{ $requests->links() }}
             </div>
         @endif
