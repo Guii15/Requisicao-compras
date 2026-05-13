@@ -255,6 +255,11 @@
                                 + Adicionar
                             </button>
                         </div>
+                        <div style="margin-top:8px;">
+                            <input type="url" id="inp-url" placeholder="Link do produto (opcional) — ex: https://mercadolivre.com.br/..."
+                                   style="{{ $inputStyle }}"
+                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
                     </div>
 
                     {{-- Lista de produtos adicionados --}}
@@ -283,6 +288,7 @@
                         const code = document.getElementById('inp-code').value.trim();
                         const name = document.getElementById('inp-name').value.trim();
                         const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
+                        const url  = document.getElementById('inp-url').value.trim();
 
                         if (!name) {
                             document.getElementById('inp-name').style.borderColor = '#ef4444';
@@ -290,12 +296,13 @@
                             return;
                         }
 
-                        items.push({ code, name, qty });
+                        items.push({ code, name, qty, url });
                         renderList();
 
                         document.getElementById('inp-code').value = '';
                         document.getElementById('inp-name').value = '';
                         document.getElementById('inp-qty').value  = '1';
+                        document.getElementById('inp-url').value  = '';
                         document.getElementById('inp-code').focus();
                     }
 
@@ -309,6 +316,7 @@
                         document.getElementById('inp-code').value = item.code;
                         document.getElementById('inp-name').value = item.name;
                         document.getElementById('inp-qty').value  = item.qty;
+                        document.getElementById('inp-url').value  = item.url || '';
                         items.splice(index, 1);
                         renderList();
                         document.getElementById('inp-name').focus();
@@ -343,6 +351,7 @@
                                 <input type="hidden" name="products[${i}][product_code]" value="${item.code}">
                                 <input type="hidden" name="products[${i}][product_name]" value="${item.name}">
                                 <input type="hidden" name="products[${i}][quantity]"     value="${item.qty}">
+                                <input type="hidden" name="products[${i}][product_url]"  value="${item.url || ''}">
                             `;
                         });
                     }
