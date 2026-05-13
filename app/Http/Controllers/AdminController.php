@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PurchaseRequestApproved;
 
@@ -34,13 +33,35 @@ class AdminController extends Controller
         $requests = $query->latest()->get();
 
         $stats = [
-            'total'     => PurchaseRequest::count(),
-            'pendente'  => PurchaseRequest::where('status', 'pendente')->count(),
-            'aprovado'  => PurchaseRequest::where('status', 'aprovado')->count(),
-            'rejeitado' => PurchaseRequest::where('status', 'rejeitado')->count(),
+            'total'       => PurchaseRequest::count(),
+            'pendente'    => PurchaseRequest::where('status', 'pendente')->count(),
+            'aprovado'    => PurchaseRequest::where('status', 'aprovado')->count(),
+            'rejeitado'   => PurchaseRequest::where('status', 'rejeitado')->count(),
+            'total_gasto' => (float) PurchaseRequest::where('status', 'aprovado')->sum('valor'),
         ];
 
-        return view('admin.index', compact('requests', 'stats'));
+        $vendorSpending = PurchaseRequest::select('requester_name')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->groupBy('requester_name')
+            ->orderByDesc('total_gasto')
+            ->limit(10)
+            ->get();
+
+        $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
+            $date = now()->subMonths($monthsAgo);
+            return [
+                'label' => $date->translatedFormat('M/y'),
+                'total' => (float) PurchaseRequest::where('status', 'aprovado')
+                    ->whereNotNull('valor')
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->sum('valor'),
+            ];
+        });
+
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'monthlySpending'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
@@ -48,6 +69,7 @@ class AdminController extends Controller
         $request->validate([
             'status'     => 'required|in:pendente,aprovado,rejeitado',
             'admin_note' => 'nullable|string|max:500',
+            'valor'      => 'nullable|numeric|min:0',
         ]);
 
         $oldStatus = $purchaseRequest->status;
@@ -55,6 +77,7 @@ class AdminController extends Controller
         $purchaseRequest->update([
             'status'     => $request->status,
             'admin_note' => $request->admin_note,
+            'valor'      => $request->valor ?: null,
         ]);
 
         if ($request->status === 'aprovado' && $oldStatus !== 'aprovado') {
@@ -96,7 +119,7 @@ class AdminController extends Controller
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'is_admin' => $request->boolean('is_admin'),
         ]);
 
@@ -146,7 +169,7 @@ class AdminController extends Controller
             'password.confirmed' => 'As senhas não coincidem.',
         ]);
 
-        $user->update(['password' => Hash::make($request->password)]);
+        $user->update(['password' => $request->password]);
 
         return back()->with('success', "Senha de {$user->name} redefinida com sucesso!");
     }

@@ -60,7 +60,7 @@
     #inp-code { display: none !important; }
     .prod-add-row { grid-template-columns: 1fr 64px !important; }
     .add-btn-full { grid-column: 1 / -1; width: 100%; }
-    .prod-list-header, .prod-list-row { grid-template-columns: 1fr 50px 36px !important; }
+    .prod-list-header, .prod-list-row { grid-template-columns: 1fr 50px 36px 36px !important; }
     .col-code { display: none !important; }
 }
 
@@ -259,10 +259,11 @@
 
                     {{-- Lista de produtos adicionados --}}
                     <div id="products-list" style="background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:20px; min-height:48px;">
-                        <div class="prod-list-header" style="display:grid; grid-template-columns:110px 1fr 60px 36px; background:#05018D; padding:8px 12px;">
+                        <div class="prod-list-header" style="display:grid; grid-template-columns:110px 1fr 60px 36px 36px; background:#05018D; padding:8px 12px;">
                             <span class="col-code" style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Código</span>
                             <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Produto</span>
                             <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase; text-align:center;">Qtd</span>
+                            <span></span>
                             <span></span>
                         </div>
                         <div id="products-body">
@@ -303,10 +304,19 @@
                         renderList();
                     }
 
+                    function editItem(index) {
+                        const item = items[index];
+                        document.getElementById('inp-code').value = item.code;
+                        document.getElementById('inp-name').value = item.name;
+                        document.getElementById('inp-qty').value  = item.qty;
+                        items.splice(index, 1);
+                        renderList();
+                        document.getElementById('inp-name').focus();
+                    }
+
                     function renderList() {
                         const body   = document.getElementById('products-body');
                         const hidden = document.getElementById('hidden-inputs');
-                        const empty  = document.getElementById('empty-msg');
 
                         body.innerHTML = '';
                         hidden.innerHTML = '';
@@ -319,12 +329,13 @@
                         items.forEach((item, i) => {
                             const row = document.createElement('div');
                             row.className = 'prod-list-row';
-                            row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
+                            row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
                             row.innerHTML = `
                                 <span class="col-code" style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
                                 <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}</span>
                                 <span style="padding:9px 12px; font-size:13px; text-align:center; font-weight:700; color:#374151;">${item.qty}</span>
-                                <button type="button" onclick="removeItem(${i})" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 10px;">×</button>
+                                <button type="button" onclick="editItem(${i})" title="Editar" style="border:none; background:transparent; color:#6b7280; font-size:14px; cursor:pointer; padding:0 8px;">✏️</button>
+                                <button type="button" onclick="removeItem(${i})" title="Remover" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 8px;">×</button>
                             `;
                             body.appendChild(row);
 
