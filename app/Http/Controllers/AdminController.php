@@ -30,7 +30,7 @@ class AdminController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->get();
+        $requests = $query->latest()->paginate(15)->withQueryString();
 
         $stats = [
             'total'       => PurchaseRequest::count(),

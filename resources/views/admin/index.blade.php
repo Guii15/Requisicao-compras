@@ -269,6 +269,11 @@
                 </tbody>
             </table>
         </div>
+        @if($requests->hasPages())
+            <div style="padding:16px 20px; border-top:1px solid #f3f4f6;">
+                {{ $requests->links() }}
+            </div>
+        @endif
     </div>
 
     {{-- CARDS (mobile) --}}
@@ -377,6 +382,11 @@
                 <p style="color:#6b7280; font-size:15px; margin:0;">Nenhuma requisição encontrada</p>
             </div>
         @endforelse
+        @if($requests->hasPages())
+            <div style="padding:16px 4px;">
+                {{ $requests->links() }}
+            </div>
+        @endif
     </div>
 
 </div>
