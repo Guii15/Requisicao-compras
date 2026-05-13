@@ -168,6 +168,9 @@
                                 @if($req->product_code)
                                     <span style="display:block; font-size:12px; color:#9ca3af;">Cód: {{ $req->product_code }}</span>
                                 @endif
+                                @if($req->product_url)
+                                    <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
+                                @endif
                             </td>
                             <td style="padding:14px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
                             <td style="padding:14px 16px; text-align:center; font-size:14px; color:#374151; font-weight:600;">{{ $req->quantity }}</td>
