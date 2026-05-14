@@ -242,7 +242,7 @@
 
                                     <div style="margin-bottom:20px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Valor Pago (R$) <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                                        <input type="number" name="valor" value="{{ $req->valor }}" placeholder="0.00" step="0.01" min="0"
+                                        <input type="text" inputmode="decimal" name="valor" value="{{ $req->valor ? number_format($req->valor, 2, ',', '.') : '' }}" placeholder="Ex: 1.250,00" class="valor-brl"
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                     </div>
 
@@ -269,6 +269,11 @@
                 </tbody>
             </table>
         </div>
+        @if($requests->hasPages())
+            <div style="padding:16px 20px; border-top:1px solid #f3f4f6; display:flex; justify-content:center;">
+                {{ $requests->links() }}
+            </div>
+        @endif
     </div>
 
     {{-- CARDS (mobile) --}}
@@ -356,7 +361,7 @@
                         </div>
                         <div style="margin-bottom:20px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Valor Pago (R$) <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                            <input type="number" name="valor" value="{{ $req->valor }}" placeholder="0.00" step="0.01" min="0"
+                            <input type="text" inputmode="decimal" name="valor" value="{{ $req->valor ? number_format($req->valor, 2, ',', '.') : '' }}" placeholder="Ex: 1.250,00" class="valor-brl"
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
                         <div style="display:flex; gap:10px; justify-content:flex-end;">
@@ -377,8 +382,39 @@
                 <p style="color:#6b7280; font-size:15px; margin:0;">Nenhuma requisição encontrada</p>
             </div>
         @endforelse
+        @if($requests->hasPages())
+            <div style="padding:16px 4px; display:flex; justify-content:center;">
+                {{ $requests->links() }}
+            </div>
+        @endif
     </div>
 
 </div>
+
+<script>
+(function () {
+    function applyBRLMask(input) {
+        input.addEventListener('input', function () {
+            let digits = this.value.replace(/\D/g, '');
+            if (digits === '') { this.value = ''; return; }
+            let num = parseInt(digits, 10) / 100;
+            this.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+    }
+
+    function convertBRLBeforeSubmit(form) {
+        form.addEventListener('submit', function () {
+            form.querySelectorAll('.valor-brl').forEach(function (input) {
+                if (input.value.trim() !== '') {
+                    input.value = input.value.replace(/\./g, '').replace(',', '.');
+                }
+            });
+        });
+    }
+
+    document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
+    document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
+})();
+</script>
 
 @endsection

@@ -30,7 +30,7 @@ class AdminController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->get();
+        $requests = $query->latest()->paginate(15)->withQueryString();
 
         $stats = [
             'total'       => PurchaseRequest::count(),
@@ -66,6 +66,16 @@ class AdminController extends Controller
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
+        if ($request->filled('valor')) {
+            $valor = $request->input('valor');
+            // Converte formato brasileiro (8.640,00) para decimal (8640.00)
+            if (str_contains($valor, ',')) {
+                $valor = str_replace('.', '', $valor);
+                $valor = str_replace(',', '.', $valor);
+                $request->merge(['valor' => $valor]);
+            }
+        }
+
         $request->validate([
             'status'     => 'required|in:pendente,aprovado,rejeitado',
             'admin_note' => 'nullable|string|max:500',
