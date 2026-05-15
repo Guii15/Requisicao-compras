@@ -69,7 +69,7 @@
     </div>
 
     {{-- Gráficos --}}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
 
         {{-- Gasto mensal --}}
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
@@ -105,6 +105,27 @@
                     </div>
                 </div>
                 <div style="font-size:13px; font-weight:700; color:#059669; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
+            </div>
+            @empty
+            <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
+            @endforelse
+        </div>
+
+        {{-- Gasto por fornecedor --}}
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+            <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:12px;">
+                Maiores gastos <span style="font-size:12px; font-weight:400; color:#9ca3af;">por fornecedor</span>
+            </div>
+            @php $maxSupplierSpend = $supplierSpending->max('total_gasto') ?: 1; @endphp
+            @forelse($supplierSpending->take(5) as $s)
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
+                    <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
+                        <div style="height:100%; width:{{ round($s->total_gasto/$maxSupplierSpend*100) }}%; background:#2563eb; border-radius:2px;"></div>
+                    </div>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
             </div>
             @empty
             <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>

@@ -49,6 +49,17 @@ class AdminController extends Controller
             ->limit(10)
             ->get();
 
+        $supplierSpending = PurchaseRequest::select('supplier')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->groupBy('supplier')
+            ->orderByDesc('total_gasto')
+            ->limit(10)
+            ->get();
+
         $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
             return [
@@ -61,7 +72,7 @@ class AdminController extends Controller
             ];
         });
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'monthlySpending'));
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
