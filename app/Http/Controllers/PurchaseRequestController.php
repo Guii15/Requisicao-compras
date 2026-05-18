@@ -64,7 +64,18 @@ class PurchaseRequestController extends Controller
             ->limit(10)
             ->get();
 
-        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending'));
+        $supplierSpending = PurchaseRequest::select('supplier')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->groupBy('supplier')
+            ->orderByDesc('total_gasto')
+            ->limit(10)
+            ->get();
+
+        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
     }
 
     public function create()

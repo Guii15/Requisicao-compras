@@ -72,7 +72,13 @@ class AdminController extends Controller
             ];
         });
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending'));
+        $supplierList = PurchaseRequest::whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->distinct()
+            ->orderBy('supplier')
+            ->pluck('supplier');
+
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
@@ -91,6 +97,7 @@ class AdminController extends Controller
             'status'     => 'required|in:pendente,aprovado,rejeitado',
             'admin_note' => 'nullable|string|max:500',
             'valor'      => 'nullable|numeric|min:0',
+            'supplier'   => 'nullable|string|max:255',
         ]);
 
         $oldStatus = $purchaseRequest->status;
@@ -99,6 +106,7 @@ class AdminController extends Controller
             'status'     => $request->status,
             'admin_note' => $request->admin_note,
             'valor'      => $request->valor ?: null,
+            'supplier'   => $request->supplier ?: null,
         ]);
 
         if ($request->status === 'aprovado' && $oldStatus !== 'aprovado') {
