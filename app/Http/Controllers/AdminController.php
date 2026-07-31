@@ -22,6 +22,10 @@ class AdminController extends Controller
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
         }
 
+        if ($request->filled('product_name')) {
+            $query->where('product_name', 'like', '%' . $request->product_name . '%');
+        }
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -64,6 +68,8 @@ class AdminController extends Controller
             $date = now()->subMonths($monthsAgo);
             return [
                 'label' => $date->translatedFormat('M/y'),
+                'year'  => $date->year,
+                'month' => $date->month,
                 'total' => (float) PurchaseRequest::where('status', 'aprovado')
                     ->whereNotNull('valor')
                     ->whereYear('created_at', $date->year)
@@ -182,6 +188,27 @@ class AdminController extends Controller
             . " - Qtd: " . number_format($req->quantity, 0, ',', '.') . "\n\n"
             . "*Motivo:* " . $req->reason . "\n"
             . "*Obs:* " . $req->justification;
+    }
+
+    public function monthlyRequests($year, $month)
+    {
+        $requests = PurchaseRequest::where('status', 'aprovado')
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderByDesc('valor')
+            ->get();
+
+        return response()->json([
+            'requests' => $requests->map(fn($r) => [
+                'requester_name' => $r->requester_name,
+                'product_name'   => $r->product_name,
+                'supplier'       => $r->supplier ?: '—',
+                'valor_fmt'      => $r->valor ? 'R$ ' . number_format($r->valor, 2, ',', '.') : '—',
+                'quantity'       => $r->quantity,
+            ]),
+            'total_fmt' => 'R$ ' . number_format($requests->sum('valor'), 2, ',', '.'),
+            'count'     => $requests->count(),
+        ]);
     }
 
     public function export(PurchaseRequest $purchaseRequest)

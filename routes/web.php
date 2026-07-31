@@ -32,6 +32,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::patch('/requisicoes/{purchaseRequest}', [AdminController::class, 'update'])->name('requests.update');
     Route::get('/requisicoes/{purchaseRequest}/exportar', [AdminController::class, 'export'])->name('requests.export');
 
+    Route::get('/mensal/{year}/{month}', [AdminController::class, 'monthlyRequests'])->name('monthly');
     Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
     Route::post('/usuarios', [AdminController::class, 'storeUser'])->name('users.store');
     Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');

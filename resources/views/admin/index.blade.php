@@ -115,11 +115,13 @@
             @php $maxMonth = $monthlySpending->max('total') ?: 1; @endphp
             <div style="display:flex; align-items:flex-end; gap:8px; height:100px;">
                 @foreach($monthlySpending as $i => $m)
-                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div onclick="openMonthModal('{{ $m['year'] }}','{{ $m['month'] }}','{{ $m['label'] }}')"
+                     style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;"
+                     title="Ver detalhes de {{ $m['label'] }}">
                     <div style="font-size:10px; color:#9ca3af; white-space:nowrap;">
                         @if($m['total'] > 0) R$ {{ number_format($m['total']/1000, 1, ',', '.') }}k @endif
                     </div>
-                    <div style="width:100%; border-radius:4px 4px 0 0; background:{{ $i == 5 ? '#059669' : '#d1fae5' }}; height:{{ max(6, round($m['total']/$maxMonth*72)) }}px;"></div>
+                    <div style="width:100%; border-radius:4px 4px 0 0; background:{{ $i == 5 ? '#059669' : '#d1fae5' }}; height:{{ max(6, round($m['total']/$maxMonth*72)) }}px; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'"></div>
                     <div style="font-size:11px; color:#6b7280; white-space:nowrap;">{{ $m['label'] }}</div>
                 </div>
                 @endforeach
@@ -182,7 +184,9 @@
                     </div>
                     <div style="display:flex; align-items:flex-end; gap:8px; height:100px;">
                         @foreach($monthlySpending as $i => $m)
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                        <div onclick="openMonthModal('{{ $m['year'] }}','{{ $m['month'] }}','{{ $m['label'] }}')"
+                             style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;"
+                             title="Ver detalhes de {{ $m['label'] }}">
                             <div style="font-size:10px; color:#9ca3af; white-space:nowrap;">
                                 @if($m['total'] > 0) R$ {{ number_format($m['total']/1000, 1, ',', '.') }}k @endif
                             </div>
@@ -271,6 +275,11 @@
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Vendedor</label>
                 <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome..."
+                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Produto</label>
+                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto"
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
             </div>
             <div>
@@ -565,6 +574,21 @@
 
 </div>
 
+{{-- Modal: requisições do mês --}}
+<div id="month-modal" onclick="if(event.target===this)closeMonthModal()"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#fff; border-radius:12px; width:100%; max-width:720px; max-height:85vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h3 id="month-modal-title" style="margin:0; font-size:18px; font-weight:700; color:#05018D;"></h3>
+                <p id="month-modal-sub" style="margin:6px 0 0; font-size:13px; color:#6b7280;"></p>
+            </div>
+            <button onclick="closeMonthModal()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#9ca3af; line-height:1; padding:2px 6px;">&times;</button>
+        </div>
+        <div id="month-modal-body" style="overflow-y:auto; padding:16px 24px; flex:1;"></div>
+    </div>
+</div>
+
 <script>
 (function () {
     function applyBRLMask(input) {
@@ -589,6 +613,51 @@
     document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
     document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
 })();
+
+function openMonthModal(year, month, label) {
+    var modal = document.getElementById('month-modal');
+    modal.style.display = 'flex';
+    document.getElementById('month-modal-title').textContent = 'Aprovadas em ' + label;
+    document.getElementById('month-modal-sub').textContent = 'Carregando...';
+    document.getElementById('month-modal-body').innerHTML = '<p style="color:#6b7280;text-align:center;padding:40px 0;">Carregando...</p>';
+
+    fetch('/admin/mensal/' + year + '/' + month)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('month-modal-sub').textContent = data.count + ' requisição(ões) aprovada(s)  ·  Total: ' + data.total_fmt;
+            if (data.count === 0) {
+                document.getElementById('month-modal-body').innerHTML = '<p style="color:#9ca3af;text-align:center;padding:40px 0;">Nenhuma requisição aprovada neste mês.</p>';
+                return;
+            }
+            var rows = data.requests.map(function(r) {
+                return '<tr style="border-bottom:1px solid #f3f4f6;">'
+                    + '<td style="padding:10px 8px;font-size:13px;font-weight:600;color:#374151;">' + r.requester_name + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;color:#374151;">' + r.product_name + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;color:#6b7280;">' + r.supplier + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;text-align:center;color:#374151;">' + r.quantity + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;font-weight:700;color:#059669;text-align:right;white-space:nowrap;">' + r.valor_fmt + '</td>'
+                    + '</tr>';
+            }).join('');
+            document.getElementById('month-modal-body').innerHTML =
+                '<table style="width:100%;border-collapse:collapse;">'
+                + '<thead><tr style="background:#f9fafb;">'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:left;">Vendedor</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:left;">Produto</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:left;">Fornecedor</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:center;">Qtd</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:right;">Valor</th>'
+                + '</tr></thead>'
+                + '<tbody>' + rows + '</tbody>'
+                + '</table>';
+        })
+        .catch(function() {
+            document.getElementById('month-modal-body').innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px 0;">Erro ao carregar dados.</p>';
+        });
+}
+
+function closeMonthModal() {
+    document.getElementById('month-modal').style.display = 'none';
+}
 </script>
 
 @endsection
