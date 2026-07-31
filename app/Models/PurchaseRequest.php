@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseRequest extends Model
 {
@@ -38,5 +39,10 @@ class PurchaseRequest extends Model
     public function conferente(): BelongsTo
     {
         return $this->belongsTo(User::class, 'conferente_id');
+    }
+
+    public function fotosConferencia(): HasMany
+    {
+        return $this->hasMany(ConferenciaFoto::class);
     }
 }
