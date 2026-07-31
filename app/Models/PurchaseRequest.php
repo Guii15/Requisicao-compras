@@ -23,10 +23,20 @@ class PurchaseRequest extends Model
         'status',
         'admin_note',
         'valor',
+        'tipo_entrega',
+        'status_conferencia',
+        'quantidade_recebida',
+        'observacao_conferencia',
+        'conferente_id',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function conferente(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'conferente_id');
     }
 }
