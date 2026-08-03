@@ -329,4 +329,43 @@ class ConferenciaControllerTest extends TestCase
 
         $response->assertSee('capture="environment"', false);
     }
+
+    public function test_mobile_cards_block_present_with_correct_toggle_classes(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto Mobile']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('conf-desktop-table', false);
+        $response->assertSee('conf-mobile-cards', false);
+        $response->assertSee('Produto Mobile');
+    }
+
+    public function test_mobile_card_shows_tipo_entrega_badge_and_data_grid(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => null,
+            'tipo_entrega' => 'entrega_direta',
+            'requester_name' => 'Vendedor Mobile Teste',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('Entrega Direta');
+        $response->assertSee('Vendedor Mobile Teste');
+    }
+
+    public function test_mobile_cards_show_result_badge_on_conferidos_tab(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto Conferido Mobile']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertSee('Produto Conferido Mobile');
+        $response->assertSee('>OK<', false);
+    }
 }
