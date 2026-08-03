@@ -74,4 +74,53 @@ class PurchaseRequestControllerTest extends TestCase
         $response->assertSessionHasErrors('tipo_entrega');
         $this->assertDatabaseCount('purchase_requests', 0);
     }
+
+    public function test_update_changes_tipo_entrega(): void
+    {
+        $user = User::factory()->create();
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'pendente',
+            'tipo_entrega' => 'estoque',
+        ]);
+
+        $this->actingAs($user)->patch(route('requests.update', $purchaseRequest), [
+            'requester_name' => $purchaseRequest->requester_name,
+            'supplier' => $purchaseRequest->supplier,
+            'urgency' => $purchaseRequest->urgency,
+            'reason' => $purchaseRequest->reason,
+            'justification' => $purchaseRequest->justification,
+            'tipo_entrega' => 'entrega_direta',
+            'product_name' => $purchaseRequest->product_name,
+            'product_code' => $purchaseRequest->product_code,
+            'quantity' => $purchaseRequest->quantity,
+        ]);
+
+        $this->assertSame('entrega_direta', $purchaseRequest->fresh()->tipo_entrega);
+    }
+
+    public function test_update_rejects_invalid_tipo_entrega(): void
+    {
+        $user = User::factory()->create();
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'pendente',
+            'tipo_entrega' => 'estoque',
+        ]);
+
+        $response = $this->actingAs($user)->patch(route('requests.update', $purchaseRequest), [
+            'requester_name' => $purchaseRequest->requester_name,
+            'supplier' => $purchaseRequest->supplier,
+            'urgency' => $purchaseRequest->urgency,
+            'reason' => $purchaseRequest->reason,
+            'justification' => $purchaseRequest->justification,
+            'tipo_entrega' => 'algo_invalido',
+            'product_name' => $purchaseRequest->product_name,
+            'product_code' => $purchaseRequest->product_code,
+            'quantity' => $purchaseRequest->quantity,
+        ]);
+
+        $response->assertSessionHasErrors('tipo_entrega');
+        $this->assertSame('estoque', $purchaseRequest->fresh()->tipo_entrega);
+    }
 }
