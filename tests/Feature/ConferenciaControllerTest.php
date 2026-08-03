@@ -340,6 +340,7 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSee('conf-desktop-table', false);
         $response->assertSee('conf-mobile-cards', false);
         $response->assertSee('Produto Mobile');
+        $response->assertSee('@media (max-width: 768px)', false);
     }
 
     public function test_mobile_card_shows_tipo_entrega_badge_and_data_grid(): void
@@ -354,8 +355,11 @@ class ConferenciaControllerTest extends TestCase
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('Entrega Direta');
-        $response->assertSee('Vendedor Mobile Teste');
+        $html = $response->getContent();
+        $mobileSection = substr($html, strpos($html, 'conf-mobile-cards'));
+
+        $this->assertStringContainsString('Entrega Direta', $mobileSection);
+        $this->assertStringContainsString('Vendedor Mobile Teste', $mobileSection);
     }
 
     public function test_mobile_cards_show_result_badge_on_conferidos_tab(): void
@@ -365,8 +369,11 @@ class ConferenciaControllerTest extends TestCase
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
-        $response->assertSee('Produto Conferido Mobile');
-        $response->assertSee('>OK<', false);
+        $html = $response->getContent();
+        $mobileSection = substr($html, strpos($html, 'conf-mobile-cards'));
+
+        $this->assertStringContainsString('Produto Conferido Mobile', $mobileSection);
+        $this->assertStringContainsString('>OK<', $mobileSection);
     }
 
     public function test_mobile_modal_has_unique_ids_not_colliding_with_desktop_modal(): void
@@ -378,6 +385,10 @@ class ConferenciaControllerTest extends TestCase
 
         $response->assertSee('modal-conferir-m-' . $req->id, false);
         $response->assertSee('form-conferir-m-' . $req->id, false);
+
+        $html = $response->getContent();
+        $this->assertSame(1, substr_count($html, 'id="modal-conferir-' . $req->id . '"'));
+        $this->assertSame(1, substr_count($html, 'id="modal-conferir-m-' . $req->id . '"'));
     }
 
     public function test_mobile_modal_not_rendered_on_conferidos_tab(): void

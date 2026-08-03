@@ -226,7 +226,7 @@
 
             @if($aba === 'aguardando')
             <div id="modal-conferir-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
+                <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
@@ -263,7 +263,7 @@
 
                         <input type="hidden" name="acao" id="campo-acao-m-{{ $req->id }}" value="salvar">
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                             <button type="button" onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
