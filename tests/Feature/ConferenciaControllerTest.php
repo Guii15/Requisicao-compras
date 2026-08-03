@@ -306,7 +306,7 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $response->assertSee('>OK<', false);
-        $response->assertSee('Divergente');
+        $response->assertSee('>Divergente<', false);
         $response->assertSee('Avançado Mesmo Assim');
     }
 

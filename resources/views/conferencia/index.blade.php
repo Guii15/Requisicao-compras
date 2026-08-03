@@ -6,7 +6,7 @@
 
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Conferência</h1>
-        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Requisições aprovadas aguardando conferência</p>
+        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'conferidos' ? 'Requisições já conferidas' : 'Requisições aprovadas aguardando conferência' }}</p>
     </div>
 
     <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
@@ -14,14 +14,14 @@
            style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
                   background:{{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }};
                   border:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }};"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }}'">
+           @if($aba !== 'aguardando') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Aguardando
         </a>
         <a href="{{ route('conferencia.index', ['aba' => 'conferidos']) }}"
            style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
                   background:{{ $aba === 'conferidos' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'conferidos' ? '#fff' : '#6b7280' }};
                   border:2px solid {{ $aba === 'conferidos' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'conferidos' ? '#05018D' : 'transparent' }};"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='{{ $aba === 'conferidos' ? '#fff' : '#6b7280' }}'">
+           @if($aba !== 'conferidos') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Conferidos
         </a>
     </div>
