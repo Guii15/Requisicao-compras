@@ -257,4 +257,42 @@ class ConferenciaControllerTest extends TestCase
         $response->assertStatus(409);
         $this->assertNull($purchaseRequest->fresh()->status_conferencia);
     }
+
+    public function test_index_default_still_shows_only_aguardando(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto Aguardando']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto Conferido']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('Produto Aguardando');
+        $response->assertDontSee('Produto Conferido');
+    }
+
+    public function test_index_aba_conferidos_shows_all_three_conferred_statuses(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto Aguardando']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto OK']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'divergente', 'product_name' => 'Produto Divergente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'avancado_mesmo_assim', 'product_name' => 'Produto Avancado']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertDontSee('Produto Aguardando');
+        $response->assertSee('Produto OK');
+        $response->assertSee('Produto Divergente');
+        $response->assertSee('Produto Avancado');
+    }
+
+    public function test_index_ignores_unknown_aba_value_and_falls_back_to_aguardando(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto Aguardando']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'lixo']));
+
+        $response->assertSee('Produto Aguardando');
+    }
 }

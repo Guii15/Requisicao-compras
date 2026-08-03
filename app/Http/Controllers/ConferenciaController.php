@@ -7,15 +7,21 @@ use Illuminate\Http\Request;
 
 class ConferenciaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requests = PurchaseRequest::with('user')
-            ->where('status', 'aprovado')
-            ->whereNull('status_conferencia')
-            ->latest()
-            ->paginate(15);
+        $aba = $request->query('aba') === 'conferidos' ? 'conferidos' : 'aguardando';
 
-        return view('conferencia.index', compact('requests'));
+        $query = PurchaseRequest::with('user')->where('status', 'aprovado');
+
+        if ($aba === 'conferidos') {
+            $query->whereNotNull('status_conferencia');
+        } else {
+            $query->whereNull('status_conferencia');
+        }
+
+        $requests = $query->latest()->paginate(15)->withQueryString();
+
+        return view('conferencia.index', compact('requests', 'aba'));
     }
 
     public function conferir(Request $request, PurchaseRequest $purchaseRequest)
