@@ -368,4 +368,37 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSee('Produto Conferido Mobile');
         $response->assertSee('>OK<', false);
     }
+
+    public function test_mobile_modal_has_unique_ids_not_colliding_with_desktop_modal(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $req = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('modal-conferir-m-' . $req->id, false);
+        $response->assertSee('form-conferir-m-' . $req->id, false);
+    }
+
+    public function test_mobile_modal_not_rendered_on_conferidos_tab(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $req = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertDontSee('modal-conferir-m-' . $req->id, false);
+    }
+
+    public function test_mobile_modal_avancar_button_only_for_entrega_direta(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $dropship = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'tipo_entrega' => 'entrega_direta']);
+        $estoque = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'tipo_entrega' => 'estoque']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('<button type="submit" id="btn-avancar-m-' . $dropship->id . '"', false);
+        $response->assertDontSee('id="btn-avancar-m-' . $estoque->id . '"', false);
+    }
 }

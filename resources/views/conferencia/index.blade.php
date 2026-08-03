@@ -215,13 +215,84 @@
                             <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
                         @endif
                     @else
-                        <button style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
+                        <button onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
+                                style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                             Conferir
                         </button>
                     @endif
                 </div>
 
             </div>
+
+            @if($aba === 'aguardando')
+            <div id="modal-conferir-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
+                    <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
+                    <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+
+                    <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-m-{{ $req->id }}">
+                        @csrf
+                        @method('PATCH')
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Recebida</label>
+                            <input type="number" name="quantidade_recebida" value="{{ $req->quantity }}" min="0" required
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Foto</label>
+                            <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" capture="environment" required
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Resultado</label>
+                            <select name="resultado" required onchange="atualizaResultadoMobile{{ $req->id }}(this.value)"
+                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                <option value="ok">OK</option>
+                                <option value="divergente">Divergente</option>
+                            </select>
+                        </div>
+
+                        <div id="campo-observacao-m-{{ $req->id }}" style="display:none; margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação</label>
+                            <textarea name="observacao_conferencia" rows="3"
+                                      style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
+                        </div>
+
+                        <input type="hidden" name="acao" id="campo-acao-m-{{ $req->id }}" value="salvar">
+
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <button type="button" onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='none'"
+                                    style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                Cancelar
+                            </button>
+                            <button type="submit" onclick="document.getElementById('campo-acao-m-{{ $req->id }}').value='salvar'"
+                                    style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                Salvar
+                            </button>
+                            @if($req->tipo_entrega === 'entrega_direta')
+                            <button type="submit" id="btn-avancar-m-{{ $req->id }}" onclick="document.getElementById('campo-acao-m-{{ $req->id }}').value='avancar_mesmo_assim'"
+                                    style="display:none; padding:9px 24px; border-radius:8px; background:#d97706; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                Avançar Mesmo Assim
+                            </button>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+            function atualizaResultadoMobile{{ $req->id }}(valor) {
+                document.getElementById('campo-observacao-m-{{ $req->id }}').style.display = valor === 'divergente' ? 'block' : 'none';
+                var btnAvancar = document.getElementById('btn-avancar-m-{{ $req->id }}');
+                if (btnAvancar) {
+                    btnAvancar.style.display = valor === 'divergente' ? 'inline-block' : 'none';
+                }
+            }
+            </script>
+            @endif
         @empty
             <div style="text-align:center; padding:48px 16px;">
                 <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : 'Nenhuma requisição aguardando conferência' }}</p>
