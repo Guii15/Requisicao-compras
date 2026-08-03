@@ -225,6 +225,16 @@
                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
                         </div>
 
+                        <div>
+                            <label style="{{ $labelStyle }}">Tipo de Entrega <span style="color:#ef4444;">*</span></label>
+                            <select name="tipo_entrega" required style="{{ $inputStyle }}"
+                                    onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
+                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                                <option value="estoque" {{ old('tipo_entrega', 'estoque')=='estoque' ? 'selected' : '' }}>Estoque (CD)</option>
+                                <option value="entrega_direta" {{ old('tipo_entrega')=='entrega_direta' ? 'selected' : '' }}>Entrega Direta (Dropship)</option>
+                            </select>
+                        </div>
+
                         <div style="grid-column:1/-1;">
                             <label style="{{ $labelStyle }}">Obs <span style="color:#ef4444;">*</span> <span style="color:#9ca3af; font-weight:400; text-transform:none;">(filial 1 ou 31, etc.)</span></label>
                             <textarea name="justification" rows="2" placeholder="Ex: Filial 31, pedido urgente..." required
