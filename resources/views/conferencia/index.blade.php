@@ -9,6 +9,23 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Requisições aprovadas aguardando conferência</p>
     </div>
 
+    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+        <a href="{{ route('conferencia.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:{{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }};
+                  border:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }};"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }}'">
+            Aguardando
+        </a>
+        <a href="{{ route('conferencia.index', ['aba' => 'conferidos']) }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:{{ $aba === 'conferidos' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'conferidos' ? '#fff' : '#6b7280' }};
+                  border:2px solid {{ $aba === 'conferidos' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'conferidos' ? '#05018D' : 'transparent' }};"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='{{ $aba === 'conferidos' ? '#fff' : '#6b7280' }}'">
+            Conferidos
+        </a>
+    </div>
+
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             ✓ {{ session('success') }}
@@ -26,7 +43,7 @@
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd Solicitada</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Tipo de Entrega</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
+                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'conferidos' ? 'Resultado' : 'Ação' }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,13 +62,24 @@
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
                             <td style="padding:12px 16px; text-align:center;">
-                                <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
-                                        style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
-                                    Conferir
-                                </button>
+                                @if($aba === 'conferidos')
+                                    @if($req->status_conferencia === 'conferido_ok')
+                                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
+                                    @elseif($req->status_conferencia === 'divergente')
+                                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
+                                    @else
+                                        <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                                    @endif
+                                @else
+                                    <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
+                                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
+                                        Conferir
+                                    </button>
+                                @endif
                             </td>
                         </tr>
 
+                        @if($aba === 'aguardando')
                         <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
@@ -69,7 +97,7 @@
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Foto</label>
-                                        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required
+                                        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" capture="environment" required
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                     </div>
 
@@ -119,10 +147,11 @@
                             }
                         }
                         </script>
+                        @endif
                     @empty
                         <tr>
                             <td colspan="7" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
-                                Nenhuma requisição aguardando conferência
+                                {{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : 'Nenhuma requisição aguardando conferência' }}
                             </td>
                         </tr>
                     @endforelse

@@ -295,4 +295,38 @@ class ConferenciaControllerTest extends TestCase
 
         $response->assertSee('Produto Aguardando');
     }
+
+    public function test_index_conferidos_shows_correct_badge_for_each_status(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto OK']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'divergente', 'product_name' => 'Produto Divergente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'avancado_mesmo_assim', 'product_name' => 'Produto Avancado']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertSee('>OK<', false);
+        $response->assertSee('Divergente');
+        $response->assertSee('Avançado Mesmo Assim');
+    }
+
+    public function test_index_conferidos_has_no_conferir_button(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertDontSee('Conferir', false);
+    }
+
+    public function test_foto_input_has_capture_attribute(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('capture="environment"', false);
+    }
 }
