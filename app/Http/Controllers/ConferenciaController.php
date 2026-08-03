@@ -20,6 +20,10 @@ class ConferenciaController extends Controller
 
     public function conferir(Request $request, PurchaseRequest $purchaseRequest)
     {
+        if ($purchaseRequest->status !== 'aprovado' || $purchaseRequest->status_conferencia !== null) {
+            abort(409, 'Esta requisição já foi conferida ou não está mais aprovada.');
+        }
+
         $request->validate([
             'quantidade_recebida'     => 'required|integer|min:0',
             'foto'                    => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',

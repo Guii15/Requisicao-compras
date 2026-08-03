@@ -215,4 +215,46 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSessionHasErrors('foto');
         $this->assertNull($purchaseRequest->fresh()->status_conferencia);
     }
+
+    public function test_conferir_rejects_already_conferred_request(): void
+    {
+        Storage::fake('public');
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'tipo_entrega' => 'estoque',
+        ]);
+
+        $response = $this->actingAs($conferente)->patch(route('conferencia.conferir', $purchaseRequest), [
+            'quantidade_recebida' => 3,
+            'foto' => UploadedFile::fake()->image('produto.jpg'),
+            'resultado' => 'ok',
+            'acao' => 'salvar',
+        ]);
+
+        $response->assertStatus(409);
+        $this->assertSame('conferido_ok', $purchaseRequest->fresh()->status_conferencia);
+    }
+
+    public function test_conferir_rejects_non_aprovado_request(): void
+    {
+        Storage::fake('public');
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'status' => 'pendente',
+            'status_conferencia' => null,
+            'tipo_entrega' => 'estoque',
+        ]);
+
+        $response = $this->actingAs($conferente)->patch(route('conferencia.conferir', $purchaseRequest), [
+            'quantidade_recebida' => 3,
+            'foto' => UploadedFile::fake()->image('produto.jpg'),
+            'resultado' => 'ok',
+            'acao' => 'salvar',
+        ]);
+
+        $response->assertStatus(409);
+        $this->assertNull($purchaseRequest->fresh()->status_conferencia);
+    }
 }
