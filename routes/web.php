@@ -43,6 +43,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
 
 Route::middleware(['auth', ConferenteMiddleware::class])->prefix('conferencia')->name('conferencia.')->group(function () {
     Route::get('/', [ConferenciaController::class, 'index'])->name('index');
+    Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->name('conferir');
 });
 
 require __DIR__.'/auth.php';
