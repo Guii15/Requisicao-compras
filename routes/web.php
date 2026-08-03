@@ -3,7 +3,9 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ConferenciaController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\ConferenteMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -37,6 +39,10 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::post('/usuarios', [AdminController::class, 'storeUser'])->name('users.store');
     Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
     Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->name('users.resetPassword');
+});
+
+Route::middleware(['auth', ConferenteMiddleware::class])->prefix('conferencia')->name('conferencia.')->group(function () {
+    Route::get('/', [ConferenciaController::class, 'index'])->name('index');
 });
 
 require __DIR__.'/auth.php';
