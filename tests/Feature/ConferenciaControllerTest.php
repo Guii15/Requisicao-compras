@@ -452,4 +452,90 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSee('<button type="submit" id="btn-avancar-m-' . $dropship->id . '"', false);
         $response->assertDontSee('id="btn-avancar-m-' . $estoque->id . '"', false);
     }
+
+    public function test_search_filters_by_product_name(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Bateria G7 Plus']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Carregador Turbo']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['q' => 'bateria']));
+
+        $response->assertSee('Bateria G7 Plus');
+        $response->assertDontSee('Carregador Turbo');
+    }
+
+    public function test_search_filters_by_requester_name(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto A', 'requester_name' => 'Guilherme Souza']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto B', 'requester_name' => 'Maria Silva']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['q' => 'guilherme']));
+
+        $response->assertSee('Produto A');
+        $response->assertDontSee('Produto B');
+    }
+
+    public function test_search_filters_by_supplier(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto A', 'supplier' => 'Bomvink']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto B', 'supplier' => 'GPJ']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['q' => 'bomvink']));
+
+        $response->assertSee('Produto A');
+        $response->assertDontSee('Produto B');
+    }
+
+    public function test_search_combined_with_aba_conferidos_and_resultado(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Bateria OK']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'divergente', 'product_name' => 'Bateria Divergente']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos', 'resultado' => 'ok', 'q' => 'bateria']));
+
+        $response->assertSee('Bateria OK');
+        $response->assertDontSee('Bateria Divergente');
+    }
+
+    public function test_index_conferidos_shows_conferente_name(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente', 'name' => 'Fulano Conferente']);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'conferente_id' => $conferente->id,
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertSee('Fulano Conferente');
+    }
+
+    public function test_index_aguardando_does_not_show_conferido_por_column(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertDontSee('Conferido por');
+    }
+
+    public function test_divergencia_warning_and_auto_select_script_present_for_aguardando_item(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $req = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'quantity' => 100]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('id="aviso-divergencia-' . $req->id . '"', false);
+        $response->assertSee('id="aviso-divergencia-m-' . $req->id . '"', false);
+        $response->assertSee('function verificaDivergencia' . $req->id . '(valor)', false);
+        $response->assertSee('function verificaDivergenciaMobile' . $req->id . '(valor)', false);
+        $response->assertSee('pedido: 100', false);
+    }
 }

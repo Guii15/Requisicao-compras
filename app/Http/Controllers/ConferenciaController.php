@@ -11,8 +11,9 @@ class ConferenciaController extends Controller
     {
         $aba = $request->query('aba') === 'conferidos' ? 'conferidos' : 'aguardando';
         $resultado = in_array($request->query('resultado'), ['ok', 'divergente'], true) ? $request->query('resultado') : 'todos';
+        $q = trim((string) $request->query('q', ''));
 
-        $query = PurchaseRequest::with('user')->where('status', 'aprovado');
+        $query = PurchaseRequest::with(['user', 'conferente'])->where('status', 'aprovado');
 
         if ($aba === 'conferidos') {
             $query->whereNotNull('status_conferencia');
@@ -26,9 +27,17 @@ class ConferenciaController extends Controller
             $query->whereNull('status_conferencia');
         }
 
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('product_name', 'like', '%' . $q . '%')
+                    ->orWhere('requester_name', 'like', '%' . $q . '%')
+                    ->orWhere('supplier', 'like', '%' . $q . '%');
+            });
+        }
+
         $requests = $query->latest()->paginate(15)->withQueryString();
 
-        return view('conferencia.index', compact('requests', 'aba', 'resultado'));
+        return view('conferencia.index', compact('requests', 'aba', 'resultado', 'q'));
     }
 
     public function conferir(Request $request, PurchaseRequest $purchaseRequest)

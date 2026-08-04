@@ -37,7 +37,7 @@
     @if($aba === 'conferidos')
         <div style="display:flex; gap:8px; margin-bottom:20px;">
             @foreach(['todos' => 'Todos', 'ok' => 'OK', 'divergente' => 'Divergente'] as $valor => $rotulo)
-                <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor])) }}"
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor, 'q' => $q !== '' ? $q : null])) }}"
                    style="padding:5px 14px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
                           background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
                     {{ $rotulo }}
@@ -45,6 +45,24 @@
             @endforeach
         </div>
     @endif
+
+    <form method="GET" action="{{ route('conferencia.index') }}" style="display:flex; gap:8px; margin-bottom:20px;">
+        <input type="hidden" name="aba" value="{{ $aba }}">
+        @if($aba === 'conferidos' && $resultado !== 'todos')
+            <input type="hidden" name="resultado" value="{{ $resultado }}">
+        @endif
+        <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..."
+               style="flex:1; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 14px; font-size:14px; box-sizing:border-box;">
+        <button type="submit" style="padding:9px 20px; border-radius:8px; background:#05018D; color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;">
+            Buscar
+        </button>
+        @if($q !== '')
+            <a href="{{ route('conferencia.index', array_filter(['aba' => $aba, 'resultado' => $resultado !== 'todos' ? $resultado : null])) }}"
+               style="padding:9px 16px; border-radius:8px; border:1.5px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:14px; white-space:nowrap;">
+                Limpar
+            </a>
+        @endif
+    </form>
 
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
@@ -75,6 +93,9 @@
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Tipo de Entrega</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'conferidos' ? 'Resultado' : 'Ação' }}</th>
+                        @if($aba === 'conferidos')
+                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Conferido por</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -108,6 +129,9 @@
                                     </button>
                                 @endif
                             </td>
+                            @if($aba === 'conferidos')
+                            <td style="padding:12px 16px; font-size:13px; color:#374151;">{{ $req->conferente->name ?? '—' }}</td>
+                            @endif
                         </tr>
 
                         @if($aba === 'aguardando')
@@ -122,8 +146,12 @@
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Recebida</label>
-                                        <input type="number" name="quantidade_recebida" value="{{ $req->quantity }}" min="0" required
+                                        <input type="number" name="quantidade_recebida" id="campo-qtd-{{ $req->id }}" value="{{ $req->quantity }}" min="0" required
+                                               oninput="verificaDivergencia{{ $req->id }}(this.value)"
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        <div id="aviso-divergencia-{{ $req->id }}" style="display:none; margin-top:6px; font-size:12px; color:#d97706; font-weight:600;">
+                                            ⚠️ Diferente da quantidade solicitada (pedido: {{ $req->quantity }})
+                                        </div>
                                     </div>
 
                                     <div style="margin-bottom:16px;">
@@ -134,7 +162,7 @@
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Resultado</label>
-                                        <select name="resultado" required onchange="atualizaResultado{{ $req->id }}(this.value)"
+                                        <select name="resultado" id="campo-resultado-{{ $req->id }}" required onchange="atualizaResultado{{ $req->id }}(this.value)"
                                                 style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                             <option value="ok">OK</option>
                                             <option value="divergente">Divergente</option>
@@ -177,11 +205,20 @@
                                 btnAvancar.style.display = valor === 'divergente' ? 'inline-block' : 'none';
                             }
                         }
+                        function verificaDivergencia{{ $req->id }}(valor) {
+                            var original = {{ $req->quantity }};
+                            var divergiu = valor !== '' && parseInt(valor, 10) !== original;
+                            document.getElementById('aviso-divergencia-{{ $req->id }}').style.display = divergiu ? 'block' : 'none';
+                            if (divergiu) {
+                                document.getElementById('campo-resultado-{{ $req->id }}').value = 'divergente';
+                                atualizaResultado{{ $req->id }}('divergente');
+                            }
+                        }
                         </script>
                         @endif
                     @empty
                         <tr>
-                            <td colspan="7" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="{{ $aba === 'conferidos' ? 8 : 7 }}" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 {{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : 'Nenhuma requisição aguardando conferência' }}
                             </td>
                         </tr>
@@ -228,6 +265,10 @@
                     </div>
                 </div>
 
+                @if($aba === 'conferidos')
+                    <div style="font-size:12px; color:#9ca3af; margin-bottom:8px;">Conferido por: <strong style="color:#374151;">{{ $req->conferente->name ?? '—' }}</strong></div>
+                @endif
+
                 <div style="display:flex; justify-content:flex-end;">
                     @if($aba === 'conferidos')
                         @if($req->status_conferencia === 'conferido_ok')
@@ -259,8 +300,12 @@
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Recebida</label>
-                            <input type="number" name="quantidade_recebida" value="{{ $req->quantity }}" min="0" required
+                            <input type="number" name="quantidade_recebida" id="campo-qtd-m-{{ $req->id }}" value="{{ $req->quantity }}" min="0" required
+                                   oninput="verificaDivergenciaMobile{{ $req->id }}(this.value)"
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                            <div id="aviso-divergencia-m-{{ $req->id }}" style="display:none; margin-top:6px; font-size:12px; color:#d97706; font-weight:600;">
+                                ⚠️ Diferente da quantidade solicitada (pedido: {{ $req->quantity }})
+                            </div>
                         </div>
 
                         <div style="margin-bottom:16px;">
@@ -271,7 +316,7 @@
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Resultado</label>
-                            <select name="resultado" required onchange="atualizaResultadoMobile{{ $req->id }}(this.value)"
+                            <select name="resultado" id="campo-resultado-m-{{ $req->id }}" required onchange="atualizaResultadoMobile{{ $req->id }}(this.value)"
                                     style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                 <option value="ok">OK</option>
                                 <option value="divergente">Divergente</option>
@@ -312,6 +357,15 @@
                 var btnAvancar = document.getElementById('btn-avancar-m-{{ $req->id }}');
                 if (btnAvancar) {
                     btnAvancar.style.display = valor === 'divergente' ? 'inline-block' : 'none';
+                }
+            }
+            function verificaDivergenciaMobile{{ $req->id }}(valor) {
+                var original = {{ $req->quantity }};
+                var divergiu = valor !== '' && parseInt(valor, 10) !== original;
+                document.getElementById('aviso-divergencia-m-{{ $req->id }}').style.display = divergiu ? 'block' : 'none';
+                if (divergiu) {
+                    document.getElementById('campo-resultado-m-{{ $req->id }}').value = 'divergente';
+                    atualizaResultadoMobile{{ $req->id }}('divergente');
                 }
             }
             </script>
