@@ -192,6 +192,15 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
+                                @if($req->status_conferencia === 'conferido_ok')
+                                    <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
+                                @elseif($req->status_conferencia === 'divergente')
+                                    <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
+                                @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                                    <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                                @elseif($req->status === 'aprovado')
+                                    <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
+                                @endif
                             </td>
                             <td style="padding:14px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
                             <td style="padding:14px 16px; text-align:center; font-size:14px; color:#374151; font-weight:600;">{{ $req->quantity }}</td>
@@ -261,6 +270,15 @@
                         <div style="font-size:15px; font-weight:700; color:#1e3a8a;">{{ $req->product_name }}</div>
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
+                        @endif
+                        @if($req->status_conferencia === 'conferido_ok')
+                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
+                        @elseif($req->status_conferencia === 'divergente')
+                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
+                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                            <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                        @elseif($req->status === 'aprovado')
+                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
                         @endif
                     </div>
                     @if($req->status=='aprovado')
