@@ -10,18 +10,25 @@ class ConferenciaController extends Controller
     public function index(Request $request)
     {
         $aba = $request->query('aba') === 'conferidos' ? 'conferidos' : 'aguardando';
+        $resultado = in_array($request->query('resultado'), ['ok', 'divergente'], true) ? $request->query('resultado') : 'todos';
 
         $query = PurchaseRequest::with('user')->where('status', 'aprovado');
 
         if ($aba === 'conferidos') {
             $query->whereNotNull('status_conferencia');
+
+            if ($resultado === 'ok') {
+                $query->where('status_conferencia', 'conferido_ok');
+            } elseif ($resultado === 'divergente') {
+                $query->whereIn('status_conferencia', ['divergente', 'avancado_mesmo_assim']);
+            }
         } else {
             $query->whereNull('status_conferencia');
         }
 
         $requests = $query->latest()->paginate(15)->withQueryString();
 
-        return view('conferencia.index', compact('requests', 'aba'));
+        return view('conferencia.index', compact('requests', 'aba', 'resultado'));
     }
 
     public function conferir(Request $request, PurchaseRequest $purchaseRequest)

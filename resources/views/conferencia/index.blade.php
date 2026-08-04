@@ -34,9 +34,32 @@
         </a>
     </div>
 
+    @if($aba === 'conferidos')
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            @foreach(['todos' => 'Todos', 'ok' => 'OK', 'divergente' => 'Divergente'] as $valor => $rotulo)
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor])) }}"
+                   style="padding:5px 14px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
+                          background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
+                    {{ $rotulo }}
+                </a>
+            @endforeach
+        </div>
+    @endif
+
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             ✓ {{ session('success') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
+            <strong>Não foi possível salvar a conferência:</strong>
+            <ul style="margin:6px 0 0; padding-left:18px;">
+                @foreach($errors->all() as $erro)
+                    <li>{{ $erro }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 

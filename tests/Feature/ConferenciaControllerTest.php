@@ -286,6 +286,46 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSee('Produto Avancado');
     }
 
+    public function test_index_conferidos_resultado_ok_shows_only_conferido_ok(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto OK']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'divergente', 'product_name' => 'Produto Divergente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'avancado_mesmo_assim', 'product_name' => 'Produto Avancado']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos', 'resultado' => 'ok']));
+
+        $response->assertSee('Produto OK');
+        $response->assertDontSee('Produto Divergente');
+        $response->assertDontSee('Produto Avancado');
+    }
+
+    public function test_index_conferidos_resultado_divergente_shows_divergente_and_avancado(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto OK']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'divergente', 'product_name' => 'Produto Divergente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'avancado_mesmo_assim', 'product_name' => 'Produto Avancado']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos', 'resultado' => 'divergente']));
+
+        $response->assertDontSee('Produto OK');
+        $response->assertSee('Produto Divergente');
+        $response->assertSee('Produto Avancado');
+    }
+
+    public function test_index_conferidos_ignores_unknown_resultado_value(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto OK']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'divergente', 'product_name' => 'Produto Divergente']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos', 'resultado' => 'lixo']));
+
+        $response->assertSee('Produto OK');
+        $response->assertSee('Produto Divergente');
+    }
+
     public function test_index_ignores_unknown_aba_value_and_falls_back_to_aguardando(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
