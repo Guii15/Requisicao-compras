@@ -49,6 +49,7 @@ Route::middleware(['auth', ConferenteMiddleware::class])->prefix('conferencia')-
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {
     Route::get('/', [PendenciaController::class, 'index'])->name('index');
+    Route::patch('/{purchaseRequest}', [PendenciaController::class, 'resolver'])->name('resolver');
 });
 
 require __DIR__.'/auth.php';

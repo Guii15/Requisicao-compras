@@ -108,4 +108,118 @@ class PendenciaControllerTest extends TestCase
 
         $response->assertSee('Nenhuma pendência no momento.');
     }
+
+    private function pendenciaAprovadaEstoque(array $overrides = []): PurchaseRequest
+    {
+        return PurchaseRequest::factory()->create(array_merge([
+            'status' => 'aprovado',
+            'status_conferencia' => 'divergente',
+            'tipo_entrega' => 'estoque',
+            'quantity' => 10,
+            'quantidade_recebida' => 8,
+        ], $overrides));
+    }
+
+    public function test_resolver_aceitar_sets_avancado_mesmo_assim(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque();
+
+        $response = $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'aceitar',
+        ]);
+
+        $response->assertRedirect(route('pendencias.index'));
+        $this->assertSame('avancado_mesmo_assim', $req->fresh()->status_conferencia);
+    }
+
+    public function test_resolver_cancelar_sets_cancelado(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque();
+
+        $response = $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'cancelar',
+            'observacao' => 'Fornecedor confirmou que não vai reenviar.',
+        ]);
+
+        $response->assertRedirect(route('pendencias.index'));
+        $this->assertSame('cancelado', $req->fresh()->status_conferencia);
+    }
+
+    public function test_resolver_cancelar_requires_observacao(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque();
+
+        $response = $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'cancelar',
+        ]);
+
+        $response->assertSessionHasErrors('observacao');
+        $this->assertSame('divergente', $req->fresh()->status_conferencia);
+    }
+
+    public function test_resolver_aceitar_does_not_require_observacao(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque();
+
+        $response = $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'aceitar',
+        ]);
+
+        $response->assertSessionDoesntHaveErrors();
+    }
+
+    public function test_resolver_appends_observacao_to_existing_admin_note(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque(['admin_note' => 'Aprovado com urgência.']);
+
+        $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'cancelar',
+            'observacao' => 'Fornecedor não tem mais o produto.',
+        ]);
+
+        $notaFinal = $req->fresh()->admin_note;
+        $this->assertStringContainsString('Aprovado com urgência.', $notaFinal);
+        $this->assertStringContainsString('Fornecedor não tem mais o produto.', $notaFinal);
+    }
+
+    public function test_resolver_rejects_already_resolved_pendencia(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque(['status_conferencia' => 'cancelado']);
+
+        $response = $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'aceitar',
+        ]);
+
+        $response->assertStatus(409);
+    }
+
+    public function test_resolver_rejects_non_estoque_tipo_entrega(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque(['tipo_entrega' => 'entrega_direta']);
+
+        $response = $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'aceitar',
+        ]);
+
+        $response->assertStatus(409);
+    }
+
+    public function test_resolver_requires_admin(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $req = $this->pendenciaAprovadaEstoque();
+
+        $response = $this->actingAs($conferente)->patch(route('pendencias.resolver', $req), [
+            'decisao' => 'aceitar',
+        ]);
+
+        $response->assertForbidden();
+    }
 }
