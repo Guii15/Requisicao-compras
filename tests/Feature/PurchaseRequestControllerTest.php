@@ -247,4 +247,28 @@ class PurchaseRequestControllerTest extends TestCase
         $html = $response->getContent();
         $this->assertSame(2, substr_count($html, 'Conferido ✓ OK'));
     }
+
+    public function test_index_badge_wrapped_in_div_when_product_code_and_url_empty(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => null,
+            'product_name' => 'Produto Sem Codigo Url',
+            'product_code' => null,
+            'product_url' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $html = $response->getContent();
+        // Verificar que a etiqueta "Aguardando conferência" existe
+        $response->assertSee('Aguardando conferência');
+        // Verificar que ela está dentro de uma <div> envolvendo a etiqueta
+        $this->assertStringContainsString('<div>', $html);
+        $this->assertStringContainsString('</div>', $html);
+        // Confirmar que há uma <div> dentro do <td> do produto (antes de fechar a tag)
+        $this->assertMatchesRegularExpression('/<td[^>]*>(?:.*?)<div>.*?Aguardando conferência.*?<\/div>.*?<\/td>/s', $html);
+    }
 }
