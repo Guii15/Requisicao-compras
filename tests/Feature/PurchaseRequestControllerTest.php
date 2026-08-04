@@ -271,4 +271,36 @@ class PurchaseRequestControllerTest extends TestCase
         // Confirmar que há uma <div> dentro do <td> do produto (antes de fechar a tag)
         $this->assertMatchesRegularExpression('/<td[^>]*>(?:.*?)<div>.*?Aguardando conferência.*?<\/div>.*?<\/td>/s', $html);
     }
+
+    public function test_index_shows_cancelado_badge(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'cancelado',
+            'product_name' => 'Bateria G7 Plus',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee('>Cancelado<', false);
+        $response->assertDontSee('Aguardando conferência');
+    }
+
+    public function test_index_cancelado_badge_appears_in_both_desktop_and_mobile_blocks(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'cancelado',
+            'product_name' => 'Produto Cancelado Dois Layouts',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $html = $response->getContent();
+        $this->assertSame(2, substr_count($html, '>Cancelado<'));
+    }
 }

@@ -199,6 +199,8 @@
                                         <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
                                     @elseif($req->status_conferencia === 'avancado_mesmo_assim')
                                         <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                                    @elseif($req->status_conferencia === 'cancelado')
+                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
                                     @elseif($req->status === 'aprovado')
                                         <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
                                     @endif
@@ -279,6 +281,8 @@
                             <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
                         @elseif($req->status_conferencia === 'avancado_mesmo_assim')
                             <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                        @elseif($req->status_conferencia === 'cancelado')
+                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
                         @elseif($req->status === 'aprovado')
                             <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
                         @endif
