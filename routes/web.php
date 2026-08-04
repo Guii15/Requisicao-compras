@@ -5,8 +5,10 @@ use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConferenciaController;
 use App\Http\Controllers\PendenciaController;
+use App\Http\Controllers\EntradaController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
+use App\Http\Middleware\EntradaMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -50,6 +52,10 @@ Route::middleware(['auth', ConferenteMiddleware::class])->prefix('conferencia')-
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {
     Route::get('/', [PendenciaController::class, 'index'])->name('index');
     Route::patch('/{purchaseRequest}', [PendenciaController::class, 'resolver'])->name('resolver');
+});
+
+Route::middleware(['auth', EntradaMiddleware::class])->prefix('entrada')->name('entrada.')->group(function () {
+    Route::get('/', [EntradaController::class, 'index'])->name('index');
 });
 
 require __DIR__.'/auth.php';

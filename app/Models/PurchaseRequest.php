@@ -29,6 +29,9 @@ class PurchaseRequest extends Model
         'quantidade_recebida',
         'observacao_conferencia',
         'conferente_id',
+        'vendedor_destino',
+        'quantidade_entrada',
+        'entrada_concluida_em',
     ];
 
     public function user(): BelongsTo
