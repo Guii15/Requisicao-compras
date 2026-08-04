@@ -538,4 +538,49 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSee('function verificaDivergenciaMobile' . $req->id . '(valor)', false);
         $response->assertSee('pedido: 100', false);
     }
+
+    public function test_index_conferidos_shows_cancelado_badge_not_avancado(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'cancelado',
+            'product_name' => 'Produto Cancelado Conferencia',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertSee('>Cancelado<', false);
+        $response->assertDontSee('Avançado Mesmo Assim');
+    }
+
+    public function test_index_conferidos_cancelado_appears_in_both_desktop_and_mobile_blocks(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'cancelado',
+            'product_name' => 'Produto Cancelado Dois Layouts',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $html = $response->getContent();
+        $this->assertSame(2, substr_count($html, '>Cancelado<'));
+    }
+
+    public function test_index_conferidos_still_shows_avancado_mesmo_assim_correctly(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'avancado_mesmo_assim',
+            'product_name' => 'Produto Ainda Avancado',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
+
+        $response->assertSee('Avançado Mesmo Assim');
+        $response->assertDontSee('>Cancelado<', false);
+    }
 }

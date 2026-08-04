@@ -119,8 +119,10 @@
                                         <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
                                     @elseif($req->status_conferencia === 'divergente')
                                         <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
-                                    @else
+                                    @elseif($req->status_conferencia === 'avancado_mesmo_assim')
                                         <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                                    @elseif($req->status_conferencia === 'cancelado')
+                                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                                     @endif
                                 @else
                                     <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
@@ -275,8 +277,10 @@
                             <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
                         @elseif($req->status_conferencia === 'divergente')
                             <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
-                        @else
+                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
                             <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                        @elseif($req->status_conferencia === 'cancelado')
+                            <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                         @endif
                     @else
                         <button onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
