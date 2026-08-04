@@ -39,7 +39,7 @@ class ConferenciaController extends Controller
 
         $request->validate([
             'quantidade_recebida'     => 'required|integer|min:0',
-            'foto'                    => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'foto'                    => 'required|image|mimes:jpg,jpeg,png,webp|max:15360',
             'resultado'               => 'required|in:ok,divergente',
             'observacao_conferencia'  => 'required_if:resultado,divergente|nullable|string|max:500',
             'acao'                    => 'required|in:salvar,avancar_mesmo_assim',
@@ -48,7 +48,7 @@ class ConferenciaController extends Controller
             'foto.required'                      => 'A foto é obrigatória.',
             'foto.image'                          => 'O arquivo precisa ser uma imagem.',
             'foto.mimes'                          => 'Formatos aceitos: jpg, jpeg, png, webp.',
-            'foto.max'                            => 'A foto deve ter no máximo 5MB.',
+            'foto.max'                            => 'A foto deve ter no máximo 15MB.',
             'resultado.required'                 => 'Selecione o resultado da conferência.',
             'observacao_conferencia.required_if' => 'A observação é obrigatória quando divergente.',
         ]);
