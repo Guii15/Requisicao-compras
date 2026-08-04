@@ -56,6 +56,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name(
 
 Route::middleware(['auth', EntradaMiddleware::class])->prefix('entrada')->name('entrada.')->group(function () {
     Route::get('/', [EntradaController::class, 'index'])->name('index');
+    Route::patch('/{purchaseRequest}', [EntradaController::class, 'darEntrada'])->name('darEntrada');
 });
 
 require __DIR__.'/auth.php';

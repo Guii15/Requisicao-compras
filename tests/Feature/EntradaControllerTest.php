@@ -120,4 +120,96 @@ class EntradaControllerTest extends TestCase
 
         $response->assertSee('Nenhum item liberado aguardando entrada.');
     }
+
+    private function itemLiberadoParaEntrada(array $overrides = []): PurchaseRequest
+    {
+        return PurchaseRequest::factory()->create(array_merge([
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'quantity' => 10,
+            'quantidade_recebida' => 10,
+            'requester_name' => 'Vendedor Original',
+        ], $overrides));
+    }
+
+    public function test_dar_entrada_sets_vendedor_quantidade_e_timestamp(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada();
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 10,
+        ]);
+
+        $response->assertRedirect(route('entrada.index'));
+        $fresh = $req->fresh();
+        $this->assertSame('Vendedor Original', $fresh->vendedor_destino);
+        $this->assertSame(10, $fresh->quantidade_entrada);
+        $this->assertNotNull($fresh->entrada_concluida_em);
+    }
+
+    public function test_dar_entrada_requires_vendedor_destino(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada();
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'quantidade_entrada' => 10,
+        ]);
+
+        $response->assertSessionHasErrors('vendedor_destino');
+        $this->assertNull($req->fresh()->entrada_concluida_em);
+    }
+
+    public function test_dar_entrada_requires_quantidade_entrada(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada();
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+        ]);
+
+        $response->assertSessionHasErrors('quantidade_entrada');
+    }
+
+    public function test_dar_entrada_rejects_already_concluded_item(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada(['entrada_concluida_em' => now()]);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 10,
+        ]);
+
+        $response->assertStatus(409);
+    }
+
+    public function test_dar_entrada_rejects_item_not_conferido_ok_or_avancado(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada(['status_conferencia' => 'divergente']);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 10,
+        ]);
+
+        $response->assertStatus(409);
+    }
+
+    public function test_dar_entrada_requires_entrada_role(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $req = $this->itemLiberadoParaEntrada();
+
+        $response = $this->actingAs($conferente)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 10,
+        ]);
+
+        $response->assertForbidden();
+    }
 }

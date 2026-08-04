@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use Illuminate\Http\Request;
 
 class EntradaController extends Controller
 {
@@ -15,5 +16,29 @@ class EntradaController extends Controller
             ->paginate(15);
 
         return view('entrada.index', compact('requests'));
+    }
+
+    public function darEntrada(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        if (!in_array($purchaseRequest->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true)
+            || $purchaseRequest->entrada_concluida_em !== null) {
+            abort(409, 'Este item já teve entrada registrada ou não está mais liberado pela conferência.');
+        }
+
+        $request->validate([
+            'vendedor_destino'   => 'required|string|max:255',
+            'quantidade_entrada' => 'required|integer|min:0',
+        ], [
+            'vendedor_destino.required'   => 'Informe o vendedor destino.',
+            'quantidade_entrada.required' => 'Informe a quantidade que entrou.',
+        ]);
+
+        $purchaseRequest->update([
+            'vendedor_destino'     => $request->vendedor_destino,
+            'quantidade_entrada'   => $request->quantidade_entrada,
+            'entrada_concluida_em' => now(),
+        ]);
+
+        return redirect()->route('entrada.index')->with('success', 'Entrada registrada com sucesso!');
     }
 }
