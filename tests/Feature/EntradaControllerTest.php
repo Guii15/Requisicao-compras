@@ -101,15 +101,14 @@ class EntradaControllerTest extends TestCase
         PurchaseRequest::factory()->create([
             'status' => 'aprovado',
             'status_conferencia' => 'avancado_mesmo_assim',
-            'quantity' => 10,
-            'quantidade_recebida' => 7,
+            'quantity' => 23,
+            'quantidade_recebida' => 19,
             'product_name' => 'Produto Avisado',
         ]);
 
         $response = $this->actingAs($entrada)->get(route('entrada.index'));
 
-        $response->assertSee('10');
-        $response->assertSee('7');
+        $response->assertSee('23 / 19');
         $response->assertSee('Avançado Mesmo Assim');
     }
 
