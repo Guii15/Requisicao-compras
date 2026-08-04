@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConferenciaController;
+use App\Http\Controllers\PendenciaController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,10 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
 Route::middleware(['auth', ConferenteMiddleware::class])->prefix('conferencia')->name('conferencia.')->group(function () {
     Route::get('/', [ConferenciaController::class, 'index'])->name('index');
     Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->name('conferir');
+});
+
+Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {
+    Route::get('/', [PendenciaController::class, 'index'])->name('index');
 });
 
 require __DIR__.'/auth.php';

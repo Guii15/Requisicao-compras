@@ -27,6 +27,14 @@
                        onmouseout="this.style.background='{{ request()->routeIs('admin.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('admin.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
                         ⚙ Admin
                     </a>
+                    <a href="{{ route('pendencias.index') }}"
+                       style="color: {{ request()->routeIs('pendencias.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
+                              background: {{ request()->routeIs('pendencias.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
+                              padding:6px 14px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; margin-left:4px;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'"
+                       onmouseout="this.style.background='{{ request()->routeIs('pendencias.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('pendencias.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
+                        📋 Pendências
+                    </a>
                     @endif
                     @if(Auth::user()->isConferente())
                     <a href="{{ route('conferencia.index') }}"
@@ -103,6 +111,7 @@
             <a href="{{ route('requests.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px;">Minhas Requisições</a>
             @if(Auth::user()->isAdmin())
             <a href="{{ route('admin.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">⚙ Admin</a>
+            <a href="{{ route('pendencias.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📋 Pendências</a>
             @endif
             @if(Auth::user()->isConferente())
             <a href="{{ route('conferencia.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">🔍 Conferência</a>
