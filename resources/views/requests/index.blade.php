@@ -373,7 +373,7 @@
             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
                 <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
                 <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px;">
+                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px; white-space:pre-line;">
                     {{ $req->admin_note }}
                 </div>
                 <div style="text-align:right;">

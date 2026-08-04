@@ -222,4 +222,29 @@ class PendenciaControllerTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_admin_note_grown_past_500_by_pendencia_resolution_can_still_be_saved_on_admin_update(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $req = $this->pendenciaAprovadaEstoque([
+            'admin_note' => str_repeat('a', 300),
+        ]);
+
+        $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
+            'decisao'    => 'cancelar',
+            'observacao' => str_repeat('b', 400),
+        ]);
+
+        $notaFinal = $req->fresh()->admin_note;
+        $this->assertGreaterThan(500, strlen($notaFinal));
+
+        $response = $this->actingAs($admin)->patch(route('admin.requests.update', $req), [
+            'status'     => 'aprovado',
+            'admin_note' => $notaFinal,
+            'supplier'   => 'Novo Fornecedor',
+        ]);
+
+        $response->assertSessionDoesntHaveErrors('admin_note');
+        $this->assertSame('Novo Fornecedor', $req->fresh()->supplier);
+    }
 }

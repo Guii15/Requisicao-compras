@@ -101,7 +101,7 @@ class AdminController extends Controller
 
         $request->validate([
             'status'     => 'required|in:pendente,aprovado,rejeitado',
-            'admin_note' => 'nullable|string|max:500',
+            'admin_note' => 'nullable|string|max:2000',
             'valor'      => 'nullable|numeric|min:0',
             'supplier'   => 'nullable|string|max:255',
         ]);

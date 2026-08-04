@@ -583,4 +583,18 @@ class ConferenciaControllerTest extends TestCase
         $response->assertSee('Avançado Mesmo Assim');
         $response->assertDontSee('>Cancelado<', false);
     }
+
+    public function test_index_conferidos_resultado_divergente_includes_cancelado(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'cancelado',
+            'product_name' => 'Produto Cancelado No Subfiltro',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos', 'resultado' => 'divergente']));
+
+        $response->assertSee('Produto Cancelado No Subfiltro');
+    }
 }

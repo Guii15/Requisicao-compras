@@ -21,7 +21,7 @@ class ConferenciaController extends Controller
             if ($resultado === 'ok') {
                 $query->where('status_conferencia', 'conferido_ok');
             } elseif ($resultado === 'divergente') {
-                $query->whereIn('status_conferencia', ['divergente', 'avancado_mesmo_assim']);
+                $query->whereIn('status_conferencia', ['divergente', 'avancado_mesmo_assim', 'cancelado']);
             }
         } else {
             $query->whereNull('status_conferencia');
