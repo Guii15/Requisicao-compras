@@ -470,4 +470,47 @@ class PurchaseRequestControllerTest extends TestCase
 
         $this->assertSame($queryCountUm, $queryCountCinco, 'A quantidade de queries não deveria crescer com o número de linhas (foto por linha = N+1).');
     }
+
+    public function test_admin_update_sets_aprovado_em_on_first_approval(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $purchaseRequest = PurchaseRequest::factory()->create(['status' => 'pendente', 'aprovado_em' => null]);
+
+        $this->actingAs($admin)->patch(route('admin.requests.update', $purchaseRequest), [
+            'status' => 'aprovado',
+        ]);
+
+        $fresh = $purchaseRequest->fresh();
+        $this->assertNotNull($fresh->aprovado_em);
+    }
+
+    public function test_admin_update_preserves_aprovado_em_on_subsequent_edits(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $dataOriginal = now()->subDays(2);
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'aprovado_em' => $dataOriginal,
+        ]);
+
+        $this->actingAs($admin)->patch(route('admin.requests.update', $purchaseRequest), [
+            'status' => 'aprovado',
+            'supplier' => 'Novo Fornecedor',
+        ]);
+
+        $fresh = $purchaseRequest->fresh();
+        $this->assertSame($dataOriginal->format('Y-m-d H:i:s'), $fresh->aprovado_em->format('Y-m-d H:i:s'));
+    }
+
+    public function test_admin_update_does_not_set_aprovado_em_when_rejecting(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $purchaseRequest = PurchaseRequest::factory()->create(['status' => 'pendente', 'aprovado_em' => null]);
+
+        $this->actingAs($admin)->patch(route('admin.requests.update', $purchaseRequest), [
+            'status' => 'rejeitado',
+        ]);
+
+        $this->assertNull($purchaseRequest->fresh()->aprovado_em);
+    }
 }

@@ -111,10 +111,13 @@ class AdminController extends Controller
         $supplier = $request->supplier ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8') : null;
 
         $purchaseRequest->update([
-            'status'     => $request->status,
-            'admin_note' => $request->admin_note,
-            'valor'      => $request->valor ?: null,
-            'supplier'   => $supplier,
+            'status'      => $request->status,
+            'admin_note'  => $request->admin_note,
+            'valor'       => $request->valor ?: null,
+            'supplier'    => $supplier,
+            'aprovado_em' => ($request->status === 'aprovado' && $oldStatus !== 'aprovado')
+                ? now()
+                : $purchaseRequest->aprovado_em,
         ]);
 
         if ($request->status === 'aprovado' && $oldStatus !== 'aprovado') {
