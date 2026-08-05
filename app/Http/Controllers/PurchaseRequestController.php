@@ -13,7 +13,7 @@ class PurchaseRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PurchaseRequest::where('user_id', auth()->id());
+        $query = PurchaseRequest::with('fotosConferencia')->where('user_id', auth()->id());
 
         if ($request->filled('requester_name')) {
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');

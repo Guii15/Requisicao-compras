@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\ConferenciaFoto;
 use App\Models\PurchaseRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PurchaseRequestControllerTest extends TestCase
@@ -370,5 +373,101 @@ class PurchaseRequestControllerTest extends TestCase
 
         $response->assertSee('>Conferido ✓ OK<', false);
         $response->assertDontSee('>Entrada Realizada<', false);
+    }
+
+    public function test_index_shows_ver_foto_link_when_foto_exists(): void
+    {
+        $user = User::factory()->create();
+        $req = PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'product_name' => 'Produto Com Foto',
+        ]);
+        ConferenciaFoto::create([
+            'purchase_request_id' => $req->id,
+            'caminho_arquivo' => 'conferencia/produto-com-foto.jpg',
+            'nome_original' => 'foto.jpg',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee('Ver foto');
+        $response->assertSee(Storage::url('conferencia/produto-com-foto.jpg'), false);
+    }
+
+    public function test_index_does_not_show_ver_foto_link_when_no_foto(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => null,
+            'product_name' => 'Produto Sem Foto',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertDontSee('Ver foto');
+    }
+
+    public function test_index_foto_modal_shows_correct_image_for_each_request(): void
+    {
+        $user = User::factory()->create();
+        $reqA = PurchaseRequest::factory()->create([
+            'user_id' => $user->id, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+        ]);
+        $reqB = PurchaseRequest::factory()->create([
+            'user_id' => $user->id, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+        ]);
+        ConferenciaFoto::create(['purchase_request_id' => $reqA->id, 'caminho_arquivo' => 'conferencia/foto-a.jpg', 'nome_original' => 'a.jpg']);
+        ConferenciaFoto::create(['purchase_request_id' => $reqB->id, 'caminho_arquivo' => 'conferencia/foto-b.jpg', 'nome_original' => 'b.jpg']);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+        $html = $response->getContent();
+
+        $posA = strpos($html, "id=\"foto-{$reqA->id}\"");
+        $posB = strpos($html, "id=\"foto-{$reqB->id}\"");
+        $this->assertNotFalse($posA);
+        $this->assertNotFalse($posB);
+
+        [$startA, $endA] = $posA < $posB ? [$posA, $posB] : [$posA, strlen($html)];
+        $modalA = substr($html, $startA, $endA - $startA);
+
+        $this->assertStringContainsString('foto-a.jpg', $modalA);
+        $this->assertStringNotContainsString('foto-b.jpg', $modalA);
+    }
+
+    public function test_index_does_not_n_plus_one_query_fotos_conferencia(): void
+    {
+        $criarComFoto = function (User $user, int $quantidade) {
+            foreach (range(1, $quantidade) as $i) {
+                $req = PurchaseRequest::factory()->create([
+                    'user_id' => $user->id, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+                ]);
+                ConferenciaFoto::create([
+                    'purchase_request_id' => $req->id,
+                    'caminho_arquivo' => "conferencia/foto-{$i}.jpg",
+                    'nome_original' => "foto-{$i}.jpg",
+                ]);
+            }
+        };
+
+        $userUm = User::factory()->create();
+        $criarComFoto($userUm, 1);
+        DB::enableQueryLog();
+        $this->actingAs($userUm)->get(route('requests.index'));
+        $queryCountUm = count(DB::getQueryLog());
+        DB::disableQueryLog();
+        DB::flushQueryLog();
+
+        $userCinco = User::factory()->create();
+        $criarComFoto($userCinco, 5);
+        DB::enableQueryLog();
+        $this->actingAs($userCinco)->get(route('requests.index'));
+        $queryCountCinco = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        $this->assertSame($queryCountUm, $queryCountCinco, 'A quantidade de queries não deveria crescer com o número de linhas (foto por linha = N+1).');
     }
 }
