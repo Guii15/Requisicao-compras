@@ -54,4 +54,22 @@
         </button>
 
     </form>
+
+    <div style="margin-top:24px; padding-top:20px; border-top:1px solid #e5e7eb;">
+        <p style="margin:0 0 10px; font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Acesso rápido</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ route('requests.create') }}"
+               style="flex:1; min-width:120px; text-align:center; padding:9px 12px; border-radius:8px; border:1.5px solid #e5e7eb; color:#374151; text-decoration:none; font-size:13px; font-weight:600;">
+                Criar Requisição
+            </a>
+            <a href="{{ route('conferencia.index') }}"
+               style="flex:1; min-width:120px; text-align:center; padding:9px 12px; border-radius:8px; border:1.5px solid #e5e7eb; color:#374151; text-decoration:none; font-size:13px; font-weight:600;">
+                Conferência
+            </a>
+            <a href="{{ route('entrada.index') }}"
+               style="flex:1; min-width:120px; text-align:center; padding:9px 12px; border-radius:8px; border:1.5px solid #e5e7eb; color:#374151; text-decoration:none; font-size:13px; font-weight:600;">
+                Entrada
+            </a>
+        </div>
+    </div>
 </x-guest-layout>

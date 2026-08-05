@@ -8,6 +8,7 @@ use App\Http\Controllers\PendenciaController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
+use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
 use App\Http\Middleware\EntradaMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -44,9 +45,9 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->name('users.resetPassword');
 });
 
-Route::middleware(['auth', ConferenteMiddleware::class])->prefix('conferencia')->name('conferencia.')->group(function () {
-    Route::get('/', [ConferenciaController::class, 'index'])->name('index');
-    Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->name('conferir');
+Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(function () {
+    Route::get('/', [ConferenciaController::class, 'index'])->middleware(ConferenciaVisualizacaoMiddleware::class)->name('index');
+    Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->middleware(ConferenteMiddleware::class)->name('conferir');
 });
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {

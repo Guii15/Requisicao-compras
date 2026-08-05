@@ -2,6 +2,8 @@
 
 @section('content')
 
+@php $podeConferir = Auth::user()->isConferente(); @endphp
+
 <style>
 .conf-mobile-cards { display: none; }
 @media (max-width: 768px) {
@@ -107,7 +109,7 @@
                             <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->tipo_entrega === 'entrega_direta')
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrega Direta</span>
+                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Venda Casada</span>
                                 @else
                                     <span style="background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Estoque</span>
                                 @endif
@@ -124,11 +126,13 @@
                                     @elseif($req->status_conferencia === 'cancelado')
                                         <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                                     @endif
-                                @else
+                                @elseif($podeConferir)
                                     <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
                                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
                                         Conferir
                                     </button>
+                                @else
+                                    <span style="color:#9ca3af; font-size:12px;">Aguardando conferência</span>
                                 @endif
                             </td>
                             @if($aba === 'conferidos')
@@ -136,7 +140,7 @@
                             @endif
                         </tr>
 
-                        @if($aba === 'aguardando')
+                        @if($aba === 'aguardando' && $podeConferir)
                         <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
@@ -242,7 +246,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
                     <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
                     @if($req->tipo_entrega === 'entrega_direta')
-                        <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Entrega Direta</span>
+                        <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Venda Casada</span>
                     @else
                         <span style="background:#e0e7ff; color:#3730a3; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Estoque</span>
                     @endif
@@ -282,17 +286,19 @@
                         @elseif($req->status_conferencia === 'cancelado')
                             <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                         @endif
-                    @else
+                    @elseif($podeConferir)
                         <button onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
                                 style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                             Conferir
                         </button>
+                    @else
+                        <span style="color:#9ca3af; font-size:12px;">Aguardando conferência</span>
                     @endif
                 </div>
 
             </div>
 
-            @if($aba === 'aguardando')
+            @if($aba === 'aguardando' && $podeConferir)
             <div id="modal-conferir-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>

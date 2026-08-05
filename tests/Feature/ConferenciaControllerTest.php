@@ -47,6 +47,41 @@ class ConferenciaControllerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_entrada_role_can_access_index(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+
+        $response = $this->actingAs($entrada)->get(route('conferencia.index'));
+
+        $response->assertOk();
+    }
+
+    public function test_entrada_role_cannot_conferir(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $purchaseRequest = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
+
+        $response = $this->actingAs($entrada)->patch(route('conferencia.conferir', $purchaseRequest), [
+            'quantidade_recebida' => 1,
+            'resultado' => 'ok',
+            'acao' => 'salvar',
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_entrada_role_does_not_see_conferir_button(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Item Visivel Para Entrada']);
+
+        $response = $this->actingAs($entrada)->get(route('conferencia.index'));
+
+        $response->assertSee('Item Visivel Para Entrada');
+        $response->assertDontSee('Conferir Item');
+        $response->assertSee('Aguardando conferência');
+    }
+
     public function test_index_lists_only_approved_requests_without_status_conferencia(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
@@ -398,7 +433,7 @@ class ConferenciaControllerTest extends TestCase
         $html = $response->getContent();
         $mobileSection = substr($html, strpos($html, 'conf-mobile-cards'));
 
-        $this->assertStringContainsString('Entrega Direta', $mobileSection);
+        $this->assertStringContainsString('Venda Casada', $mobileSection);
         $this->assertStringContainsString('Vendedor Mobile Teste', $mobileSection);
     }
 

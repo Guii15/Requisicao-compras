@@ -36,7 +36,7 @@
                         📋 Pendências
                     </a>
                     @endif
-                    @if(Auth::user()->isConferente())
+                    @if(Auth::user()->isConferente() || Auth::user()->isEntrada())
                     <a href="{{ route('conferencia.index') }}"
                        style="color: {{ request()->routeIs('conferencia.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
                               background: {{ request()->routeIs('conferencia.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
@@ -123,7 +123,7 @@
             <a href="{{ route('admin.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">⚙ Admin</a>
             <a href="{{ route('pendencias.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📋 Pendências</a>
             @endif
-            @if(Auth::user()->isConferente())
+            @if(Auth::user()->isConferente() || Auth::user()->isEntrada())
             <a href="{{ route('conferencia.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">🔍 Conferência</a>
             @endif
             @if(Auth::user()->isEntrada())
