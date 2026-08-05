@@ -303,4 +303,72 @@ class PurchaseRequestControllerTest extends TestCase
         $html = $response->getContent();
         $this->assertSame(2, substr_count($html, '>Cancelado<'));
     }
+
+    public function test_index_shows_entrada_realizada_badge(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => now(),
+            'product_name' => 'Bateria G8 Plus',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee('>Entrada Realizada<', false);
+        $response->assertDontSee('>Conferido ✓ OK<', false);
+    }
+
+    public function test_index_entrada_realizada_takes_priority_over_cancelado(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'cancelado',
+            'entrada_concluida_em' => now(),
+            'product_name' => 'Caso Extremo Cancelado Com Entrada',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee('>Entrada Realizada<', false);
+        $response->assertDontSee('>Cancelado<', false);
+    }
+
+    public function test_index_entrada_realizada_badge_appears_in_both_desktop_and_mobile_blocks(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => now(),
+            'product_name' => 'Produto Entrada Dois Layouts',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $html = $response->getContent();
+        $this->assertSame(2, substr_count($html, '>Entrada Realizada<'));
+    }
+
+    public function test_index_without_entrada_still_shows_conferido_ok(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => null,
+            'product_name' => 'Produto Sem Entrada Ainda',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee('>Conferido ✓ OK<', false);
+        $response->assertDontSee('>Entrada Realizada<', false);
+    }
 }

@@ -193,7 +193,9 @@
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
                                 <div>
-                                    @if($req->status_conferencia === 'conferido_ok')
+                                    @if($req->entrada_concluida_em)
+                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                                    @elseif($req->status_conferencia === 'conferido_ok')
                                         <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
                                     @elseif($req->status_conferencia === 'divergente')
                                         <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
@@ -275,7 +277,9 @@
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
                         @endif
-                        @if($req->status_conferencia === 'conferido_ok')
+                        @if($req->entrada_concluida_em)
+                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                        @elseif($req->status_conferencia === 'conferido_ok')
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
                         @elseif($req->status_conferencia === 'divergente')
                             <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
