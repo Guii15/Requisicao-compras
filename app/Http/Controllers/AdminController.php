@@ -176,6 +176,27 @@ class AdminController extends Controller
         return back()->with('success', 'Usuário removido com sucesso!');
     }
 
+    public function updateRole(Request $request, User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Você não pode alterar seu próprio perfil.');
+        }
+
+        $request->validate([
+            'perfil' => 'required|in:vendedor,conferente,entrada,admin',
+        ], [
+            'perfil.required' => 'Selecione um perfil.',
+            'perfil.in'        => 'Perfil inválido.',
+        ]);
+
+        $user->update([
+            'is_admin' => $request->perfil === 'admin',
+            'role'     => in_array($request->perfil, ['conferente', 'entrada'], true) ? $request->perfil : null,
+        ]);
+
+        return back()->with('success', 'Perfil atualizado com sucesso!');
+    }
+
     public static function buildWaText(PurchaseRequest $req): string
     {
         $urgencyLabel = ['baixa' => 'Baixa', 'media' => 'Media', 'alta' => 'Alta'][$req->urgency] ?? ucfirst($req->urgency);

@@ -102,4 +102,101 @@ class AdminUserManagementTest extends TestCase
         $response->assertSessionHasErrors('perfil');
         $this->assertNull(User::where('email', 'invalido@example.com')->first());
     }
+
+    public function test_update_role_changes_existing_user_to_admin(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $response = $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
+            'perfil' => 'admin',
+        ]);
+
+        $response->assertRedirect();
+        $fresh = $alvo->fresh();
+        $this->assertTrue($fresh->is_admin);
+        $this->assertNull($fresh->role);
+    }
+
+    public function test_update_role_changes_existing_user_to_conferente(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
+            'perfil' => 'conferente',
+        ]);
+
+        $fresh = $alvo->fresh();
+        $this->assertFalse($fresh->is_admin);
+        $this->assertSame('conferente', $fresh->role);
+    }
+
+    public function test_update_role_changes_existing_user_to_entrada(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
+            'perfil' => 'entrada',
+        ]);
+
+        $fresh = $alvo->fresh();
+        $this->assertFalse($fresh->is_admin);
+        $this->assertSame('entrada', $fresh->role);
+    }
+
+    public function test_update_role_changes_existing_user_back_to_vendedor(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $alvo = User::factory()->create(['is_admin' => false, 'role' => 'conferente']);
+
+        $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
+            'perfil' => 'vendedor',
+        ]);
+
+        $fresh = $alvo->fresh();
+        $this->assertFalse($fresh->is_admin);
+        $this->assertNull($fresh->role);
+    }
+
+    public function test_update_role_rejects_invalid_perfil(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $response = $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
+            'perfil' => 'gerente',
+        ]);
+
+        $response->assertSessionHasErrors('perfil');
+        $this->assertNull($alvo->fresh()->role);
+    }
+
+    public function test_update_role_blocks_admin_from_changing_own_profile(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'role' => null]);
+
+        $response = $this->actingAs($admin)->patch(route('admin.users.updateRole', $admin), [
+            'perfil' => 'conferente',
+        ]);
+
+        $response->assertRedirect();
+        $fresh = $admin->fresh();
+        $this->assertTrue($fresh->is_admin);
+        $this->assertNull($fresh->role);
+    }
+
+    public function test_update_role_requires_admin_access(): void
+    {
+        $vendedor = User::factory()->create(['is_admin' => false, 'role' => null]);
+        $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $response = $this->actingAs($vendedor)->patch(route('admin.users.updateRole', $alvo), [
+            'perfil' => 'conferente',
+        ]);
+
+        $response->assertForbidden();
+        $this->assertNull($alvo->fresh()->role);
+    }
 }

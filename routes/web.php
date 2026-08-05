@@ -53,6 +53,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::post('/usuarios', [AdminController::class, 'storeUser'])->name('users.store');
     Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
     Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->name('users.resetPassword');
+    Route::patch('/usuarios/{user}/perfil', [AdminController::class, 'updateRole'])->name('users.updateRole');
 });
 
 Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(function () {
