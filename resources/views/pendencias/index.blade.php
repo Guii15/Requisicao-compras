@@ -17,6 +17,26 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Itens divergentes de estoque aguardando sua decisão</p>
     </div>
 
+    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+        <a href="{{ route('admin.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
+            Requisições
+        </a>
+        <a href="{{ route('admin.users.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
+            Usuários
+        </a>
+        <a href="{{ route('pendencias.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:#05018D; color:#fff; border:2px solid #05018D; border-bottom:2px solid #05018D;">
+            📋 Pendências
+        </a>
+    </div>
+
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             ✓ {{ session('success') }}
