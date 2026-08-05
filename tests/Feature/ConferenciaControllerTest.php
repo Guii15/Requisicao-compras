@@ -632,24 +632,4 @@ class ConferenciaControllerTest extends TestCase
 
         $response->assertSee('Produto Cancelado No Subfiltro');
     }
-
-    public function test_conferir_sets_conferencia_concluida_em(): void
-    {
-        Storage::fake('public');
-        $conferente = User::factory()->create(['role' => 'conferente']);
-        $purchaseRequest = PurchaseRequest::factory()->create([
-            'status' => 'aprovado',
-            'status_conferencia' => null,
-            'conferencia_concluida_em' => null,
-        ]);
-
-        $this->actingAs($conferente)->patch(route('conferencia.conferir', $purchaseRequest), [
-            'quantidade_recebida' => $purchaseRequest->quantity,
-            'foto' => UploadedFile::fake()->image('produto.jpg'),
-            'resultado' => 'ok',
-            'acao' => 'salvar',
-        ]);
-
-        $this->assertNotNull($purchaseRequest->fresh()->conferencia_concluida_em);
-    }
 }

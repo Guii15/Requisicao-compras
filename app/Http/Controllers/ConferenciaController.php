@@ -77,11 +77,10 @@ class ConferenciaController extends Controller
         }
 
         $purchaseRequest->update([
-            'quantidade_recebida'      => $request->quantidade_recebida,
-            'status_conferencia'       => $statusConferencia,
-            'observacao_conferencia'   => $request->observacao_conferencia,
-            'conferente_id'            => auth()->id(),
-            'conferencia_concluida_em' => now(),
+            'quantidade_recebida'    => $request->quantidade_recebida,
+            'status_conferencia'     => $statusConferencia,
+            'observacao_conferencia' => $request->observacao_conferencia,
+            'conferente_id'          => auth()->id(),
         ]);
 
         $path = $request->file('foto')->store('conferencia', 'public');
