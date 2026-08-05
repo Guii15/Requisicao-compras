@@ -50,6 +50,14 @@
                         📦 Entrada
                     </a>
                     @endif
+                    <a href="{{ route('metricas.index') }}"
+                       style="color: {{ request()->routeIs('metricas.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
+                              background: {{ request()->routeIs('metricas.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
+                              padding:6px 14px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; margin-left:4px;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'"
+                       onmouseout="this.style.background='{{ request()->routeIs('metricas.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('metricas.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
+                        📊 Métricas
+                    </a>
                 </div>
             </div>
 
@@ -124,6 +132,7 @@
             @if(Auth::user()->role === 'entrada')
             <a href="{{ route('entrada.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📦 Entrada</a>
             @endif
+            <a href="{{ route('metricas.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📊 Métricas</a>
         </div>
         <div style="padding:12px 16px; border-top:1px solid rgba(255,255,255,0.1);">
             <div style="color:#fff; font-weight:600; font-size:15px;">{{ Auth::user()->name }}</div>
