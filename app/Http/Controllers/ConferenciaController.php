@@ -35,7 +35,13 @@ class ConferenciaController extends Controller
             });
         }
 
-        $requests = $query->latest()->paginate(15)->withQueryString();
+        if ($aba === 'aguardando') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
+
+        $requests = $query->paginate(15)->withQueryString();
 
         return view('conferencia.index', compact('requests', 'aba', 'resultado', 'q'));
     }

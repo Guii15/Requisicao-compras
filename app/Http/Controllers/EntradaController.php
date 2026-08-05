@@ -18,7 +18,7 @@ class EntradaController extends Controller
         if ($aba === 'concluidas') {
             $query->whereNotNull('entrada_concluida_em')->orderByDesc('entrada_concluida_em');
         } else {
-            $query->whereNull('entrada_concluida_em')->latest();
+            $query->whereNull('entrada_concluida_em')->oldest();
         }
 
         $requests = $query->paginate(15)->withQueryString();

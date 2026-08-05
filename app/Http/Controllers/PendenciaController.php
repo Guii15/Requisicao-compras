@@ -13,7 +13,7 @@ class PendenciaController extends Controller
             ->where('status', 'aprovado')
             ->where('status_conferencia', 'divergente')
             ->where('tipo_entrega', 'estoque')
-            ->latest()
+            ->oldest()
             ->paginate(15);
 
         return view('pendencias.index', compact('requests'));
