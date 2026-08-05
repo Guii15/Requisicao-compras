@@ -10,6 +10,7 @@ class EntradaController extends Controller
     public function index()
     {
         $requests = PurchaseRequest::with(['user', 'conferente', 'fotosConferencia'])
+            ->where('status', 'aprovado')
             ->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim'])
             ->whereNull('entrada_concluida_em')
             ->latest()
@@ -20,7 +21,8 @@ class EntradaController extends Controller
 
     public function darEntrada(Request $request, PurchaseRequest $purchaseRequest)
     {
-        if (!in_array($purchaseRequest->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true)
+        if ($purchaseRequest->status !== 'aprovado'
+            || !in_array($purchaseRequest->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true)
             || $purchaseRequest->entrada_concluida_em !== null) {
             abort(409, 'Este item já teve entrada registrada ou não está mais liberado pela conferência.');
         }

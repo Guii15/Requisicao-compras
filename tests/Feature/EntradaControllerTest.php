@@ -200,6 +200,34 @@ class EntradaControllerTest extends TestCase
         $response->assertStatus(409);
     }
 
+    public function test_index_does_not_list_item_with_status_not_aprovado(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+
+        PurchaseRequest::factory()->create([
+            'status' => 'rejeitado',
+            'status_conferencia' => 'conferido_ok',
+            'product_name' => 'Item Rejeitado Apos Conferencia',
+        ]);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index'));
+
+        $response->assertDontSee('Item Rejeitado Apos Conferencia');
+    }
+
+    public function test_dar_entrada_rejects_item_with_status_not_aprovado(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada(['status' => 'rejeitado']);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 10,
+        ]);
+
+        $response->assertStatus(409);
+    }
+
     public function test_dar_entrada_requires_entrada_role(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
