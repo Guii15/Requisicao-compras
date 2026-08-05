@@ -34,6 +34,10 @@ class PurchaseRequest extends Model
         'entrada_concluida_em',
     ];
 
+    protected $casts = [
+        'entrada_concluida_em' => 'datetime',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

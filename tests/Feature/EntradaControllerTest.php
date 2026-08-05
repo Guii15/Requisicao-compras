@@ -94,6 +94,44 @@ class EntradaControllerTest extends TestCase
         $response->assertDontSee('Item Ja Com Entrada');
     }
 
+    public function test_index_concluidas_aba_lists_only_items_with_entrada_registrada(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => now(),
+            'vendedor_destino' => 'Vendedor Destino Final',
+            'quantidade_entrada' => 7,
+            'product_name' => 'Item Ja Com Entrada Registrada',
+        ]);
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+            'product_name' => 'Item Ainda Aguardando Entrada',
+        ]);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index', ['aba' => 'concluidas']));
+
+        $response->assertSee('Item Ja Com Entrada Registrada');
+        $response->assertSee('Vendedor Destino Final');
+        $response->assertDontSee('Item Ainda Aguardando Entrada');
+    }
+
+    public function test_index_aguardando_aba_does_not_list_item_with_entrada_registrada(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+
+        PurchaseRequest::factory()->create([
+            'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => now(),
+            'product_name' => 'Item Ja Com Entrada Registrada',
+        ]);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index'));
+
+        $response->assertDontSee('Item Ja Com Entrada Registrada');
+    }
+
     public function test_index_shows_quantities_and_avancado_warning(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);

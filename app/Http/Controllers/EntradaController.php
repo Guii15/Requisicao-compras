@@ -7,16 +7,23 @@ use Illuminate\Http\Request;
 
 class EntradaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requests = PurchaseRequest::with(['user', 'conferente', 'fotosConferencia'])
-            ->where('status', 'aprovado')
-            ->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim'])
-            ->whereNull('entrada_concluida_em')
-            ->latest()
-            ->paginate(15);
+        $aba = $request->query('aba') === 'concluidas' ? 'concluidas' : 'aguardando';
 
-        return view('entrada.index', compact('requests'));
+        $query = PurchaseRequest::with(['user', 'conferente', 'fotosConferencia'])
+            ->where('status', 'aprovado')
+            ->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim']);
+
+        if ($aba === 'concluidas') {
+            $query->whereNotNull('entrada_concluida_em')->orderByDesc('entrada_concluida_em');
+        } else {
+            $query->whereNull('entrada_concluida_em')->latest();
+        }
+
+        $requests = $query->paginate(15)->withQueryString();
+
+        return view('entrada.index', compact('requests', 'aba'));
     }
 
     public function darEntrada(Request $request, PurchaseRequest $purchaseRequest)
