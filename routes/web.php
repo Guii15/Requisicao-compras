@@ -6,7 +6,6 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ConferenciaController;
 use App\Http\Controllers\PendenciaController;
 use App\Http\Controllers\EntradaController;
-use App\Http\Controllers\MetricasController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
@@ -42,8 +41,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::get('/metricas', [MetricasController::class, 'index'])->name('metricas.index');
 });
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
