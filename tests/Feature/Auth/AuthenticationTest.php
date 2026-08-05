@@ -17,6 +17,46 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_login_screen_shows_default_heading_without_intended_url(): void
+    {
+        $response = $this->get('/login');
+
+        $response->assertSee('Bem-vindo!');
+        $response->assertDontSee('Bem-vindo, Conferente!');
+    }
+
+    public function test_login_screen_shows_conferencia_heading_after_hitting_protected_route(): void
+    {
+        $this->get(route('conferencia.index'));
+
+        $response = $this->get('/login');
+
+        $response->assertSee('Bem-vindo, Conferente!');
+    }
+
+    public function test_login_screen_shows_entrada_heading_after_hitting_protected_route(): void
+    {
+        $this->get(route('entrada.index'));
+
+        $response = $this->get('/login');
+
+        $response->assertSee('Bem-vindo à Entrada!');
+    }
+
+    public function test_login_redirects_to_intended_conferencia_screen_after_authentication(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+
+        $this->get(route('conferencia.index'));
+
+        $response = $this->post('/login', [
+            'email' => $conferente->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('conferencia.index'));
+    }
+
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();

@@ -2,10 +2,44 @@
     @php
     $inputStyle = "width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 13px; font-size:14px; color:#374151; box-sizing:border-box; outline:none; background:#fff; font-family:inherit;";
     $labelStyle = "display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;";
+
+    $intended = session('url.intended', '');
+    $area = null;
+    if (str_contains($intended, '/conferencia')) {
+        $area = 'conferencia';
+    } elseif (str_contains($intended, '/entrada')) {
+        $area = 'entrada';
+    } elseif (str_contains($intended, '/requisicoes/nova')) {
+        $area = 'vendedor';
+    }
+
+    $textos = [
+        'vendedor'    => ['Bem-vindo, Vendedor!', 'Faça login para criar sua requisição'],
+        'conferencia' => ['Bem-vindo, Conferente!', 'Faça login para acessar a conferência'],
+        'entrada'     => ['Bem-vindo à Entrada!', 'Faça login para registrar entradas'],
+    ];
+    [$titulo, $subtitulo] = $textos[$area] ?? ['Bem-vindo!', 'Faça login para acessar o sistema'];
+
+    $tabs = [
+        'vendedor'    => ['label' => 'Vendedor',    'route' => route('requests.create')],
+        'conferencia' => ['label' => 'Conferência', 'route' => route('conferencia.index')],
+        'entrada'     => ['label' => 'Entrada',     'route' => route('entrada.index')],
+    ];
     @endphp
 
-    <h2 style="font-size:22px; font-weight:800; color:#05018D; margin:0 0 4px;">Bem-vindo!</h2>
-    <p style="font-size:13px; color:#9ca3af; margin:0 0 28px;">Faça login para acessar o sistema</p>
+    <div style="display:flex; gap:4px; margin-bottom:24px; background:#f3f4f6; border-radius:10px; padding:4px;">
+        @foreach($tabs as $chave => $tab)
+            <a href="{{ $tab['route'] }}"
+               style="flex:1; text-align:center; padding:9px 6px; border-radius:7px; text-decoration:none; font-size:12.5px; font-weight:700;
+                      background:{{ $area === $chave ? '#fff' : 'transparent' }}; color:{{ $area === $chave ? '#05018D' : '#6b7280' }};
+                      box-shadow:{{ $area === $chave ? '0 1px 4px rgba(0,0,0,0.12)' : 'none' }};">
+                {{ $tab['label'] }}
+            </a>
+        @endforeach
+    </div>
+
+    <h2 style="font-size:22px; font-weight:800; color:#05018D; margin:0 0 4px;">{{ $titulo }}</h2>
+    <p style="font-size:13px; color:#9ca3af; margin:0 0 28px;">{{ $subtitulo }}</p>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -54,22 +88,4 @@
         </button>
 
     </form>
-
-    <div style="margin-top:24px; padding-top:20px; border-top:1px solid #e5e7eb;">
-        <p style="margin:0 0 10px; font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Acesso rápido</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="{{ route('requests.create') }}"
-               style="flex:1; min-width:120px; text-align:center; padding:9px 12px; border-radius:8px; border:1.5px solid #e5e7eb; color:#374151; text-decoration:none; font-size:13px; font-weight:600;">
-                Criar Requisição
-            </a>
-            <a href="{{ route('conferencia.index') }}"
-               style="flex:1; min-width:120px; text-align:center; padding:9px 12px; border-radius:8px; border:1.5px solid #e5e7eb; color:#374151; text-decoration:none; font-size:13px; font-weight:600;">
-                Conferência
-            </a>
-            <a href="{{ route('entrada.index') }}"
-               style="flex:1; min-width:120px; text-align:center; padding:9px 12px; border-radius:8px; border:1.5px solid #e5e7eb; color:#374151; text-decoration:none; font-size:13px; font-weight:600;">
-                Entrada
-            </a>
-        </div>
-    </div>
 </x-guest-layout>
