@@ -247,4 +247,88 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee('value="entrada"', false);
         $response->assertSee('value="admin"', false);
     }
+
+    /**
+     * Extrai apenas o <select name="perfil"> do modal "Editar Perfil" da linha do
+     * usuário informado, para que as asserções de "selected" não deem falso positivo
+     * por causa do <select> de outra linha ou do formulário de "Novo Usuário".
+     */
+    private function extrairBlocoModalPerfil(string $html, int $userId): string
+    {
+        $marcador = 'id="modal-perfil-' . $userId . '"';
+        $inicio = strpos($html, $marcador);
+        $this->assertNotFalse($inicio, "Modal de perfil do usuário {$userId} não foi encontrado na página.");
+
+        $inicioSelect = strpos($html, '<select name="perfil"', $inicio);
+        $this->assertNotFalse($inicioSelect, "Select de perfil do usuário {$userId} não foi encontrado na página.");
+
+        $fimSelect = strpos($html, '</select>', $inicioSelect);
+        $this->assertNotFalse($fimSelect, "Fechamento do select de perfil do usuário {$userId} não foi encontrado na página.");
+
+        return substr($html, $inicioSelect, $fimSelect - $inicioSelect);
+    }
+
+    public function test_edit_perfil_modal_preselects_current_perfil_for_conferente_user(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Um']);
+        $conferente = User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Beltrano Conferente']);
+        User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Ciclano Entrada']);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $bloco = $this->extrairBlocoModalPerfil($response->getContent(), $conferente->id);
+
+        $this->assertStringContainsString('value="conferente" selected', $bloco);
+        $this->assertStringNotContainsString('value="vendedor" selected', $bloco);
+        $this->assertStringNotContainsString('value="entrada" selected', $bloco);
+        $this->assertStringNotContainsString('value="admin" selected', $bloco);
+    }
+
+    public function test_edit_perfil_modal_preselects_current_perfil_for_admin_user(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $outroAdmin = User::factory()->create(['is_admin' => true, 'role' => null, 'name' => 'Outro Admin']);
+        User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Fulano Entrada']);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $bloco = $this->extrairBlocoModalPerfil($response->getContent(), $outroAdmin->id);
+
+        $this->assertStringContainsString('value="admin" selected', $bloco);
+        $this->assertStringNotContainsString('value="vendedor" selected', $bloco);
+        $this->assertStringNotContainsString('value="conferente" selected', $bloco);
+        $this->assertStringNotContainsString('value="entrada" selected', $bloco);
+    }
+
+    public function test_edit_perfil_modal_preselects_current_perfil_for_entrada_user(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $entrada = User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Fulano Entrada']);
+        User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Fulano Conferente']);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $bloco = $this->extrairBlocoModalPerfil($response->getContent(), $entrada->id);
+
+        $this->assertStringContainsString('value="entrada" selected', $bloco);
+        $this->assertStringNotContainsString('value="vendedor" selected', $bloco);
+        $this->assertStringNotContainsString('value="conferente" selected', $bloco);
+        $this->assertStringNotContainsString('value="admin" selected', $bloco);
+    }
+
+    public function test_edit_perfil_modal_preselects_current_perfil_for_vendedor_user(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $vendedor = User::factory()->create(['is_admin' => false, 'role' => null, 'name' => 'Fulano Vendedor']);
+        User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Fulano Conferente']);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $bloco = $this->extrairBlocoModalPerfil($response->getContent(), $vendedor->id);
+
+        $this->assertStringContainsString('value="vendedor" selected', $bloco);
+        $this->assertStringNotContainsString('value="conferente" selected', $bloco);
+        $this->assertStringNotContainsString('value="entrada" selected', $bloco);
+        $this->assertStringNotContainsString('value="admin" selected', $bloco);
+    }
 }
