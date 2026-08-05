@@ -27,12 +27,14 @@
     ];
     @endphp
 
-    <div style="display:flex; gap:4px; margin-bottom:24px; background:#f3f4f6; border-radius:10px; padding:4px;">
+    <div style="display:flex; gap:6px; margin-bottom:24px; background:#f3f4f6; border-radius:12px; padding:5px;">
         @foreach($tabs as $chave => $tab)
             <a href="{{ $tab['route'] }}"
-               style="flex:1; text-align:center; padding:9px 6px; border-radius:7px; text-decoration:none; font-size:12.5px; font-weight:700;
-                      background:{{ $area === $chave ? '#fff' : 'transparent' }}; color:{{ $area === $chave ? '#05018D' : '#6b7280' }};
-                      box-shadow:{{ $area === $chave ? '0 1px 4px rgba(0,0,0,0.12)' : 'none' }};">
+               style="flex:1; text-align:center; padding:10px 6px; border-radius:9px; text-decoration:none; font-size:12.5px; font-weight:700; transition:transform 0.1s;
+                      background:{{ $area === $chave ? 'linear-gradient(90deg, #05018D 0%, #b40000 100%)' : 'transparent' }};
+                      color:{{ $area === $chave ? '#fff' : '#6b7280' }};
+                      box-shadow:{{ $area === $chave ? '0 3px 10px rgba(5,1,141,0.35)' : 'none' }};"
+               @if($area !== $chave) onmouseover="this.style.background='#e5e7eb'; this.style.color='#05018D'" onmouseout="this.style.background='transparent'; this.style.color='#6b7280'" @endif>
                 {{ $tab['label'] }}
             </a>
         @endforeach
