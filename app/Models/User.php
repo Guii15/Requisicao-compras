@@ -38,6 +38,11 @@ class User extends Authenticatable
         return $this->role === 'entrada' || $this->isAdmin();
     }
 
+    public function isVendedor(): bool
+    {
+        return !$this->isAdmin() && $this->role === null;
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      */

@@ -10,24 +10,34 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
 use App\Http\Middleware\EntradaMiddleware;
+use App\Http\Middleware\VendedorMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('requests.index');
+    return redirect()->route('dashboard');
 });
 
 Route::get('/dashboard', function () {
-    return redirect()->route('requests.index');
+    $user = auth()->user();
+
+    return match (true) {
+        $user->isAdmin()      => redirect()->route('admin.index'),
+        $user->isConferente() => redirect()->route('conferencia.index'),
+        $user->isEntrada()    => redirect()->route('entrada.index'),
+        default                => redirect()->route('requests.index'),
+    };
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', VendedorMiddleware::class])->group(function () {
     Route::get('/requisicoes', [PurchaseRequestController::class, 'index'])->name('requests.index');
     Route::get('/requisicoes/nova', [PurchaseRequestController::class, 'create'])->name('requests.create');
     Route::post('/requisicoes', [PurchaseRequestController::class, 'store'])->name('requests.store');
     Route::get('/requisicoes/{purchaseRequest}/editar', [PurchaseRequestController::class, 'edit'])->name('requests.edit');
     Route::patch('/requisicoes/{purchaseRequest}', [PurchaseRequestController::class, 'update'])->name('requests.update');
     Route::get('/requisicoes/{purchaseRequest}/exportar', [PurchaseRequestController::class, 'export'])->name('requests.export');
+});
 
+Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

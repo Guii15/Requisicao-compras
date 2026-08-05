@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
-                <a href="{{ route('requests.index') }}" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+                <a href="{{ route('dashboard') }}" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
                     <svg xmlns="http://www.w3.org/2000/svg" style="width:26px; height:26px; color:#ffffff;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
@@ -10,6 +10,7 @@
                 </a>
 
                 <div class="hidden sm:flex sm:items-center sm:ms-8">
+                    @if(Auth::user()->isVendedor())
                     <a href="{{ route('requests.index') }}"
                        style="color: {{ request()->routeIs('requests.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
                               background: {{ request()->routeIs('requests.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
@@ -18,6 +19,7 @@
                        onmouseout="this.style.background='{{ request()->routeIs('requests.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('requests.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
                         Minhas Requisições
                     </a>
+                    @endif
                     @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.index') }}"
                        style="color: {{ request()->routeIs('admin.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
@@ -118,7 +120,9 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden" style="background:#000050; border-top:1px solid rgba(255,255,255,0.1);">
         <div class="pt-2 pb-3 px-4">
+            @if(Auth::user()->isVendedor())
             <a href="{{ route('requests.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px;">Minhas Requisições</a>
+            @endif
             @if(Auth::user()->isAdmin())
             <a href="{{ route('admin.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">⚙ Admin</a>
             <a href="{{ route('pendencias.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📋 Pendências</a>

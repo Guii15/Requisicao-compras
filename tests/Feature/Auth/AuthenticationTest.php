@@ -80,6 +80,42 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('conferencia.index'));
     }
 
+    public function test_dashboard_redirects_vendedor_to_requests_index(): void
+    {
+        $user = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertRedirect(route('requests.index'));
+    }
+
+    public function test_dashboard_redirects_admin_to_admin_index(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $response = $this->actingAs($admin)->get(route('dashboard'));
+
+        $response->assertRedirect(route('admin.index'));
+    }
+
+    public function test_dashboard_redirects_conferente_to_conferencia_index(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+
+        $response = $this->actingAs($conferente)->get(route('dashboard'));
+
+        $response->assertRedirect(route('conferencia.index'));
+    }
+
+    public function test_dashboard_redirects_entrada_to_entrada_index(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+
+        $response = $this->actingAs($entrada)->get(route('dashboard'));
+
+        $response->assertRedirect(route('entrada.index'));
+    }
+
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();

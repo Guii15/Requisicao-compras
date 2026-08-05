@@ -78,7 +78,10 @@
                             <td style="padding:12px 16px; text-align:center; font-size:14px; color:#374151;">{{ $req->quantity }} / {{ $aba === 'concluidas' ? $req->quantidade_entrada : $req->quantidade_recebida }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->fotosConferencia->first())
-                                    <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank" style="color:#1d4ed8; font-size:12px; text-decoration:underline;">Ver foto</a>
+                                    <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank">
+                                        <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                                             style="width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:inline-block;">
+                                    </a>
                                 @else
                                     —
                                 @endif
@@ -173,7 +176,10 @@
                         <span style="color:#9ca3af;">Foto</span>
                         <div>
                             @if($req->fotosConferencia->first())
-                                <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank" style="color:#1d4ed8; font-size:12px; text-decoration:underline;">Ver foto</a>
+                                <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank">
+                                    <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                                         style="width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:inline-block;">
+                                </a>
                             @else
                                 —
                             @endif

@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\ConferenciaFoto;
 use App\Models\PurchaseRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class EntradaControllerTest extends TestCase
@@ -148,6 +150,24 @@ class EntradaControllerTest extends TestCase
 
         $response->assertSee('23 / 19');
         $response->assertSee('Avançado Mesmo Assim');
+    }
+
+    public function test_index_shows_photo_thumbnail_when_foto_exists(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = PurchaseRequest::factory()->create([
+            'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+        ]);
+        ConferenciaFoto::create([
+            'purchase_request_id' => $req->id,
+            'caminho_arquivo' => 'conferencia/teste-thumb.jpg',
+            'nome_original' => 'foto.jpg',
+        ]);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index'));
+
+        $response->assertSee('<img', false);
+        $response->assertSee(Storage::url('conferencia/teste-thumb.jpg'), false);
     }
 
     public function test_index_shows_empty_message_when_no_items(): void
