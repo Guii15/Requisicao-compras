@@ -43,16 +43,10 @@ class PendenciaController extends Controller
             . ($request->observacao ?: '')
         );
 
-        $dadosAtualizacao = [
+        $purchaseRequest->update([
             'status_conferencia' => $novoStatusConferencia,
             'admin_note'         => $notaAnexada,
-        ];
-
-        if ($request->decisao === 'aceitar') {
-            $dadosAtualizacao['conferencia_concluida_em'] = now();
-        }
-
-        $purchaseRequest->update($dadosAtualizacao);
+        ]);
 
         return redirect()->route('pendencias.index')->with('success', 'Pendência resolvida com sucesso!');
     }

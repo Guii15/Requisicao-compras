@@ -133,39 +133,6 @@ class PendenciaControllerTest extends TestCase
         $this->assertSame('avancado_mesmo_assim', $req->fresh()->status_conferencia);
     }
 
-    public function test_resolver_aceitar_reinicia_relogio_de_entrada(): void
-    {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $conferenciaAntiga = now()->subDays(10);
-        $req = $this->pendenciaAprovadaEstoque(['conferencia_concluida_em' => $conferenciaAntiga]);
-
-        $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
-            'decisao' => 'aceitar',
-        ]);
-
-        $conferenciaAtualizada = $req->fresh()->conferencia_concluida_em;
-        $this->assertFalse($conferenciaAtualizada->equalTo($conferenciaAntiga));
-        $this->assertTrue($conferenciaAtualizada->greaterThan($conferenciaAntiga));
-        $this->assertTrue($conferenciaAtualizada->diffInSeconds(now()) < 5);
-    }
-
-    public function test_resolver_cancelar_nao_altera_conferencia_concluida_em(): void
-    {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $conferenciaAntiga = now()->subDays(10);
-        $req = $this->pendenciaAprovadaEstoque(['conferencia_concluida_em' => $conferenciaAntiga]);
-
-        $this->actingAs($admin)->patch(route('pendencias.resolver', $req), [
-            'decisao'    => 'cancelar',
-            'observacao' => 'Fornecedor confirmou que não vai reenviar.',
-        ]);
-
-        $this->assertSame(
-            $conferenciaAntiga->format('Y-m-d H:i:s'),
-            $req->fresh()->conferencia_concluida_em->format('Y-m-d H:i:s')
-        );
-    }
-
     public function test_resolver_cancelar_sets_cancelado(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);

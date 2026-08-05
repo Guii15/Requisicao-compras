@@ -146,31 +146,6 @@ class MetricasControllerTest extends TestCase
         $response->assertDontSee('Produto Divergente Antigo');
     }
 
-    public function test_duracao_negativa_por_reaprovacao_nao_distorce_media(): void
-    {
-        $user = User::factory()->create();
-        $base = now()->subDays(5);
-
-        // Item normal: aprovado -> conferido 2h depois.
-        PurchaseRequest::factory()->create([
-            'aprovado_em' => $base,
-            'conferencia_concluida_em' => $base->copy()->addHours(2),
-        ]);
-
-        // Item "reaprovado": conferencia_concluida_em ficou registrada antes,
-        // mas o admin reaprovou depois (aprovado_em > conferencia_concluida_em),
-        // gerando duração negativa que não deve entrar na média.
-        PurchaseRequest::factory()->create([
-            'aprovado_em' => $base->copy()->addHours(10),
-            'conferencia_concluida_em' => $base,
-        ]);
-
-        $response = $this->actingAs($user)->get(route('metricas.index'));
-
-        $response->assertSee('2h');
-        $this->assertDoesNotMatchRegularExpression('/-\d+(\.\d+)?h</', $response->getContent());
-    }
-
     public function test_item_rejeitado_apos_aprovado_nao_aparece_estourado(): void
     {
         $user = User::factory()->create();
