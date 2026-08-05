@@ -75,16 +75,29 @@
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($u->is_admin)
                                     <span style="background:#ede9fe; color:#7c3aed; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Admin</span>
+                                @elseif($u->role === 'conferente')
+                                    <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Conferente</span>
+                                @elseif($u->role === 'entrada')
+                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
                                 @else
-                                    <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Usuário</span>
+                                    <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
                                 @endif
                             </td>
                             <td style="padding:12px 16px; text-align:center;">
-                                <button onclick="document.getElementById('modal-senha-{{ $u->id }}').style.display='flex'"
-                                        style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
-                                        onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
-                                    Senha
-                                </button>
+                                <div style="display:flex; gap:6px; justify-content:center;">
+                                    <button onclick="document.getElementById('modal-senha-{{ $u->id }}').style.display='flex'"
+                                            style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
+                                            onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                        Senha
+                                    </button>
+                                    @if($u->id !== auth()->id())
+                                        <button onclick="document.getElementById('modal-perfil-{{ $u->id }}').style.display='flex'"
+                                                style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
+                                                onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                            Perfil
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($u->id !== auth()->id())
@@ -135,6 +148,42 @@
                                 </form>
                             </div>
                         </div>
+
+                        {{-- Modal editar perfil --}}
+                        @if($u->id !== auth()->id())
+                        <div id="modal-perfil-{{ $u->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px;">
+                                <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Editar Perfil</h3>
+                                <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $u->name }}</p>
+                                @php
+                                    $perfilAtual = $u->is_admin ? 'admin' : ($u->role ?? 'vendedor');
+                                @endphp
+                                <form method="POST" action="{{ route('admin.users.updateRole', $u) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div style="margin-bottom:20px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Perfil</label>
+                                        <select name="perfil" style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                            <option value="vendedor" {{ $perfilAtual === 'vendedor' ? 'selected' : '' }}>Vendedor</option>
+                                            <option value="conferente" {{ $perfilAtual === 'conferente' ? 'selected' : '' }}>Conferente</option>
+                                            <option value="entrada" {{ $perfilAtual === 'entrada' ? 'selected' : '' }}>Entrada</option>
+                                            <option value="admin" {{ $perfilAtual === 'admin' ? 'selected' : '' }}>Admin</option>
+                                        </select>
+                                    </div>
+                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                        <button type="button" onclick="document.getElementById('modal-perfil-{{ $u->id }}').style.display='none'"
+                                                style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                            Cancelar
+                                        </button>
+                                        <button type="submit"
+                                                style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#1d4ed8); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                            Salvar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        @endif
                     @empty
                         <tr>
                             <td colspan="4" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:14px;">
@@ -185,12 +234,14 @@
                            style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
                 </div>
 
-                <div style="margin-bottom:20px;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#374151;">
-                        <input type="checkbox" name="is_admin" value="1" {{ old('is_admin') ? 'checked' : '' }}
-                               style="width:16px; height:16px; accent-color:#05018D; cursor:pointer;">
-                        Conceder acesso Admin
-                    </label>
+                <div style="margin-bottom:18px;">
+                    <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Perfil</label>
+                    <select name="perfil" style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                        <option value="vendedor" {{ old('perfil', 'vendedor') === 'vendedor' ? 'selected' : '' }}>Vendedor</option>
+                        <option value="conferente" {{ old('perfil') === 'conferente' ? 'selected' : '' }}>Conferente</option>
+                        <option value="entrada" {{ old('perfil') === 'entrada' ? 'selected' : '' }}>Entrada</option>
+                        <option value="admin" {{ old('perfil') === 'admin' ? 'selected' : '' }}>Admin</option>
+                    </select>
                 </div>
 
                 <button type="submit"

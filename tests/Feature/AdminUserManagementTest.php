@@ -199,4 +199,52 @@ class AdminUserManagementTest extends TestCase
         $response->assertForbidden();
         $this->assertNull($alvo->fresh()->role);
     }
+
+    public function test_users_index_shows_correct_badge_for_each_perfil(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Fulano Conferente']);
+        User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Fulano Entrada']);
+        User::factory()->create(['is_admin' => false, 'role' => null, 'name' => 'Fulano Vendedor']);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $response->assertSee('>Admin<', false);
+        $response->assertSee('>Conferente<', false);
+        $response->assertSee('>Entrada<', false);
+        $response->assertSee('>Vendedor<', false);
+    }
+
+    public function test_users_index_does_not_show_perfil_button_on_own_row(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $html = $response->getContent();
+        $this->assertStringNotContainsString("modal-perfil-{$admin->id}", $html);
+    }
+
+    public function test_users_index_shows_perfil_button_on_other_rows(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $outro = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $response->assertSee("modal-perfil-{$outro->id}", false);
+    }
+
+    public function test_create_user_form_has_perfil_select_with_four_options(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $response = $this->actingAs($admin)->get(route('admin.users.index'));
+
+        $response->assertSee('name="perfil"', false);
+        $response->assertSee('value="vendedor"', false);
+        $response->assertSee('value="conferente"', false);
+        $response->assertSee('value="entrada"', false);
+        $response->assertSee('value="admin"', false);
+    }
 }
