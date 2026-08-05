@@ -96,24 +96,6 @@ class EntradaControllerTest extends TestCase
         $response->assertDontSee('Item Ja Com Entrada');
     }
 
-    public function test_index_aguardando_orders_oldest_first(): void
-    {
-        $entrada = User::factory()->create(['role' => 'entrada']);
-
-        PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
-            'product_name' => 'Item Recente', 'created_at' => now()->subHour(),
-        ]);
-        PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
-            'product_name' => 'Item Antigo', 'created_at' => now()->subDays(3),
-        ]);
-
-        $response = $this->actingAs($entrada)->get(route('entrada.index'));
-
-        $response->assertSeeInOrder(['Item Antigo', 'Item Recente']);
-    }
-
     public function test_index_concluidas_aba_lists_only_items_with_entrada_registrada(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);

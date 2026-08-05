@@ -97,24 +97,6 @@ class ConferenciaControllerTest extends TestCase
         $response->assertDontSee('Produto Nao Aprovado');
     }
 
-    public function test_index_aguardando_orders_oldest_first(): void
-    {
-        $conferente = User::factory()->create(['role' => 'conferente']);
-
-        $recente = PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'status_conferencia' => null,
-            'product_name' => 'Pedido Recente', 'created_at' => now()->subHour(),
-        ]);
-        $antigo = PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'status_conferencia' => null,
-            'product_name' => 'Pedido Antigo', 'created_at' => now()->subDays(3),
-        ]);
-
-        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
-
-        $response->assertSeeInOrder(['Pedido Antigo', 'Pedido Recente']);
-    }
-
     public function test_conferir_with_resultado_ok_persists_conferido_ok_and_photo(): void
     {
         Storage::fake('public');

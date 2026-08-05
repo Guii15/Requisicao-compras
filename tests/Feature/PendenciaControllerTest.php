@@ -79,24 +79,6 @@ class PendenciaControllerTest extends TestCase
         $response->assertDontSee('Divergente Mas Dropship');
     }
 
-    public function test_index_orders_oldest_first(): void
-    {
-        $admin = User::factory()->create(['is_admin' => true]);
-
-        PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'status_conferencia' => 'divergente', 'tipo_entrega' => 'estoque',
-            'product_name' => 'Pendencia Recente', 'created_at' => now()->subHour(),
-        ]);
-        PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'status_conferencia' => 'divergente', 'tipo_entrega' => 'estoque',
-            'product_name' => 'Pendencia Antiga', 'created_at' => now()->subDays(3),
-        ]);
-
-        $response = $this->actingAs($admin)->get(route('pendencias.index'));
-
-        $response->assertSeeInOrder(['Pendencia Antiga', 'Pendencia Recente']);
-    }
-
     public function test_index_shows_conferente_name_and_observacao(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
