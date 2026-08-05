@@ -47,11 +47,15 @@ class MetricasController extends Controller
             return null;
         }
 
-        $totalHoras = $registros->sum(
-            fn ($r) => $r->{$campoInicio}->diffInMinutes($r->{$campoFim}) / 60
-        );
+        $duracoesValidas = $registros
+            ->map(fn ($r) => $r->{$campoInicio}->diffInMinutes($r->{$campoFim}) / 60)
+            ->filter(fn ($horas) => $horas >= 0);
 
-        return round($totalHoras / $registros->count(), 1);
+        if ($duracoesValidas->isEmpty()) {
+            return null;
+        }
+
+        return round($duracoesValidas->sum() / $duracoesValidas->count(), 1);
     }
 
     private function itemEstourado(PurchaseRequest $r, string $etapa, Carbon $desde): array
