@@ -22,7 +22,6 @@ class PurchaseRequest extends Model
         'urgency',
         'justification',
         'status',
-        'aprovado_em',
         'admin_note',
         'valor',
         'tipo_entrega',
@@ -30,7 +29,6 @@ class PurchaseRequest extends Model
         'quantidade_recebida',
         'observacao_conferencia',
         'conferente_id',
-        'conferencia_concluida_em',
         'vendedor_destino',
         'quantidade_entrada',
         'entrada_concluida_em',
@@ -38,8 +36,6 @@ class PurchaseRequest extends Model
 
     protected $casts = [
         'entrada_concluida_em' => 'datetime',
-        'aprovado_em' => 'datetime',
-        'conferencia_concluida_em' => 'datetime',
     ];
 
     public function user(): BelongsTo
