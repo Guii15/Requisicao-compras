@@ -143,7 +143,7 @@ class AdminController extends Controller
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users,email',
             'password'              => 'required|string|min:8|confirmed',
-            'is_admin'              => 'nullable|boolean',
+            'perfil'                => 'required|in:vendedor,conferente,entrada,admin',
         ], [
             'name.required'         => 'O nome é obrigatório.',
             'email.required'        => 'O e-mail é obrigatório.',
@@ -151,13 +151,16 @@ class AdminController extends Controller
             'password.required'     => 'A senha é obrigatória.',
             'password.min'          => 'A senha deve ter pelo menos 8 caracteres.',
             'password.confirmed'    => 'As senhas não coincidem.',
+            'perfil.required'       => 'Selecione um perfil.',
+            'perfil.in'             => 'Perfil inválido.',
         ]);
 
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => $request->password,
-            'is_admin' => $request->boolean('is_admin'),
+            'is_admin' => $request->perfil === 'admin',
+            'role'     => in_array($request->perfil, ['conferente', 'entrada'], true) ? $request->perfil : null,
         ]);
 
         return back()->with('success', 'Usuário criado com sucesso!');
