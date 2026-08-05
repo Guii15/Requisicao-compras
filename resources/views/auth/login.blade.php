@@ -9,6 +9,8 @@
         $area = 'conferencia';
     } elseif (str_contains($intended, '/entrada')) {
         $area = 'entrada';
+    } elseif (str_contains($intended, '/admin')) {
+        $area = 'admin';
     } elseif (str_contains($intended, '/requisicoes/nova')) {
         $area = 'vendedor';
     }
@@ -17,6 +19,7 @@
         'vendedor'    => ['Bem-vindo, Vendedor!', 'Faça login para criar sua requisição'],
         'conferencia' => ['Bem-vindo, Conferente!', 'Faça login para acessar a conferência'],
         'entrada'     => ['Bem-vindo à Entrada!', 'Faça login para registrar entradas'],
+        'admin'       => ['Bem-vindo, Administrador!', 'Faça login para acessar o painel administrativo'],
     ];
     [$titulo, $subtitulo] = $textos[$area] ?? ['Bem-vindo!', 'Faça login para acessar o sistema'];
 
@@ -24,13 +27,14 @@
         'vendedor'    => ['label' => 'Vendedor',    'route' => route('requests.create')],
         'conferencia' => ['label' => 'Conferência', 'route' => route('conferencia.index')],
         'entrada'     => ['label' => 'Entrada',     'route' => route('entrada.index')],
+        'admin'       => ['label' => 'Admin',       'route' => route('admin.index')],
     ];
     @endphp
 
-    <div style="display:flex; gap:6px; margin-bottom:24px; background:#f3f4f6; border-radius:12px; padding:5px;">
+    <div style="display:flex; gap:4px; margin-bottom:24px; background:#f3f4f6; border-radius:12px; padding:5px;">
         @foreach($tabs as $chave => $tab)
             <a href="{{ $tab['route'] }}"
-               style="flex:1; text-align:center; padding:10px 6px; border-radius:9px; text-decoration:none; font-size:12.5px; font-weight:700; transition:transform 0.1s;
+               style="flex:1; text-align:center; padding:10px 3px; border-radius:9px; text-decoration:none; font-size:11.5px; font-weight:700; transition:transform 0.1s;
                       background:{{ $area === $chave ? 'linear-gradient(90deg, #05018D 0%, #b40000 100%)' : 'transparent' }};
                       color:{{ $area === $chave ? '#fff' : '#6b7280' }};
                       box-shadow:{{ $area === $chave ? '0 3px 10px rgba(5,1,141,0.35)' : 'none' }};"

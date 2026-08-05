@@ -43,6 +43,29 @@ class AuthenticationTest extends TestCase
         $response->assertSee('Bem-vindo à Entrada!');
     }
 
+    public function test_login_screen_shows_admin_heading_after_hitting_protected_route(): void
+    {
+        $this->get(route('admin.index'));
+
+        $response = $this->get('/login');
+
+        $response->assertSee('Bem-vindo, Administrador!');
+    }
+
+    public function test_login_redirects_to_intended_admin_screen_after_authentication(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->get(route('admin.index'));
+
+        $response = $this->post('/login', [
+            'email' => $admin->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('admin.index'));
+    }
+
     public function test_login_redirects_to_intended_conferencia_screen_after_authentication(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
