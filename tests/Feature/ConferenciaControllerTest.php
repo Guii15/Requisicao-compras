@@ -395,14 +395,14 @@ class ConferenciaControllerTest extends TestCase
         $response->assertDontSee('Conferir', false);
     }
 
-    public function test_foto_input_has_capture_attribute(): void
+    public function test_foto_input_does_not_force_camera_capture(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
         PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('capture="environment"', false);
+        $response->assertDontSee('capture="environment"', false);
     }
 
     public function test_mobile_cards_block_present_with_correct_toggle_classes(): void

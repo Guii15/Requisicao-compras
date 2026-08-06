@@ -162,7 +162,7 @@
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Foto</label>
-                                        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" capture="environment" required
+                                        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                     </div>
 
@@ -320,7 +320,7 @@
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Foto</label>
-                            <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" capture="environment" required
+                            <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
 
