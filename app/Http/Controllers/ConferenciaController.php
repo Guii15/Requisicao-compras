@@ -18,7 +18,7 @@ class ConferenciaController extends Controller
         $query = PurchaseRequest::with(['user', 'conferente'])->where('status', 'aprovado');
 
         if ($aba === 'conferidos') {
-            $query->whereNotNull('status_conferencia');
+            $query->whereNotNull('status_conferencia')->where('status_conferencia', '!=', 'legado');
 
             if ($resultado === 'ok') {
                 $query->where('status_conferencia', 'conferido_ok');
