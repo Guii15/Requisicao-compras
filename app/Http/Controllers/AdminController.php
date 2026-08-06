@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\PurchaseRequestApproved;
 
 class AdminController extends Controller
 {
@@ -106,8 +104,6 @@ class AdminController extends Controller
             'supplier'   => 'nullable|string|max:255',
         ]);
 
-        $oldStatus = $purchaseRequest->status;
-
         $supplier = $request->supplier ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8') : null;
 
         $purchaseRequest->update([
@@ -116,17 +112,6 @@ class AdminController extends Controller
             'valor'      => $request->valor ?: null,
             'supplier'   => $supplier,
         ]);
-
-        if ($request->status === 'aprovado' && $oldStatus !== 'aprovado') {
-            $destinatarios = array_filter([env('ENTRADA_EMAIL'), env('ENTRADA_EMAIL_2')]);
-            if (!empty($destinatarios)) {
-                try {
-                    Mail::to($destinatarios)->send(new PurchaseRequestApproved($purchaseRequest));
-                } catch (\Exception $e) {
-                    \Log::error('Falha ao enfileirar e-mail de aprovação: ' . $e->getMessage());
-                }
-            }
-        }
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
     }

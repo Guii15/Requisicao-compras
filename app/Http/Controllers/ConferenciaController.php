@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PurchaseRequestApproved;
 use App\Models\PurchaseRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ConferenciaController extends Controller
 {
@@ -88,6 +90,17 @@ class ConferenciaController extends Controller
             'caminho_arquivo' => $path,
             'nome_original'   => $request->file('foto')->getClientOriginalName(),
         ]);
+
+        if ($statusConferencia === 'conferido_ok') {
+            $destinatarios = array_filter([env('ENTRADA_EMAIL'), env('ENTRADA_EMAIL_2')]);
+            if (!empty($destinatarios)) {
+                try {
+                    Mail::to($destinatarios)->send(new PurchaseRequestApproved($purchaseRequest));
+                } catch (\Exception $e) {
+                    \Log::error('Falha ao enviar e-mail de conferência: ' . $e->getMessage());
+                }
+            }
+        }
 
         return redirect()->route('conferencia.index')->with('success', 'Conferência registrada com sucesso!');
     }
