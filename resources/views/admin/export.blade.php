@@ -236,7 +236,7 @@
                     <span style="background:#fef3c7; color:#d97706; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700;">Pendente</span>
                 @endif
                 @if($req->admin_note)
-                    <span style="font-size:13px; color:#6b7280;">{{ $req->admin_note }}</span>
+                    <span style="font-size:13px; color:#6b7280; white-space:pre-line;">{{ $req->admin_note }}</span>
                 @endif
             </div>
         @endif

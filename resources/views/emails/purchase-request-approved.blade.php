@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Compra Aprovada</title>
+    <title>Conferência OK</title>
 </head>
 <body style="margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#333333;">
 
@@ -18,10 +18,10 @@
                                 <img src="{{ asset('imagens/logo.png') }}" alt="Binário" style="max-height:40px; max-width:150px; object-fit:contain; display:block; margin-bottom:12px;">
                             @endif
                             <h2 style="margin:0; color:#ffffff; font-size:20px; font-weight:bold;">
-                                Compra Aprovada — Aguarde a Entrega
+                                Conferência OK — Pronto para Entrada
                             </h2>
                             <p style="margin:4px 0 0; color:rgba(255,255,255,0.75); font-size:13px;">
-                                Aprovado em {{ now()->format('d/m/Y \à\s H:i') }}
+                                Conferido em {{ now()->format('d/m/Y \à\s H:i') }}
                             </p>
                         </td>
                     </tr>
@@ -30,7 +30,7 @@
                     <tr>
                         <td style="padding:20px 24px 0;">
                             <div style="background:#dbeafe; border:1px solid #93c5fd; border-radius:8px; padding:14px 16px; font-size:14px; color:#1d4ed8;">
-                                <strong>Atenção, pessoal da entrada:</strong> a compra abaixo foi aprovada. O produto deve chegar em breve. Por favor, esteja pronto para receber.
+                                <strong>Atenção, pessoal da entrada:</strong> o produto abaixo foi conferido e está tudo certo. Já pode dar entrada.
                             </div>
                         </td>
                     </tr>

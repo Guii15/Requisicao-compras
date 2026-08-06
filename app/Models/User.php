@@ -20,11 +20,27 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'role',
     ];
 
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
+    }
+
+    public function isConferente(): bool
+    {
+        return $this->role === 'conferente' || $this->isAdmin();
+    }
+
+    public function isEntrada(): bool
+    {
+        return $this->role === 'entrada' || $this->isAdmin();
+    }
+
+    public function isVendedor(): bool
+    {
+        return !$this->isAdmin() && $this->role === null;
     }
 
     /**
@@ -43,6 +59,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 

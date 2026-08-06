@@ -23,7 +23,7 @@ class PurchaseRequestApproved extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Compra aprovada: {$this->purchaseRequest->product_name} — {$this->purchaseRequest->requester_name}"
+            subject: "Conferência OK: {$this->purchaseRequest->product_name} — {$this->purchaseRequest->requester_name}"
         );
     }
 
