@@ -19,8 +19,19 @@ jobs:
           php-version: "8.4"
           extensions: sqlite3, pdo_sqlite
 
-      - name: Install dependencies
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
 
       - name: Copy .env
         run: cp .env.example .env
