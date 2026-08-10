@@ -19,6 +19,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
+        html, body { overflow-x: hidden; max-width: 100%; }
+
         html.dark body, html.dark .bg-gray-100 { background-color: #0f172a !important; }
         html.dark footer { background: #000050 !important; color: rgba(255,255,255,0.4) !important; }
 

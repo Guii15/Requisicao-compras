@@ -13,7 +13,7 @@ class PurchaseRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PurchaseRequest::where('user_id', auth()->id());
+        $query = PurchaseRequest::with('fotosConferencia')->where('user_id', auth()->id());
 
         if ($request->filled('requester_name')) {
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
@@ -64,7 +64,18 @@ class PurchaseRequestController extends Controller
             ->limit(10)
             ->get();
 
-        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending'));
+        $supplierSpending = PurchaseRequest::select('supplier')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->groupBy('supplier')
+            ->orderByDesc('total_gasto')
+            ->limit(10)
+            ->get();
+
+        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
     }
 
     public function create()
@@ -111,6 +122,7 @@ class PurchaseRequestController extends Controller
             'urgency'        => 'required|in:baixa,media,alta',
             'reason'         => 'required|string|max:255',
             'justification'  => 'required|string|max:500',
+            'tipo_entrega'   => 'required|in:estoque,entrega_direta',
             'product_name'   => 'required|string|max:255',
             'product_code'   => 'nullable|string|max:100',
             'product_url'    => 'nullable|url|max:2048',
@@ -119,6 +131,8 @@ class PurchaseRequestController extends Controller
             'requester_name.required' => 'O nome do vendedor é obrigatório.',
             'urgency.required'        => 'Selecione a urgência.',
             'reason.required'         => 'O motivo é obrigatório.',
+            'tipo_entrega.required'   => 'Selecione o tipo de entrega.',
+            'tipo_entrega.in'         => 'Tipo de entrega inválido.',
             'product_name.required'   => 'O nome do produto é obrigatório.',
             'quantity.required'       => 'A quantidade é obrigatória.',
             'quantity.min'            => 'A quantidade mínima é 1.',
@@ -131,6 +145,7 @@ class PurchaseRequestController extends Controller
             'urgency'        => $request->urgency,
             'reason'         => $request->reason,
             'justification'  => $request->justification,
+            'tipo_entrega'   => $request->tipo_entrega,
             'product_name'   => $request->product_name,
             'product_code'   => $request->product_code,
             'product_url'    => $request->product_url,
@@ -158,6 +173,7 @@ class PurchaseRequestController extends Controller
             'urgency'                 => 'required|in:baixa,media,alta',
             'reason'                  => 'required|string|max:255',
             'justification'           => 'required|string|max:500',
+            'tipo_entrega'            => 'required|in:estoque,entrega_direta',
             'products'                => 'required|array|min:1',
             'products.*.product_name' => 'required|string|max:255',
             'products.*.product_code' => 'nullable|string|max:100',
@@ -167,6 +183,8 @@ class PurchaseRequestController extends Controller
             'requester_name.required'          => 'O nome do vendedor é obrigatório.',
             'urgency.required'                 => 'Selecione a urgência.',
             'reason.required'                  => 'O motivo é obrigatório.',
+            'tipo_entrega.required'            => 'Selecione o tipo de entrega.',
+            'tipo_entrega.in'                   => 'Tipo de entrega inválido.',
             'products.required'                => 'Adicione pelo menos um produto.',
             'products.*.product_name.required' => 'Preencha o nome do produto em todos os itens.',
             'products.*.quantity.required'     => 'Preencha a quantidade em todos os itens.',
@@ -186,6 +204,7 @@ class PurchaseRequestController extends Controller
                 'urgency'        => $request->urgency,
                 'reason'         => $request->reason,
                 'justification'  => $request->justification,
+                'tipo_entrega'   => $request->tipo_entrega,
                 'product_name'   => $product['product_name'],
                 'product_code'   => $product['product_code'] ?? null,
                 'product_url'    => $product['product_url'] ?? null,

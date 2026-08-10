@@ -9,6 +9,42 @@
     .adm-mobile-cards  { display: block; }
     .adm-stats { grid-template-columns: 1fr 1fr !important; }
     .adm-filters form { grid-template-columns: 1fr !important; }
+    .adm-charts-grid { display: none !important; }
+    .adm-charts-carousel { display: block !important; }
+}
+.adm-charts-carousel {
+    display: none;
+    position: relative;
+    margin-bottom: 24px;
+}
+.adm-carousel-track {
+    overflow: hidden;
+    border-radius: 12px;
+}
+.adm-carousel-slides {
+    display: flex;
+    transition: transform 0.4s ease;
+}
+.adm-carousel-slides > div {
+    min-width: 100%;
+    box-sizing: border-box;
+}
+.adm-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+.adm-carousel-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d1d5db;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.adm-carousel-dots span.active {
+    background: #05018D;
 }
 </style>
 
@@ -34,6 +70,12 @@
                   background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
            onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
             Usuários
+        </a>
+        <a href="{{ route('pendencias.index') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
+            📋 Pendências
         </a>
     </div>
 
@@ -68,8 +110,8 @@
         </div>
     </div>
 
-    {{-- Gráficos --}}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+    {{-- Gráficos (desktop) --}}
+    <div class="adm-charts-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
 
         {{-- Gasto mensal --}}
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
@@ -79,11 +121,13 @@
             @php $maxMonth = $monthlySpending->max('total') ?: 1; @endphp
             <div style="display:flex; align-items:flex-end; gap:8px; height:100px;">
                 @foreach($monthlySpending as $i => $m)
-                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <div onclick="openMonthModal('{{ $m['year'] }}','{{ $m['month'] }}','{{ $m['label'] }}')"
+                     style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;"
+                     title="Ver detalhes de {{ $m['label'] }}">
                     <div style="font-size:10px; color:#9ca3af; white-space:nowrap;">
                         @if($m['total'] > 0) R$ {{ number_format($m['total']/1000, 1, ',', '.') }}k @endif
                     </div>
-                    <div style="width:100%; border-radius:4px 4px 0 0; background:{{ $i == 5 ? '#059669' : '#d1fae5' }}; height:{{ max(6, round($m['total']/$maxMonth*72)) }}px;"></div>
+                    <div style="width:100%; border-radius:4px 4px 0 0; background:{{ $i == 5 ? '#059669' : '#d1fae5' }}; height:{{ max(6, round($m['total']/$maxMonth*72)) }}px; transition:opacity 0.15s;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'"></div>
                     <div style="font-size:11px; color:#6b7280; white-space:nowrap;">{{ $m['label'] }}</div>
                 </div>
                 @endforeach
@@ -111,7 +155,125 @@
             @endforelse
         </div>
 
+        {{-- Gasto por fornecedor --}}
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+            <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:12px;">
+                Maiores gastos <span style="font-size:12px; font-weight:400; color:#9ca3af;">por fornecedor</span>
+            </div>
+            @php $maxSupplierSpend = $supplierSpending->max('total_gasto') ?: 1; @endphp
+            @forelse($supplierSpending->take(5) as $s)
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
+                    <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
+                        <div style="height:100%; width:{{ round($s->total_gasto/$maxSupplierSpend*100) }}%; background:#2563eb; border-radius:2px;"></div>
+                    </div>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
+            </div>
+            @empty
+            <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
+            @endforelse
+        </div>
+
     </div>
+
+    {{-- Gráficos (mobile — carrossel) --}}
+    <div class="adm-charts-carousel">
+        <div class="adm-carousel-track">
+            <div class="adm-carousel-slides" id="adm-slides">
+
+                {{-- Slide 1: Gasto mensal --}}
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+                    <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:16px;">
+                        Gasto mensal <span style="font-size:12px; font-weight:400; color:#9ca3af;">aprovadas</span>
+                    </div>
+                    <div style="display:flex; align-items:flex-end; gap:8px; height:100px;">
+                        @foreach($monthlySpending as $i => $m)
+                        <div onclick="openMonthModal('{{ $m['year'] }}','{{ $m['month'] }}','{{ $m['label'] }}')"
+                             style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;"
+                             title="Ver detalhes de {{ $m['label'] }}">
+                            <div style="font-size:10px; color:#9ca3af; white-space:nowrap;">
+                                @if($m['total'] > 0) R$ {{ number_format($m['total']/1000, 1, ',', '.') }}k @endif
+                            </div>
+                            <div style="width:100%; border-radius:4px 4px 0 0; background:{{ $i == 5 ? '#059669' : '#d1fae5' }}; height:{{ max(6, round($m['total']/$maxMonth*72)) }}px;"></div>
+                            <div style="font-size:11px; color:#6b7280; white-space:nowrap;">{{ $m['label'] }}</div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Slide 2: Por vendedor --}}
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+                    <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:12px;">
+                        Maiores gastos <span style="font-size:12px; font-weight:400; color:#9ca3af;">por vendedor</span>
+                    </div>
+                    @forelse($vendorSpending->take(5) as $v)
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $v->requester_name }}</div>
+                            <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:{{ round($v->total_gasto/$maxSpend*100) }}%; background:#059669; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size:13px; font-weight:700; color:#059669; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
+                    </div>
+                    @empty
+                    <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
+                    @endforelse
+                </div>
+
+                {{-- Slide 3: Por fornecedor --}}
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+                    <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:12px;">
+                        Maiores gastos <span style="font-size:12px; font-weight:400; color:#9ca3af;">por fornecedor</span>
+                    </div>
+                    @forelse($supplierSpending->take(5) as $s)
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
+                            <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
+                                <div style="height:100%; width:{{ round($s->total_gasto/$maxSupplierSpend*100) }}%; background:#2563eb; border-radius:2px;"></div>
+                            </div>
+                        </div>
+                        <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
+                    </div>
+                    @empty
+                    <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
+                    @endforelse
+                </div>
+
+            </div>
+        </div>
+        <div class="adm-carousel-dots">
+            <span class="active" onclick="admGoTo(0)"></span>
+            <span onclick="admGoTo(1)"></span>
+            <span onclick="admGoTo(2)"></span>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var current = 0;
+        var total = 3;
+        var slides = document.getElementById('adm-slides');
+        var dots = document.querySelectorAll('.adm-carousel-dots span');
+        var timer;
+
+        function admGoTo(index) {
+            current = index;
+            slides.style.transform = 'translateX(-' + (index * 100) + '%)';
+            dots.forEach(function (d, i) { d.classList.toggle('active', i === index); });
+            clearInterval(timer);
+            timer = setInterval(next, 4000);
+        }
+
+        function next() { admGoTo((current + 1) % total); }
+
+        window.admGoTo = admGoTo;
+        timer = setInterval(next, 4000);
+    })();
+    </script>
 
     {{-- Filtros --}}
     <div class="adm-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
@@ -119,6 +281,11 @@
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Vendedor</label>
                 <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome..."
+                       style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
+            </div>
+            <div>
+                <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Produto</label>
+                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto"
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:13px; box-sizing:border-box;">
             </div>
             <div>
@@ -146,6 +313,13 @@
             </div>
         </form>
     </div>
+
+    {{-- Datalist de fornecedores para autocomplete --}}
+    <datalist id="supplier-options">
+        @foreach($supplierList as $s)
+            <option value="{{ $s }}">
+        @endforeach
+    </datalist>
 
     {{-- Tabela (desktop) --}}
     <div class="adm-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
@@ -235,6 +409,12 @@
                                     </div>
 
                                     <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
+                                        <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
                                         <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
@@ -314,6 +494,10 @@
                         <span style="color:#9ca3af;">Data</span>
                         <div style="font-weight:600; color:#374151;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div>
                     </div>
+                    <div>
+                        <span style="color:#9ca3af;">Valor</span>
+                        <div style="font-weight:700; color:#059669;">{{ $req->valor ? 'R$ '.number_format($req->valor, 2, ',', '.') : '—' }}</div>
+                    </div>
                 </div>
 
                 <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -355,6 +539,11 @@
                             </select>
                         </div>
                         <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
+                            <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+                        <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
                             <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
@@ -391,6 +580,21 @@
 
 </div>
 
+{{-- Modal: requisições do mês --}}
+<div id="month-modal" onclick="if(event.target===this)closeMonthModal()"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#fff; border-radius:12px; width:100%; max-width:720px; max-height:85vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="padding:20px 24px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h3 id="month-modal-title" style="margin:0; font-size:18px; font-weight:700; color:#05018D;"></h3>
+                <p id="month-modal-sub" style="margin:6px 0 0; font-size:13px; color:#6b7280;"></p>
+            </div>
+            <button onclick="closeMonthModal()" style="background:none; border:none; cursor:pointer; font-size:22px; color:#9ca3af; line-height:1; padding:2px 6px;">&times;</button>
+        </div>
+        <div id="month-modal-body" style="overflow-y:auto; padding:16px 24px; flex:1;"></div>
+    </div>
+</div>
+
 <script>
 (function () {
     function applyBRLMask(input) {
@@ -415,6 +619,51 @@
     document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
     document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
 })();
+
+function openMonthModal(year, month, label) {
+    var modal = document.getElementById('month-modal');
+    modal.style.display = 'flex';
+    document.getElementById('month-modal-title').textContent = 'Aprovadas em ' + label;
+    document.getElementById('month-modal-sub').textContent = 'Carregando...';
+    document.getElementById('month-modal-body').innerHTML = '<p style="color:#6b7280;text-align:center;padding:40px 0;">Carregando...</p>';
+
+    fetch('/admin/mensal/' + year + '/' + month)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('month-modal-sub').textContent = data.count + ' requisição(ões) aprovada(s)  ·  Total: ' + data.total_fmt;
+            if (data.count === 0) {
+                document.getElementById('month-modal-body').innerHTML = '<p style="color:#9ca3af;text-align:center;padding:40px 0;">Nenhuma requisição aprovada neste mês.</p>';
+                return;
+            }
+            var rows = data.requests.map(function(r) {
+                return '<tr style="border-bottom:1px solid #f3f4f6;">'
+                    + '<td style="padding:10px 8px;font-size:13px;font-weight:600;color:#374151;">' + r.requester_name + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;color:#374151;">' + r.product_name + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;color:#6b7280;">' + r.supplier + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;text-align:center;color:#374151;">' + r.quantity + '</td>'
+                    + '<td style="padding:10px 8px;font-size:13px;font-weight:700;color:#059669;text-align:right;white-space:nowrap;">' + r.valor_fmt + '</td>'
+                    + '</tr>';
+            }).join('');
+            document.getElementById('month-modal-body').innerHTML =
+                '<table style="width:100%;border-collapse:collapse;">'
+                + '<thead><tr style="background:#f9fafb;">'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:left;">Vendedor</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:left;">Produto</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:left;">Fornecedor</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:center;">Qtd</th>'
+                + '<th style="padding:8px;font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:right;">Valor</th>'
+                + '</tr></thead>'
+                + '<tbody>' + rows + '</tbody>'
+                + '</table>';
+        })
+        .catch(function() {
+            document.getElementById('month-modal-body').innerHTML = '<p style="color:#ef4444;text-align:center;padding:40px 0;">Erro ao carregar dados.</p>';
+        });
+}
+
+function closeMonthModal() {
+    document.getElementById('month-modal').style.display = 'none';
+}
 </script>
 
 @endsection

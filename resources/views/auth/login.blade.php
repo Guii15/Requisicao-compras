@@ -2,10 +2,50 @@
     @php
     $inputStyle = "width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 13px; font-size:14px; color:#374151; box-sizing:border-box; outline:none; background:#fff; font-family:inherit;";
     $labelStyle = "display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;";
+
+    $intended = session('url.intended', '');
+    $area = null;
+    if (str_contains($intended, '/conferencia')) {
+        $area = 'conferencia';
+    } elseif (str_contains($intended, '/entrada')) {
+        $area = 'entrada';
+    } elseif (str_contains($intended, '/admin')) {
+        $area = 'admin';
+    } elseif (str_contains($intended, '/requisicoes/nova')) {
+        $area = 'vendedor';
+    }
+
+    $textos = [
+        'vendedor'    => ['Bem-vindo, Vendedor!', 'Faça login para criar sua requisição'],
+        'conferencia' => ['Bem-vindo, Conferente!', 'Faça login para acessar a conferência'],
+        'entrada'     => ['Bem-vindo à Entrada!', 'Faça login para registrar entradas'],
+        'admin'       => ['Bem-vindo, Administrador!', 'Faça login para acessar o painel administrativo'],
+    ];
+    [$titulo, $subtitulo] = $textos[$area] ?? ['Bem-vindo!', 'Faça login para acessar o sistema'];
+
+    $tabs = [
+        'vendedor'    => ['label' => 'Vendedor',    'route' => route('requests.create')],
+        'conferencia' => ['label' => 'Conferência', 'route' => route('conferencia.index')],
+        'entrada'     => ['label' => 'Entrada',     'route' => route('entrada.index')],
+        'admin'       => ['label' => 'Admin',       'route' => route('admin.index')],
+    ];
     @endphp
 
-    <h2 style="font-size:22px; font-weight:800; color:#05018D; margin:0 0 4px;">Bem-vindo!</h2>
-    <p style="font-size:13px; color:#9ca3af; margin:0 0 28px;">Faça login para acessar o sistema</p>
+    <div style="display:flex; gap:4px; margin-bottom:24px; background:#f3f4f6; border-radius:12px; padding:5px;">
+        @foreach($tabs as $chave => $tab)
+            <a href="{{ $tab['route'] }}"
+               style="flex:1; text-align:center; padding:10px 3px; border-radius:9px; text-decoration:none; font-size:11.5px; font-weight:700; transition:transform 0.1s;
+                      background:{{ $area === $chave ? 'linear-gradient(90deg, #05018D 0%, #b40000 100%)' : 'transparent' }};
+                      color:{{ $area === $chave ? '#fff' : '#6b7280' }};
+                      box-shadow:{{ $area === $chave ? '0 3px 10px rgba(5,1,141,0.35)' : 'none' }};"
+               @if($area !== $chave) onmouseover="this.style.background='#e5e7eb'; this.style.color='#05018D'" onmouseout="this.style.background='transparent'; this.style.color='#6b7280'" @endif>
+                {{ $tab['label'] }}
+            </a>
+        @endforeach
+    </div>
+
+    <h2 style="font-size:22px; font-weight:800; color:#05018D; margin:0 0 4px;">{{ $titulo }}</h2>
+    <p style="font-size:13px; color:#9ca3af; margin:0 0 28px;">{{ $subtitulo }}</p>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 

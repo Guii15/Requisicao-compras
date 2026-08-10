@@ -68,7 +68,7 @@
     </div>
 
     {{-- Gráficos --}}
-    <div class="idx-charts" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+    <div class="idx-charts" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px;">
 
         {{-- Gasto mensal --}}
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
@@ -104,6 +104,27 @@
                     </div>
                 </div>
                 <div style="font-size:13px; font-weight:700; color:#059669; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
+            </div>
+            @empty
+            <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
+            @endforelse
+        </div>
+
+        {{-- Maiores gastos por fornecedor --}}
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
+            <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:12px;">
+                Maiores gastos <span style="font-size:12px; font-weight:400; color:#9ca3af;">por fornecedor</span>
+            </div>
+            @php $maxSupplierSpend = $supplierSpending->max('total_gasto') ?: 1; @endphp
+            @forelse($supplierSpending->take(5) as $s)
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
+                    <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
+                        <div style="height:100%; width:{{ round($s->total_gasto/$maxSupplierSpend*100) }}%; background:#2563eb; border-radius:2px;"></div>
+                    </div>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
             </div>
             @empty
             <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
@@ -171,6 +192,28 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
+                                <div>
+                                    @if($req->entrada_concluida_em)
+                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                                    @elseif($req->status_conferencia === 'conferido_ok')
+                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
+                                    @elseif($req->status_conferencia === 'divergente')
+                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
+                                    @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                                        <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                                    @elseif($req->status_conferencia === 'cancelado')
+                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
+                                    @elseif($req->status_conferencia === 'legado')
+                                    @elseif($req->status === 'aprovado')
+                                        <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
+                                    @endif
+                                    @if($req->fotosConferencia->isNotEmpty())
+                                        <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'"
+                                                style="display:inline-block; margin-top:4px; margin-left:4px; background:none; border:none; color:#1e3a8a; font-size:11px; font-weight:600; cursor:pointer; padding:0; text-decoration:underline;">
+                                            📷 Ver foto
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                             <td style="padding:14px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
                             <td style="padding:14px 16px; text-align:center; font-size:14px; color:#374151; font-weight:600;">{{ $req->quantity }}</td>
@@ -240,6 +283,26 @@
                         <div style="font-size:15px; font-weight:700; color:#1e3a8a;">{{ $req->product_name }}</div>
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
+                        @endif
+                        @if($req->entrada_concluida_em)
+                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                        @elseif($req->status_conferencia === 'conferido_ok')
+                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
+                        @elseif($req->status_conferencia === 'divergente')
+                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
+                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                            <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                        @elseif($req->status_conferencia === 'cancelado')
+                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
+                        @elseif($req->status_conferencia === 'legado')
+                        @elseif($req->status === 'aprovado')
+                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
+                        @endif
+                        @if($req->fotosConferencia->isNotEmpty())
+                            <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'"
+                                    style="display:inline-block; margin-top:4px; margin-left:4px; background:none; border:none; color:#1e3a8a; font-size:11px; font-weight:600; cursor:pointer; padding:0; text-decoration:underline;">
+                                📷 Ver foto
+                            </button>
                         @endif
                     </div>
                     @if($req->status=='aprovado')
@@ -328,11 +391,31 @@
             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
                 <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
                 <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px;">
+                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px; white-space:pre-line;">
                     {{ $req->admin_note }}
                 </div>
                 <div style="text-align:right;">
                     <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
+                            style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+@endforeach
+
+{{-- Modais de foto da conferência --}}
+@foreach($requests as $req)
+    @if($req->fotosConferencia->isNotEmpty())
+        <div id="foto-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Foto da Conferência</h3>
+                <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
+                <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                     style="width:100%; border-radius:8px; margin-bottom:20px; display:block;">
+                <div style="text-align:right;">
+                    <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='none'"
                             style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
                         Fechar
                     </button>

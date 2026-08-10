@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\PurchaseRequestApproved;
 
 class AdminController extends Controller
 {
@@ -20,6 +18,10 @@ class AdminController extends Controller
 
         if ($request->filled('requester_name')) {
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
+        }
+
+        if ($request->filled('product_name')) {
+            $query->where('product_name', 'like', '%' . $request->product_name . '%');
         }
 
         if ($request->filled('date_from')) {
@@ -49,10 +51,23 @@ class AdminController extends Controller
             ->limit(10)
             ->get();
 
+        $supplierSpending = PurchaseRequest::select('supplier')
+            ->selectRaw('SUM(valor) as total_gasto')
+            ->where('status', 'aprovado')
+            ->whereNotNull('valor')
+            ->whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->groupBy('supplier')
+            ->orderByDesc('total_gasto')
+            ->limit(10)
+            ->get();
+
         $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
             return [
                 'label' => $date->translatedFormat('M/y'),
+                'year'  => $date->year,
+                'month' => $date->month,
                 'total' => (float) PurchaseRequest::where('status', 'aprovado')
                     ->whereNotNull('valor')
                     ->whereYear('created_at', $date->year)
@@ -61,7 +76,13 @@ class AdminController extends Controller
             ];
         });
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'monthlySpending'));
+        $supplierList = PurchaseRequest::whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->distinct()
+            ->orderBy('supplier')
+            ->pluck('supplier');
+
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
@@ -78,28 +99,19 @@ class AdminController extends Controller
 
         $request->validate([
             'status'     => 'required|in:pendente,aprovado,rejeitado',
-            'admin_note' => 'nullable|string|max:500',
+            'admin_note' => 'nullable|string|max:2000',
             'valor'      => 'nullable|numeric|min:0',
+            'supplier'   => 'nullable|string|max:255',
         ]);
 
-        $oldStatus = $purchaseRequest->status;
+        $supplier = $request->supplier ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8') : null;
 
         $purchaseRequest->update([
             'status'     => $request->status,
             'admin_note' => $request->admin_note,
             'valor'      => $request->valor ?: null,
+            'supplier'   => $supplier,
         ]);
-
-        if ($request->status === 'aprovado' && $oldStatus !== 'aprovado') {
-            $destinatarios = array_filter([env('ENTRADA_EMAIL'), env('ENTRADA_EMAIL_2')]);
-            if (!empty($destinatarios)) {
-                try {
-                    Mail::to($destinatarios)->send(new PurchaseRequestApproved($purchaseRequest));
-                } catch (\Exception $e) {
-                    \Log::error('Falha ao enfileirar e-mail de aprovação: ' . $e->getMessage());
-                }
-            }
-        }
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
     }
@@ -116,7 +128,7 @@ class AdminController extends Controller
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users,email',
             'password'              => 'required|string|min:8|confirmed',
-            'is_admin'              => 'nullable|boolean',
+            'perfil'                => 'required|in:vendedor,conferente,entrada,admin',
         ], [
             'name.required'         => 'O nome é obrigatório.',
             'email.required'        => 'O e-mail é obrigatório.',
@@ -124,13 +136,16 @@ class AdminController extends Controller
             'password.required'     => 'A senha é obrigatória.',
             'password.min'          => 'A senha deve ter pelo menos 8 caracteres.',
             'password.confirmed'    => 'As senhas não coincidem.',
+            'perfil.required'       => 'Selecione um perfil.',
+            'perfil.in'             => 'Perfil inválido.',
         ]);
 
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => $request->password,
-            'is_admin' => $request->boolean('is_admin'),
+            'is_admin' => $request->perfil === 'admin',
+            'role'     => in_array($request->perfil, ['conferente', 'entrada'], true) ? $request->perfil : null,
         ]);
 
         return back()->with('success', 'Usuário criado com sucesso!');
@@ -144,6 +159,27 @@ class AdminController extends Controller
 
         $user->delete();
         return back()->with('success', 'Usuário removido com sucesso!');
+    }
+
+    public function updateRole(Request $request, User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Você não pode alterar seu próprio perfil.');
+        }
+
+        $request->validate([
+            'perfil' => 'required|in:vendedor,conferente,entrada,admin',
+        ], [
+            'perfil.required' => 'Selecione um perfil.',
+            'perfil.in'        => 'Perfil inválido.',
+        ]);
+
+        $user->update([
+            'is_admin' => $request->perfil === 'admin',
+            'role'     => in_array($request->perfil, ['conferente', 'entrada'], true) ? $request->perfil : null,
+        ]);
+
+        return back()->with('success', 'Perfil atualizado com sucesso!');
     }
 
     public static function buildWaText(PurchaseRequest $req): string
@@ -161,6 +197,27 @@ class AdminController extends Controller
             . " - Qtd: " . number_format($req->quantity, 0, ',', '.') . "\n\n"
             . "*Motivo:* " . $req->reason . "\n"
             . "*Obs:* " . $req->justification;
+    }
+
+    public function monthlyRequests($year, $month)
+    {
+        $requests = PurchaseRequest::where('status', 'aprovado')
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderByDesc('valor')
+            ->get();
+
+        return response()->json([
+            'requests' => $requests->map(fn($r) => [
+                'requester_name' => $r->requester_name,
+                'product_name'   => $r->product_name,
+                'supplier'       => $r->supplier ?: '—',
+                'valor_fmt'      => $r->valor ? 'R$ ' . number_format($r->valor, 2, ',', '.') : '—',
+                'quantity'       => $r->quantity,
+            ]),
+            'total_fmt' => 'R$ ' . number_format($requests->sum('valor'), 2, ',', '.'),
+            'count'     => $requests->count(),
+        ]);
     }
 
     public function export(PurchaseRequest $purchaseRequest)

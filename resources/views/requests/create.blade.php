@@ -57,8 +57,7 @@
 }
 
 @media (max-width: 600px) {
-    #inp-code { display: none !important; }
-    .prod-add-row { grid-template-columns: 1fr 64px !important; }
+    .prod-add-row { grid-template-columns: 80px 1fr 60px !important; }
     .add-btn-full { grid-column: 1 / -1; width: 100%; }
     .prod-list-header, .prod-list-row { grid-template-columns: 1fr 50px 36px 36px !important; }
     .col-code { display: none !important; }
@@ -224,6 +223,16 @@
                                    style="{{ $inputStyle }}"
                                    onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                        </div>
+
+                        <div>
+                            <label style="{{ $labelStyle }}">Tipo de Entrega <span style="color:#ef4444;">*</span></label>
+                            <select name="tipo_entrega" required style="{{ $inputStyle }}"
+                                    onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
+                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                                <option value="estoque" {{ old('tipo_entrega', 'estoque')=='estoque' ? 'selected' : '' }}>Estoque (CD)</option>
+                                <option value="entrega_direta" {{ old('tipo_entrega')=='entrega_direta' ? 'selected' : '' }}>Venda Casada (Dropship)</option>
+                            </select>
                         </div>
 
                         <div style="grid-column:1/-1;">
