@@ -13,6 +13,8 @@ class AdminController extends Controller
 
     public function index(Request $request)
     {
+        $aba = $request->query('aba') === 'historico' ? 'historico' : 'novas';
+
         $query = PurchaseRequest::with('user');
 
         if ($request->filled('status')) {
@@ -33,6 +35,24 @@ class AdminController extends Controller
 
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Um item "nao finalizado" ainda precisa de alguma acao (aprovacao ou entrada).
+        // Um GRUPO fica em "Novas" enquanto tiver pelo menos um item nessa condicao;
+        // so' passa pra "Historico" quando TODOS os itens do grupo estiverem finalizados.
+        $grupoComItemNaoFinalizado = function ($sub) {
+            $sub->select('grupo_id')->from('purchase_requests')->where(function ($condicao) {
+                $condicao->where('status', 'pendente')
+                    ->orWhere(function ($aprovadoSemEntrada) {
+                        $aprovadoSemEntrada->where('status', 'aprovado')->whereNull('entrada_concluida_em');
+                    });
+            });
+        };
+
+        if ($aba === 'historico') {
+            $query->whereNotIn('grupo_id', $grupoComItemNaoFinalizado);
+        } else {
+            $query->whereIn('grupo_id', $grupoComItemNaoFinalizado);
         }
 
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
@@ -85,7 +105,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList', 'aba'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)

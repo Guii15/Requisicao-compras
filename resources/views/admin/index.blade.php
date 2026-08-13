@@ -79,6 +79,20 @@
         </a>
     </div>
 
+    {{-- Sub-abas: Novas / Histórico --}}
+    <div style="display:flex; gap:8px; margin-bottom:20px;">
+        <a href="{{ route('admin.index', array_filter(['status' => request('status'), 'requester_name' => request('requester_name'), 'product_name' => request('product_name'), 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
+           style="padding:6px 16px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
+                  background:{{ $aba === 'novas' ? '#05018D' : '#f3f4f6' }}; color:{{ $aba === 'novas' ? '#fff' : '#6b7280' }};">
+            Novas
+        </a>
+        <a href="{{ route('admin.index', array_filter(['aba' => 'historico', 'status' => request('status'), 'requester_name' => request('requester_name'), 'product_name' => request('product_name'), 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
+           style="padding:6px 16px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
+                  background:{{ $aba === 'historico' ? '#05018D' : '#f3f4f6' }}; color:{{ $aba === 'historico' ? '#fff' : '#6b7280' }};">
+            Histórico
+        </a>
+    </div>
+
     {{-- Mensagem de sucesso --}}
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; display:flex; align-items:center; gap:8px; font-size:14px;">
@@ -278,6 +292,7 @@
     {{-- Filtros --}}
     <div class="adm-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
         <form method="GET" action="{{ route('admin.index') }}" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end;">
+            <input type="hidden" name="aba" value="{{ $aba }}">
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Vendedor</label>
                 <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome..."
@@ -309,7 +324,7 @@
             </div>
             <div style="display:flex; gap:8px;">
                 <button type="submit" style="flex:1; background:#05018D; color:#fff; padding:9px; border:none; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer;">Filtrar</button>
-                <a href="{{ route('admin.index') }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px; border-radius:7px; font-size:13px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
+                <a href="{{ route('admin.index', array_filter(['aba' => $aba !== 'novas' ? $aba : null])) }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px; border-radius:7px; font-size:13px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
             </div>
         </form>
     </div>
