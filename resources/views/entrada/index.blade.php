@@ -65,17 +65,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($requests as $req)
-                        <tr style="border-bottom:1px solid #f3f4f6;">
+                    @forelse($requests as $grupo)
+                        @php $primeiroEntr = $grupo->first(); $chaveEntr = $primeiroEntr->grupo_id; @endphp
+                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
+                            <td colspan="6" style="padding:12px 16px; font-size:14px; color:#05018D; font-weight:700;">
+                                Requisição #{{ $primeiroEntr->id }} — {{ ($aba === 'concluidas' ? $primeiroEntr->vendedor_destino : $primeiroEntr->requester_name) ?? 'Não informado' }} —
+                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}
+                                <span id="seta-grupo-{{ $chaveEntr }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                            </td>
+                        </tr>
+                    @foreach($grupo as $req)
+                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6;">
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">
                                 {{ $req->product_name }}
                                 @if($req->status_conferencia === 'avancado_mesmo_assim')
                                     <span style="display:block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; width:fit-content;">⚠ Avançado Mesmo Assim</span>
                                 @endif
                             </td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ ($aba === 'concluidas' ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</td>
+                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ ($req->entrada_concluida_em ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
-                            <td style="padding:12px 16px; text-align:center; font-size:14px; color:#374151;">{{ $req->quantity }} / {{ $aba === 'concluidas' ? $req->quantidade_entrada : $req->quantidade_recebida }}</td>
+                            <td style="padding:12px 16px; text-align:center; font-size:14px; color:#374151;">{{ $req->quantity }} / {{ $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->fotosConferencia->first())
                                     <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank">
@@ -86,7 +95,7 @@
                                     —
                                 @endif
                             </td>
-                            @if($aba === 'concluidas')
+                            @if($req->entrada_concluida_em)
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
                             @else
                             <td style="padding:12px 16px; text-align:center;">
@@ -98,7 +107,7 @@
                             @endif
                         </tr>
 
-                        @if($aba !== 'concluidas')
+                        @if(!$req->entrada_concluida_em)
                         <div id="modal-entrada-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
@@ -134,6 +143,7 @@
                             </div>
                         </div>
                         @endif
+                    @endforeach
                     @empty
                         <tr>
                             <td colspan="6" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
@@ -152,8 +162,16 @@
     </div>
 
     <div class="entr-mobile-cards">
-        @forelse($requests as $req)
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        @forelse($requests as $grupo)
+            @php $primeiroEntrM = $grupo->first(); $chaveEntrM = $primeiroEntrM->grupo_id; @endphp
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+                 onclick="toggleGrupoRequisicao('{{ $chaveEntrM }}')">
+                <div style="font-size:14px; font-weight:700; color:#05018D;">Requisição #{{ $primeiroEntrM->id }}</div>
+                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ ($aba === 'concluidas' ? $primeiroEntrM->vendedor_destino : $primeiroEntrM->requester_name) ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
+                <div style="font-size:12px; color:#9ca3af; margin-top:4px;"><span id="seta-grupo-{{ $chaveEntrM }}" style="float:right;">▾ ver itens</span></div>
+            </div>
+            @foreach($grupo as $req)
+            <div class="grupo-item-{{ $chaveEntrM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
                 <div style="font-size:15px; font-weight:700; color:#05018D; margin-bottom:6px;">{{ $req->product_name }}</div>
                 @if($req->status_conferencia === 'avancado_mesmo_assim')
                     <span style="display:inline-block; margin-bottom:10px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">⚠ Avançado Mesmo Assim</span>
@@ -161,16 +179,16 @@
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:10px;">
                     <div>
-                        <span style="color:#9ca3af;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</span>
-                        <div style="font-weight:600; color:#374151;">{{ ($aba === 'concluidas' ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</div>
+                        <span style="color:#9ca3af;">{{ $req->entrada_concluida_em ? 'Vendedor Destino' : 'Vendedor' }}</span>
+                        <div style="font-weight:600; color:#374151;">{{ ($req->entrada_concluida_em ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</div>
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Fornecedor</span>
                         <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
                     </div>
                     <div>
-                        <span style="color:#9ca3af;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</span>
-                        <div style="font-weight:700; color:#374151;">{{ $req->quantity }} / {{ $aba === 'concluidas' ? $req->quantidade_entrada : $req->quantidade_recebida }}</div>
+                        <span style="color:#9ca3af;">Qtd Solic. / {{ $req->entrada_concluida_em ? 'Entrada' : 'Receb.' }}</span>
+                        <div style="font-weight:700; color:#374151;">{{ $req->quantity }} / {{ $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida }}</div>
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Foto</span>
@@ -187,7 +205,7 @@
                     </div>
                 </div>
 
-                @if($aba === 'concluidas')
+                @if($req->entrada_concluida_em)
                 <div style="text-align:right; font-size:12px; color:#6b7280;">
                     Entrada em {{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}
                 </div>
@@ -201,7 +219,7 @@
                 @endif
             </div>
 
-            @if($aba !== 'concluidas')
+            @if(!$req->entrada_concluida_em)
             <div id="modal-entrada-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
@@ -237,6 +255,7 @@
                 </div>
             </div>
             @endif
+            @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
                 <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'concluidas' ? 'Nenhum item com entrada registrada ainda.' : 'Nenhum item liberado aguardando entrada.' }}</p>
@@ -250,5 +269,18 @@
     </div>
 
 </div>
+
+<script>
+function toggleGrupoRequisicao(chave) {
+    var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
+    var seta = document.getElementById('seta-grupo-' + chave);
+    if (!linhas.length) return;
+    var abrindo = linhas[0].style.display === 'none';
+    linhas.forEach(function (linha) {
+        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+    });
+    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
+}
+</script>
 
 @endsection

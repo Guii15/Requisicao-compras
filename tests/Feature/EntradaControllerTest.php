@@ -56,6 +56,45 @@ class EntradaControllerTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_index_groups_items_with_same_grupo_id(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        PurchaseRequest::factory()->create(['grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Item Um']);
+        PurchaseRequest::factory()->create(['grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Item Dois']);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index'));
+        $grupos = $response->original->getData()['requests'];
+
+        $this->assertCount(1, $grupos);
+        $this->assertCount(2, $grupos->first());
+    }
+
+    public function test_index_aguardando_shows_item_with_entrada_ja_dada_from_same_group_without_dar_entrada_button(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        PurchaseRequest::factory()->create([
+            'grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+            'product_name' => 'Item Aguardando Entrada',
+        ]);
+        PurchaseRequest::factory()->create([
+            'grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => now(), 'vendedor_destino' => 'Vendedor X', 'quantidade_entrada' => 5,
+            'product_name' => 'Item Ja Com Entrada No Mesmo Grupo',
+        ]);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index'));
+        $html = $response->getContent();
+
+        $response->assertSee('Item Aguardando Entrada');
+        $response->assertSee('Item Ja Com Entrada No Mesmo Grupo');
+
+        $posJaComEntrada = strpos($html, 'Item Ja Com Entrada No Mesmo Grupo');
+        $posEntradaEm = strpos($html, 'Entrada em', $posJaComEntrada);
+        $this->assertNotFalse($posEntradaEm);
+    }
+
     public function test_index_lists_only_conferido_ok_or_avancado_without_entrada(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);

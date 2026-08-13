@@ -19,11 +19,12 @@ trait AgrupaRequisicoesPorGrupoId
         Builder $query,
         int $porPagina = 15,
         string $pageName = 'page',
-        array $with = []
+        array $with = [],
+        string $ordenarPor = 'created_at'
     ): LengthAwarePaginator {
         $paginadorDeGrupos = (clone $query)
             ->select('grupo_id')
-            ->selectRaw('MAX(created_at) as ultima_data')
+            ->selectRaw("MAX({$ordenarPor}) as ultima_data")
             ->groupBy('grupo_id')
             ->orderByDesc('ultima_data')
             ->paginate($porPagina, ['*'], $pageName);

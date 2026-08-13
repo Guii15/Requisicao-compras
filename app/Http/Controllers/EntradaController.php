@@ -3,25 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 use Illuminate\Http\Request;
 
 class EntradaController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
     public function index(Request $request)
     {
         $aba = $request->query('aba') === 'concluidas' ? 'concluidas' : 'aguardando';
 
-        $query = PurchaseRequest::with(['user', 'conferente', 'fotosConferencia'])
-            ->where('status', 'aprovado')
+        $query = PurchaseRequest::where('status', 'aprovado')
             ->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim']);
 
         if ($aba === 'concluidas') {
-            $query->whereNotNull('entrada_concluida_em')->orderByDesc('entrada_concluida_em');
+            $query->whereNotNull('entrada_concluida_em');
+            $ordenarPor = 'entrada_concluida_em';
         } else {
-            $query->whereNull('entrada_concluida_em')->latest();
+            $query->whereNull('entrada_concluida_em');
+            $ordenarPor = 'created_at';
         }
 
-        $requests = $query->paginate(15)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente', 'fotosConferencia'], $ordenarPor)->withQueryString();
 
         return view('entrada.index', compact('requests', 'aba'));
     }
