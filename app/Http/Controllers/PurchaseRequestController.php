@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use App\Mail\PurchaseRequestCreated;
 use App\Http\Controllers\AdminController;
 
@@ -193,12 +194,14 @@ class PurchaseRequestController extends Controller
         ]);
 
         $created = [];
+        $grupoId = (string) Str::uuid();
 
         foreach ($request->products as $product) {
             if (empty(trim($product['product_name'] ?? ''))) continue;
 
             $created[] = PurchaseRequest::create([
                 'user_id'        => Auth::id(),
+                'grupo_id'       => $grupoId,
                 'requester_name' => $request->requester_name,
                 'supplier'       => $request->supplier,
                 'urgency'        => $request->urgency,

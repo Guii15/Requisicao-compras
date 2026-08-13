@@ -12,6 +12,7 @@ class PurchaseRequest extends Model
     use HasFactory;
     protected $fillable = [
         'user_id',
+        'grupo_id',
         'requester_name',
         'product_name',
         'product_code',

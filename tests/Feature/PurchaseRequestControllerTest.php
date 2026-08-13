@@ -78,6 +78,34 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertDatabaseCount('purchase_requests', 0);
     }
 
+    public function test_store_assigns_same_grupo_id_to_all_products_in_submission(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload());
+
+        $registros = PurchaseRequest::whereIn('product_name', ['Produto A', 'Produto B'])->get();
+        $this->assertCount(2, $registros);
+        $this->assertNotNull($registros[0]->grupo_id);
+        $this->assertSame($registros[0]->grupo_id, $registros[1]->grupo_id);
+    }
+
+    public function test_store_assigns_different_grupo_id_to_separate_submissions(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'products' => [['product_name' => 'Produto A', 'quantity' => 1]],
+        ]));
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'products' => [['product_name' => 'Produto C', 'quantity' => 1]],
+        ]));
+
+        $a = PurchaseRequest::where('product_name', 'Produto A')->firstOrFail();
+        $c = PurchaseRequest::where('product_name', 'Produto C')->firstOrFail();
+        $this->assertNotSame($a->grupo_id, $c->grupo_id);
+    }
+
     public function test_update_changes_tipo_entrega(): void
     {
         $user = User::factory()->create();
