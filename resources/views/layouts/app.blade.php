@@ -20,6 +20,8 @@
 
         <style>
         html, body { overflow-x: hidden; max-width: 100%; }
+        html { color-scheme: light; }
+        html.dark { color-scheme: dark; }
 
         html.dark body, html.dark .bg-gray-100 { background-color: #0f172a !important; }
         html.dark footer { background: #000050 !important; color: rgba(255,255,255,0.4) !important; }
@@ -55,6 +57,22 @@
         html.dark .bg-white { background-color: #1e293b !important; }
         html.dark .text-gray-700, html.dark .text-gray-600 { color: #e2e8f0 !important; }
         html.dark .border-gray-200, html.dark .divide-gray-100 { border-color: #334155 !important; }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+            -webkit-text-fill-color: #374151 !important;
+            caret-color: #374151 !important;
+            transition: background-color 9999s ease-in-out 0s;
+        }
+        html.dark input:-webkit-autofill,
+        html.dark input:-webkit-autofill:hover,
+        html.dark input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px #334155 inset !important;
+            -webkit-text-fill-color: #e2e8f0 !important;
+            caret-color: #e2e8f0 !important;
+        }
         html.dark [style*="box-shadow"] { box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important; }
         </style>
 

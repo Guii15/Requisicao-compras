@@ -19,7 +19,17 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
+        html { color-scheme: light; }
         * { box-sizing: border-box; }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+            -webkit-text-fill-color: #374151 !important;
+            caret-color: #374151 !important;
+            transition: background-color 9999s ease-in-out 0s;
+        }
         .auth-wrapper {
             min-height: 100vh;
             display: flex;
