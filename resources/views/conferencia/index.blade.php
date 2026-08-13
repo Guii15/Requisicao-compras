@@ -101,8 +101,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($requests as $req)
-                        <tr style="border-bottom:1px solid #f3f4f6;">
+                    @forelse($requests as $grupo)
+                        @php
+                            $primeiroConf = $grupo->first();
+                            $chaveConf = $primeiroConf->grupo_id;
+                            $colspanConf = $aba === 'conferidos' ? 8 : 7;
+                        @endphp
+                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveConf }}')">
+                            <td colspan="{{ $colspanConf }}" style="padding:12px 16px; font-size:14px; color:#05018D; font-weight:700;">
+                                Requisição #{{ $primeiroConf->id }} — {{ $primeiroConf->requester_name ?? 'Não informado' }} —
+                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}
+                                <span id="seta-grupo-{{ $chaveConf }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                            </td>
+                        </tr>
+                    @foreach($grupo as $req)
+                        <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6;">
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? '—' }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->product_name }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
@@ -116,16 +129,14 @@
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
                             <td style="padding:12px 16px; text-align:center;">
-                                @if($aba === 'conferidos')
-                                    @if($req->status_conferencia === 'conferido_ok')
-                                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
-                                    @elseif($req->status_conferencia === 'divergente')
-                                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
-                                    @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                                        <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
-                                    @elseif($req->status_conferencia === 'cancelado')
-                                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
-                                    @endif
+                                @if($req->status_conferencia === 'conferido_ok')
+                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
+                                @elseif($req->status_conferencia === 'divergente')
+                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
+                                @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                                    <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                                @elseif($req->status_conferencia === 'cancelado')
+                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                                 @elseif($podeConferir)
                                     <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
                                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
@@ -140,7 +151,7 @@
                             @endif
                         </tr>
 
-                        @if($aba === 'aguardando' && $podeConferir)
+                        @if($req->status_conferencia === null && $podeConferir)
                         <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
@@ -222,6 +233,7 @@
                         }
                         </script>
                         @endif
+                    @endforeach
                     @empty
                         <tr>
                             <td colspan="{{ $aba === 'conferidos' ? 8 : 7 }}" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
@@ -240,8 +252,16 @@
     </div>
 
     <div class="conf-mobile-cards">
-        @forelse($requests as $req)
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        @forelse($requests as $grupo)
+            @php $primeiroConfM = $grupo->first(); $chaveConfM = $primeiroConfM->grupo_id; @endphp
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+                 onclick="toggleGrupoRequisicao('{{ $chaveConfM }}')">
+                <div style="font-size:14px; font-weight:700; color:#05018D;">Requisição #{{ $primeiroConfM->id }}</div>
+                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ $primeiroConfM->requester_name ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
+                <div style="font-size:12px; color:#9ca3af; margin-top:4px;"><span id="seta-grupo-{{ $chaveConfM }}" style="float:right;">▾ ver itens</span></div>
+            </div>
+            @foreach($grupo as $req)
+            <div class="grupo-item-{{ $chaveConfM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
                     <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
@@ -276,16 +296,14 @@
                 @endif
 
                 <div style="display:flex; justify-content:flex-end;">
-                    @if($aba === 'conferidos')
-                        @if($req->status_conferencia === 'conferido_ok')
-                            <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
-                        @elseif($req->status_conferencia === 'divergente')
-                            <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
-                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                            <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
-                        @elseif($req->status_conferencia === 'cancelado')
-                            <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
-                        @endif
+                    @if($req->status_conferencia === 'conferido_ok')
+                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
+                    @elseif($req->status_conferencia === 'divergente')
+                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
+                    @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                        <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                    @elseif($req->status_conferencia === 'cancelado')
+                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                     @elseif($podeConferir)
                         <button onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
                                 style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
@@ -298,7 +316,7 @@
 
             </div>
 
-            @if($aba === 'aguardando' && $podeConferir)
+            @if($req->status_conferencia === null && $podeConferir)
             <div id="modal-conferir-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
@@ -380,6 +398,7 @@
             }
             </script>
             @endif
+            @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
                 <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : 'Nenhuma requisição aguardando conferência' }}</p>
@@ -393,5 +412,18 @@
     </div>
 
 </div>
+
+<script>
+function toggleGrupoRequisicao(chave) {
+    var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
+    var seta = document.getElementById('seta-grupo-' + chave);
+    if (!linhas.length) return;
+    var abrindo = linhas[0].style.display === 'none';
+    linhas.forEach(function (linha) {
+        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+    });
+    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
+}
+</script>
 
 @endsection
