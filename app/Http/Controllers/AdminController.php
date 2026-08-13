@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\ItemMaisSolicitado;
 use App\Models\PurchaseRequest;
 use App\Models\User;
 use App\Support\AgrupaRequisicoesPorGrupoId;
@@ -140,6 +141,14 @@ class AdminController extends Controller
         ]);
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
+    }
+
+    public function itensMaisSolicitados()
+    {
+        $itens = ItemMaisSolicitado::orderByDesc('total_pedidos')->orderBy('nome_canonico')->get();
+        $atualizadoEm = $itens->max('atualizado_em');
+
+        return view('admin.itens-mais-solicitados', compact('itens', 'atualizadoEm'));
     }
 
     public function users()

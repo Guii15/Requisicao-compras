@@ -1,0 +1,420 @@
+{
+  "amostra_sintetica": [
+    {
+      "nome_canonico": "SSD",
+      "capacidade": null,
+      "total_pedidos": 8,
+      "variacoes": [
+        {
+          "texto": "SSD",
+          "qtd": 4
+        },
+        {
+          "texto": "Ssds",
+          "qtd": 2
+        },
+        {
+          "texto": "ssd",
+          "qtd": 2
+        }
+      ]
+    },
+    {
+      "nome_canonico": "SSD 240GB",
+      "capacidade": "240gb",
+      "total_pedidos": 7,
+      "variacoes": [
+        {
+          "texto": "SSD 240GB",
+          "qtd": 4
+        },
+        {
+          "texto": "Ssd 240 Gb",
+          "qtd": 2
+        },
+        {
+          "texto": "ssd240gb",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Filtro de Oleo",
+      "capacidade": null,
+      "total_pedidos": 6,
+      "variacoes": [
+        {
+          "texto": "Filtro de Oleo",
+          "qtd": 3
+        },
+        {
+          "texto": "filtro de óleo",
+          "qtd": 2
+        },
+        {
+          "texto": "Filtros de Oleo",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Correia Dentada",
+      "capacidade": null,
+      "total_pedidos": 4,
+      "variacoes": [
+        {
+          "texto": "Correia Dentada",
+          "qtd": 2
+        },
+        {
+          "texto": "CORREIA DENTADA",
+          "qtd": 1
+        },
+        {
+          "texto": "correia dentadas",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "SSD 1TB",
+      "capacidade": "1tb",
+      "total_pedidos": 4,
+      "variacoes": [
+        {
+          "texto": "SSD 1TB",
+          "qtd": 3
+        },
+        {
+          "texto": "ssd 1 tb",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Pneu Aro 15",
+      "capacidade": null,
+      "total_pedidos": 3,
+      "variacoes": [
+        {
+          "texto": "Pneu Aro 15",
+          "qtd": 2
+        },
+        {
+          "texto": "pneu aro 15",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "HD 1TB",
+      "capacidade": "1tb",
+      "total_pedidos": 2,
+      "variacoes": [
+        {
+          "texto": "HD 1TB",
+          "qtd": 2
+        }
+      ]
+    },
+    {
+      "nome_canonico": "hd 500gb",
+      "capacidade": "500gb",
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "hd 500gb",
+          "qtd": 1
+        }
+      ]
+    }
+  ],
+  "banco_real": [
+    {
+      "nome_canonico": "TESTE",
+      "capacidade": null,
+      "total_pedidos": 40,
+      "variacoes": [
+        {
+          "texto": "TESTE",
+          "qtd": 40
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Amortecedor Dianteiro",
+      "capacidade": null,
+      "total_pedidos": 5,
+      "variacoes": [
+        {
+          "texto": "Amortecedor Dianteiro",
+          "qtd": 5
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Correia Dentada",
+      "capacidade": null,
+      "total_pedidos": 2,
+      "variacoes": [
+        {
+          "texto": "Correia Dentada",
+          "qtd": 2
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Filtro de Ar",
+      "capacidade": null,
+      "total_pedidos": 2,
+      "variacoes": [
+        {
+          "texto": "Filtro de Ar",
+          "qtd": 2
+        }
+      ]
+    },
+    {
+      "nome_canonico": "accusamus molestiae itaque",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "accusamus molestiae itaque",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "eos quis quam",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "eos quis quam",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "et consequatur dicta",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "et consequatur dicta",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Filtro de Ar Ja Com Entrada",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Filtro de Ar Ja Com Entrada",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Filtro de Ar Ja Conferido",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Filtro de Ar Ja Conferido",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Filtro de Oleo Motor",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Filtro de Oleo Motor",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Graxa Industrial",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Graxa Industrial",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Item E2E Dois",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Item E2E Dois",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Item E2E Tres",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Item E2E Tres",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Item E2E Um",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Item E2E Um",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "nam omnis sint",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "nam omnis sint",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "omnis voluptas tenetur",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "omnis voluptas tenetur",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "optio facilis et",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "optio facilis et",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Pastilha de Freio",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Pastilha de Freio",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "Pneu Aro 15",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "Pneu Aro 15",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "quasi est omnis",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "quasi est omnis",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "quo quisquam aspernatur",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "quo quisquam aspernatur",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "repellat voluptas consequuntur",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "repellat voluptas consequuntur",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "reprehenderit blanditiis minima",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "reprehenderit blanditiis minima",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "sequi id veritatis",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "sequi id veritatis",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "sint incidunt eius",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "sint incidunt eius",
+          "qtd": 1
+        }
+      ]
+    },
+    {
+      "nome_canonico": "wfg",
+      "capacidade": null,
+      "total_pedidos": 1,
+      "variacoes": [
+        {
+          "texto": "wfg",
+          "qtd": 1
+        }
+      ]
+    }
+  ]
+}
