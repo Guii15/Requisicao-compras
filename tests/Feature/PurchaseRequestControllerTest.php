@@ -106,6 +106,25 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertNotSame($a->grupo_id, $c->grupo_id);
     }
 
+    public function test_store_sends_purchase_request_created_email_once_per_group_with_all_items(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2],
+                ['product_name' => 'Produto B', 'quantity' => 1],
+                ['product_name' => 'Produto C', 'quantity' => 3],
+            ],
+        ]));
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PurchaseRequestCreated::class, 1);
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PurchaseRequestCreated::class, function ($mail) {
+            return count($mail->purchaseRequests) === 3;
+        });
+    }
+
     public function test_update_changes_tipo_entrega(): void
     {
         $user = User::factory()->create();
