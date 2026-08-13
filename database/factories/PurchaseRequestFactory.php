@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PurchaseRequest>
@@ -19,6 +20,7 @@ class PurchaseRequestFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
+            'grupo_id' => (string) Str::uuid(),
             'requester_name' => fake()->name(),
             'product_name' => fake()->words(3, true),
             'product_code' => null,

@@ -9,12 +9,15 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Mail\PurchaseRequestCreated;
 use App\Http\Controllers\AdminController;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 
 class PurchaseRequestController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
     public function index(Request $request)
     {
-        $query = PurchaseRequest::with('fotosConferencia')->where('user_id', auth()->id());
+        $query = PurchaseRequest::where('user_id', auth()->id());
 
         if ($request->filled('requester_name')) {
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
@@ -32,7 +35,7 @@ class PurchaseRequestController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->paginate(15)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['fotosConferencia'])->withQueryString();
 
         $userId = auth()->id();
 
