@@ -106,12 +106,47 @@
                             $primeiroConf = $grupo->first();
                             $chaveConf = $primeiroConf->grupo_id;
                             $colspanConf = $aba === 'conferidos' ? 8 : 7;
+                            $statusConfUnicos = $grupo->map(fn($r) => $r->status_conferencia ?? 'aguardando')->unique();
+                            if ($statusConfUnicos->count() === 1) {
+                                $statusChaveConf = $statusConfUnicos->first();
+                                $rotuloConf = ['aguardando' => 'Aguardando', 'conferido_ok' => 'OK', 'divergente' => 'Divergente', 'avancado_mesmo_assim' => 'Avançado', 'cancelado' => 'Cancelado', 'legado' => 'Legado'][$statusChaveConf] ?? ucfirst($statusChaveConf);
+                            } else {
+                                $statusChaveConf = 'parcial';
+                                $rotuloConf = 'Parcial';
+                            }
+                            $corsGrupoConf = [
+                                'aguardando'           => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                'conferido_ok'          => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                'divergente'            => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'avancado_mesmo_assim'  => ['barra' => '#2563eb', 'bg' => '#dbeafe', 'texto' => '#1d4ed8'],
+                                'cancelado'             => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'legado'                => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                                'parcial'               => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                            ][$statusChaveConf];
+                            $produtosResumoConf = $grupo->pluck('product_name')->filter()->implode(', ');
+                            if (mb_strlen($produtosResumoConf) > 60) {
+                                $produtosResumoConf = mb_substr($produtosResumoConf, 0, 60) . '…';
+                            }
                         @endphp
-                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveConf }}')">
-                            <td colspan="{{ $colspanConf }}" style="padding:12px 16px; font-size:14px; color:#05018D; font-weight:700;">
-                                Requisição #{{ $primeiroConf->id }} — {{ $primeiroConf->requester_name ?? 'Não informado' }} —
-                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}
-                                <span id="seta-grupo-{{ $chaveConf }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveConf }}')">
+                            <td colspan="{{ $colspanConf }}" style="padding:0;">
+                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoConf['barra'] }};"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:13.5px; line-height:1.4;">
+                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroConf->id }}</span>
+                                            <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroConf->requester_name ?? 'Não informado' }}</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoConf }}
+                                        </div>
+                                    </div>
+                                    <span style="background:{{ $corsGrupoConf['bg'] }}; color:{{ $corsGrupoConf['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloConf }}</span>
+                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveConf }}')"
+                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        <span id="seta-grupo-{{ $chaveConf }}">Ver itens</span>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @foreach($grupo as $req)
@@ -253,12 +288,50 @@
 
     <div class="conf-mobile-cards">
         @forelse($requests as $grupo)
-            @php $primeiroConfM = $grupo->first(); $chaveConfM = $primeiroConfM->grupo_id; @endphp
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+            @php
+                $primeiroConfM = $grupo->first();
+                $chaveConfM = $primeiroConfM->grupo_id;
+                $statusConfUnicosM = $grupo->map(fn($r) => $r->status_conferencia ?? 'aguardando')->unique();
+                if ($statusConfUnicosM->count() === 1) {
+                    $statusChaveConfM = $statusConfUnicosM->first();
+                    $rotuloConfM = ['aguardando' => 'Aguardando', 'conferido_ok' => 'OK', 'divergente' => 'Divergente', 'avancado_mesmo_assim' => 'Avançado', 'cancelado' => 'Cancelado', 'legado' => 'Legado'][$statusChaveConfM] ?? ucfirst($statusChaveConfM);
+                } else {
+                    $statusChaveConfM = 'parcial';
+                    $rotuloConfM = 'Parcial';
+                }
+                $corsGrupoConfM = [
+                    'aguardando'           => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'conferido_ok'          => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                    'divergente'            => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'avancado_mesmo_assim'  => ['barra' => '#2563eb', 'bg' => '#dbeafe', 'texto' => '#1d4ed8'],
+                    'cancelado'             => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'legado'                => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                    'parcial'               => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                ][$statusChaveConfM];
+                $produtosResumoConfM = $grupo->pluck('product_name')->filter()->implode(', ');
+                if (mb_strlen($produtosResumoConfM) > 60) {
+                    $produtosResumoConfM = mb_substr($produtosResumoConfM, 0, 60) . '…';
+                }
+            @endphp
+            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
                  onclick="toggleGrupoRequisicao('{{ $chaveConfM }}')">
-                <div style="font-size:14px; font-weight:700; color:#05018D;">Requisição #{{ $primeiroConfM->id }}</div>
-                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ $primeiroConfM->requester_name ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
-                <div style="font-size:12px; color:#9ca3af; margin-top:4px;"><span id="seta-grupo-{{ $chaveConfM }}" style="float:right;">▾ ver itens</span></div>
+                <div style="display:flex; align-items:stretch; gap:10px;">
+                    <div style="width:4px; background:{{ $corsGrupoConfM['barra'] }};"></div>
+                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroConfM->id }}</div>
+                            <span style="background:{{ $corsGrupoConfM['bg'] }}; color:{{ $corsGrupoConfM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloConfM }}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ $primeiroConfM->requester_name ?? 'Não informado' }}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoConfM }}
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveConfM }}')"
+                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <span id="seta-grupo-{{ $chaveConfM }}">Ver itens</span>
+                        </button>
+                    </div>
+                </div>
             </div>
             @foreach($grupo as $req)
             <div class="grupo-item-{{ $chaveConfM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
@@ -422,7 +495,7 @@ function toggleGrupoRequisicao(chave) {
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 </script>
 

@@ -79,17 +79,19 @@
         </a>
     </div>
 
-    {{-- Sub-abas: Novas / Histórico --}}
-    <div style="display:flex; gap:8px; margin-bottom:20px;">
+    {{-- Sub-abas: Pendentes / Histórico --}}
+    <div style="display:flex; gap:24px; margin-bottom:24px; border-bottom:1px solid #e5e7eb;">
         <a href="{{ route('admin.index', array_filter(['status' => request('status'), 'requester_name' => request('requester_name'), 'product_name' => request('product_name'), 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
-           style="padding:6px 16px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
-                  background:{{ $aba === 'novas' ? '#05018D' : '#f3f4f6' }}; color:{{ $aba === 'novas' ? '#fff' : '#6b7280' }};">
-            Novas
+           style="padding:9px 2px; font-size:14px; font-weight:600; text-decoration:none; margin-bottom:-1px;
+                  color:{{ $aba === 'pendentes' ? '#111827' : '#9ca3af' }};
+                  border-bottom:2px solid {{ $aba === 'pendentes' ? '#111827' : 'transparent' }};">
+            Pendentes <span style="color:#c7cbd3; font-weight:500;">{{ $countPendentes }}</span>
         </a>
         <a href="{{ route('admin.index', array_filter(['aba' => 'historico', 'status' => request('status'), 'requester_name' => request('requester_name'), 'product_name' => request('product_name'), 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
-           style="padding:6px 16px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
-                  background:{{ $aba === 'historico' ? '#05018D' : '#f3f4f6' }}; color:{{ $aba === 'historico' ? '#fff' : '#6b7280' }};">
-            Histórico
+           style="padding:9px 2px; font-size:14px; font-weight:600; text-decoration:none; margin-bottom:-1px;
+                  color:{{ $aba === 'historico' ? '#111827' : '#9ca3af' }};
+                  border-bottom:2px solid {{ $aba === 'historico' ? '#111827' : 'transparent' }};">
+            Histórico <span style="color:#c7cbd3; font-weight:500;">{{ $countHistorico }}</span>
         </a>
     </div>
 
@@ -324,7 +326,7 @@
             </div>
             <div style="display:flex; gap:8px;">
                 <button type="submit" style="flex:1; background:#05018D; color:#fff; padding:9px; border:none; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer;">Filtrar</button>
-                <a href="{{ route('admin.index', array_filter(['aba' => $aba !== 'novas' ? $aba : null])) }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px; border-radius:7px; font-size:13px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
+                <a href="{{ route('admin.index', array_filter(['aba' => $aba !== 'pendentes' ? $aba : null])) }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px; border-radius:7px; font-size:13px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
             </div>
         </form>
     </div>
@@ -359,16 +361,43 @@
                             $primeiroAdm = $grupo->first();
                             $chaveAdm = $primeiroAdm->grupo_id;
                             $statusUnicosAdm = $grupo->pluck('status')->unique();
-                            $rotuloGrupoAdm = $statusUnicosAdm->count() === 1
-                                ? ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusUnicosAdm->first()] ?? ucfirst($statusUnicosAdm->first())
-                                : $grupo->countBy('status')->map(fn($qtd, $st) => $qtd . ' ' . (['aprovado' => 'aprovada(s)', 'rejeitado' => 'rejeitada(s)', 'pendente' => 'pendente(s)'][$st] ?? $st))->implode(' · ');
+                            if ($statusUnicosAdm->count() === 1) {
+                                $statusChaveAdm = $statusUnicosAdm->first();
+                                $rotuloGrupoAdm = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveAdm] ?? ucfirst($statusChaveAdm);
+                            } else {
+                                $statusChaveAdm = 'parcial';
+                                $rotuloGrupoAdm = 'Parcial';
+                            }
+                            $corsGrupoAdm = [
+                                'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                            ][$statusChaveAdm];
+                            $produtosResumoAdm = $grupo->pluck('product_name')->filter()->implode(', ');
+                            if (mb_strlen($produtosResumoAdm) > 60) {
+                                $produtosResumoAdm = mb_substr($produtosResumoAdm, 0, 60) . '…';
+                            }
                         @endphp
-                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
-                            <td colspan="9" style="padding:12px 16px; font-size:14px; color:#05018D; font-weight:700;">
-                                Requisição #{{ $primeiroAdm->id }} — {{ $primeiroAdm->requester_name ?? 'Não informado' }} —
-                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }} —
-                                <span style="font-weight:600; color:#374151;">{{ $rotuloGrupoAdm }}</span>
-                                <span id="seta-grupo-{{ $chaveAdm }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
+                            <td colspan="9" style="padding:0;">
+                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoAdm['barra'] }};"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:13.5px; line-height:1.4;">
+                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroAdm->id }}</span>
+                                            <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroAdm->requester_name ?? 'Não informado' }}</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoAdm }}
+                                        </div>
+                                    </div>
+                                    <span style="background:{{ $corsGrupoAdm['bg'] }}; color:{{ $corsGrupoAdm['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoAdm }}</span>
+                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdm }}')"
+                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        <span id="seta-grupo-{{ $chaveAdm }}">Ver itens</span>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @foreach($grupo as $req)
@@ -496,15 +525,43 @@
                 $primeiroAdmM = $grupo->first();
                 $chaveAdmM = $primeiroAdmM->grupo_id;
                 $statusUnicosAdmM = $grupo->pluck('status')->unique();
-                $rotuloGrupoAdmM = $statusUnicosAdmM->count() === 1
-                    ? ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusUnicosAdmM->first()] ?? ucfirst($statusUnicosAdmM->first())
-                    : $grupo->countBy('status')->map(fn($qtd, $st) => $qtd . ' ' . (['aprovado' => 'aprovada(s)', 'rejeitado' => 'rejeitada(s)', 'pendente' => 'pendente(s)'][$st] ?? $st))->implode(' · ');
+                if ($statusUnicosAdmM->count() === 1) {
+                    $statusChaveAdmM = $statusUnicosAdmM->first();
+                    $rotuloGrupoAdmM = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveAdmM] ?? ucfirst($statusChaveAdmM);
+                } else {
+                    $statusChaveAdmM = 'parcial';
+                    $rotuloGrupoAdmM = 'Parcial';
+                }
+                $corsGrupoAdmM = [
+                    'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                    'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                ][$statusChaveAdmM];
+                $produtosResumoAdmM = $grupo->pluck('product_name')->filter()->implode(', ');
+                if (mb_strlen($produtosResumoAdmM) > 60) {
+                    $produtosResumoAdmM = mb_substr($produtosResumoAdmM, 0, 60) . '…';
+                }
             @endphp
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
                  onclick="toggleGrupoRequisicao('{{ $chaveAdmM }}')">
-                <div style="font-size:14px; font-weight:700; color:#05018D;">Requisição #{{ $primeiroAdmM->id }}</div>
-                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ $primeiroAdmM->requester_name ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
-                <div style="font-size:12px; color:#6b7280; margin-top:4px;">{{ $rotuloGrupoAdmM }} <span id="seta-grupo-{{ $chaveAdmM }}" style="float:right; color:#9ca3af;">▾ ver itens</span></div>
+                <div style="display:flex; align-items:stretch; gap:10px;">
+                    <div style="width:4px; background:{{ $corsGrupoAdmM['barra'] }};"></div>
+                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroAdmM->id }}</div>
+                            <span style="background:{{ $corsGrupoAdmM['bg'] }}; color:{{ $corsGrupoAdmM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoAdmM }}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ $primeiroAdmM->requester_name ?? 'Não informado' }}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoAdmM }}
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdmM }}')"
+                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <span id="seta-grupo-{{ $chaveAdmM }}">Ver itens</span>
+                        </button>
+                    </div>
+                </div>
             </div>
             @foreach($grupo as $req)
             <div class="grupo-item-{{ $chaveAdmM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
@@ -722,7 +779,7 @@ function toggleGrupoRequisicao(chave) {
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 </script>
 

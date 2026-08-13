@@ -641,7 +641,7 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $html = $response->getContent();
-        $this->assertSame(2, substr_count($html, '>Cancelado<'));
+        $this->assertSame(4, substr_count($html, '>Cancelado<'));
     }
 
     public function test_index_conferidos_still_shows_avancado_mesmo_assim_correctly(): void

@@ -66,12 +66,46 @@
                 </thead>
                 <tbody>
                     @forelse($requests as $grupo)
-                        @php $primeiroEntr = $grupo->first(); $chaveEntr = $primeiroEntr->grupo_id; @endphp
-                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
-                            <td colspan="6" style="padding:12px 16px; font-size:14px; color:#05018D; font-weight:700;">
-                                Requisição #{{ $primeiroEntr->id }} — {{ ($aba === 'concluidas' ? $primeiroEntr->vendedor_destino : $primeiroEntr->requester_name) ?? 'Não informado' }} —
-                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}
-                                <span id="seta-grupo-{{ $chaveEntr }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                        @php
+                            $primeiroEntr = $grupo->first();
+                            $chaveEntr = $primeiroEntr->grupo_id;
+                            $statusEntrUnicos = $grupo->map(fn($r) => $r->entrada_concluida_em ? 'concluida' : 'aguardando')->unique();
+                            if ($statusEntrUnicos->count() === 1) {
+                                $statusChaveEntr = $statusEntrUnicos->first();
+                                $rotuloEntr = $statusChaveEntr === 'concluida' ? 'Entrada Realizada' : 'Aguardando';
+                            } else {
+                                $statusChaveEntr = 'parcial';
+                                $rotuloEntr = 'Parcial';
+                            }
+                            $corsGrupoEntr = [
+                                'aguardando' => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                'concluida'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                'parcial'    => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                            ][$statusChaveEntr];
+                            $produtosResumoEntr = $grupo->pluck('product_name')->filter()->implode(', ');
+                            if (mb_strlen($produtosResumoEntr) > 60) {
+                                $produtosResumoEntr = mb_substr($produtosResumoEntr, 0, 60) . '…';
+                            }
+                        @endphp
+                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
+                            <td colspan="6" style="padding:0;">
+                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoEntr['barra'] }};"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:13.5px; line-height:1.4;">
+                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroEntr->id }}</span>
+                                            <span style="color:#9ca3af; font-weight:500;"> — {{ ($aba === 'concluidas' ? $primeiroEntr->vendedor_destino : $primeiroEntr->requester_name) ?? 'Não informado' }}</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoEntr }}
+                                        </div>
+                                    </div>
+                                    <span style="background:{{ $corsGrupoEntr['bg'] }}; color:{{ $corsGrupoEntr['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloEntr }}</span>
+                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntr }}')"
+                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        <span id="seta-grupo-{{ $chaveEntr }}">Ver itens</span>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @foreach($grupo as $req)
@@ -163,12 +197,46 @@
 
     <div class="entr-mobile-cards">
         @forelse($requests as $grupo)
-            @php $primeiroEntrM = $grupo->first(); $chaveEntrM = $primeiroEntrM->grupo_id; @endphp
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+            @php
+                $primeiroEntrM = $grupo->first();
+                $chaveEntrM = $primeiroEntrM->grupo_id;
+                $statusEntrUnicosM = $grupo->map(fn($r) => $r->entrada_concluida_em ? 'concluida' : 'aguardando')->unique();
+                if ($statusEntrUnicosM->count() === 1) {
+                    $statusChaveEntrM = $statusEntrUnicosM->first();
+                    $rotuloEntrM = $statusChaveEntrM === 'concluida' ? 'Entrada Realizada' : 'Aguardando';
+                } else {
+                    $statusChaveEntrM = 'parcial';
+                    $rotuloEntrM = 'Parcial';
+                }
+                $corsGrupoEntrM = [
+                    'aguardando' => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'concluida'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                    'parcial'    => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                ][$statusChaveEntrM];
+                $produtosResumoEntrM = $grupo->pluck('product_name')->filter()->implode(', ');
+                if (mb_strlen($produtosResumoEntrM) > 60) {
+                    $produtosResumoEntrM = mb_substr($produtosResumoEntrM, 0, 60) . '…';
+                }
+            @endphp
+            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
                  onclick="toggleGrupoRequisicao('{{ $chaveEntrM }}')">
-                <div style="font-size:14px; font-weight:700; color:#05018D;">Requisição #{{ $primeiroEntrM->id }}</div>
-                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ ($aba === 'concluidas' ? $primeiroEntrM->vendedor_destino : $primeiroEntrM->requester_name) ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
-                <div style="font-size:12px; color:#9ca3af; margin-top:4px;"><span id="seta-grupo-{{ $chaveEntrM }}" style="float:right;">▾ ver itens</span></div>
+                <div style="display:flex; align-items:stretch; gap:10px;">
+                    <div style="width:4px; background:{{ $corsGrupoEntrM['barra'] }};"></div>
+                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroEntrM->id }}</div>
+                            <span style="background:{{ $corsGrupoEntrM['bg'] }}; color:{{ $corsGrupoEntrM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloEntrM }}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ ($aba === 'concluidas' ? $primeiroEntrM->vendedor_destino : $primeiroEntrM->requester_name) ?? 'Não informado' }}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoEntrM }}
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntrM }}')"
+                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <span id="seta-grupo-{{ $chaveEntrM }}">Ver itens</span>
+                        </button>
+                    </div>
+                </div>
             </div>
             @foreach($grupo as $req)
             <div class="grupo-item-{{ $chaveEntrM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
@@ -279,7 +347,7 @@ function toggleGrupoRequisicao(chave) {
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 </script>
 

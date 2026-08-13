@@ -186,16 +186,43 @@
                             $primeiroDoGrupo = $grupo->first();
                             $chaveGrupo = $primeiroDoGrupo->grupo_id;
                             $statusUnicos = $grupo->pluck('status')->unique();
-                            $rotuloGrupoStatus = $statusUnicos->count() === 1
-                                ? ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusUnicos->first()] ?? ucfirst($statusUnicos->first())
-                                : $grupo->countBy('status')->map(fn($qtd, $st) => $qtd . ' ' . (['aprovado' => 'aprovada(s)', 'rejeitado' => 'rejeitada(s)', 'pendente' => 'pendente(s)'][$st] ?? $st))->implode(' · ');
+                            if ($statusUnicos->count() === 1) {
+                                $statusChaveV = $statusUnicos->first();
+                                $rotuloGrupoStatus = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveV] ?? ucfirst($statusChaveV);
+                            } else {
+                                $statusChaveV = 'parcial';
+                                $rotuloGrupoStatus = 'Parcial';
+                            }
+                            $corsGrupoV = [
+                                'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                            ][$statusChaveV];
+                            $produtosResumoV = $grupo->pluck('product_name')->filter()->implode(', ');
+                            if (mb_strlen($produtosResumoV) > 60) {
+                                $produtosResumoV = mb_substr($produtosResumoV, 0, 60) . '…';
+                            }
                         @endphp
-                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveGrupo }}')">
-                            <td colspan="8" style="padding:12px 16px; font-size:14px; color:#1e3a8a; font-weight:700;">
-                                Requisição #{{ $primeiroDoGrupo->id }} — {{ $primeiroDoGrupo->requester_name ?? 'Não informado' }} —
-                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }} —
-                                <span style="font-weight:600; color:#374151;">{{ $rotuloGrupoStatus }}</span>
-                                <span id="seta-grupo-{{ $chaveGrupo }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveGrupo }}')">
+                            <td colspan="8" style="padding:0;">
+                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoV['barra'] }};"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:13.5px; line-height:1.4;">
+                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroDoGrupo->id }}</span>
+                                            <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroDoGrupo->requester_name ?? 'Não informado' }}</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoV }}
+                                        </div>
+                                    </div>
+                                    <span style="background:{{ $corsGrupoV['bg'] }}; color:{{ $corsGrupoV['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoStatus }}</span>
+                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupo }}')"
+                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        <span id="seta-grupo-{{ $chaveGrupo }}">Ver itens</span>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @foreach($grupo as $req)
@@ -297,15 +324,43 @@
                 $primeiroDoGrupoM = $grupo->first();
                 $chaveGrupoM = $primeiroDoGrupoM->grupo_id;
                 $statusUnicosM = $grupo->pluck('status')->unique();
-                $rotuloGrupoStatusM = $statusUnicosM->count() === 1
-                    ? ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusUnicosM->first()] ?? ucfirst($statusUnicosM->first())
-                    : $grupo->countBy('status')->map(fn($qtd, $st) => $qtd . ' ' . (['aprovado' => 'aprovada(s)', 'rejeitado' => 'rejeitada(s)', 'pendente' => 'pendente(s)'][$st] ?? $st))->implode(' · ');
+                if ($statusUnicosM->count() === 1) {
+                    $statusChaveVM = $statusUnicosM->first();
+                    $rotuloGrupoStatusM = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveVM] ?? ucfirst($statusChaveVM);
+                } else {
+                    $statusChaveVM = 'parcial';
+                    $rotuloGrupoStatusM = 'Parcial';
+                }
+                $corsGrupoVM = [
+                    'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                    'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                ][$statusChaveVM];
+                $produtosResumoVM = $grupo->pluck('product_name')->filter()->implode(', ');
+                if (mb_strlen($produtosResumoVM) > 60) {
+                    $produtosResumoVM = mb_substr($produtosResumoVM, 0, 60) . '…';
+                }
             @endphp
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
                  onclick="toggleGrupoRequisicao('{{ $chaveGrupoM }}')">
-                <div style="font-size:14px; font-weight:700; color:#1e3a8a;">Requisição #{{ $primeiroDoGrupoM->id }}</div>
-                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ $primeiroDoGrupoM->requester_name ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
-                <div style="font-size:12px; color:#6b7280; margin-top:4px;">{{ $rotuloGrupoStatusM }} <span id="seta-grupo-{{ $chaveGrupoM }}" style="float:right; color:#9ca3af;">▾ ver itens</span></div>
+                <div style="display:flex; align-items:stretch; gap:10px;">
+                    <div style="width:4px; background:{{ $corsGrupoVM['barra'] }};"></div>
+                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroDoGrupoM->id }}</div>
+                            <span style="background:{{ $corsGrupoVM['bg'] }}; color:{{ $corsGrupoVM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoStatusM }}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ $primeiroDoGrupoM->requester_name ?? 'Não informado' }}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoVM }}
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupoM }}')"
+                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <span id="seta-grupo-{{ $chaveGrupoM }}">Ver itens</span>
+                        </button>
+                    </div>
+                </div>
             </div>
             @foreach($grupo as $req)
             <div class="grupo-item-{{ $chaveGrupoM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
@@ -472,7 +527,7 @@ function toggleGrupoRequisicao(chave) {
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 </script>
 

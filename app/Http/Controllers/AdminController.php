@@ -13,7 +13,7 @@ class AdminController extends Controller
 
     public function index(Request $request)
     {
-        $aba = $request->query('aba') === 'historico' ? 'historico' : 'novas';
+        $aba = $request->query('aba') === 'historico' ? 'historico' : 'pendentes';
 
         $query = PurchaseRequest::with('user');
 
@@ -56,6 +56,9 @@ class AdminController extends Controller
         }
 
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
+
+        $countPendentes = PurchaseRequest::whereIn('grupo_id', $grupoComItemNaoFinalizado)->distinct('grupo_id')->count('grupo_id');
+        $countHistorico = PurchaseRequest::whereNotIn('grupo_id', $grupoComItemNaoFinalizado)->distinct('grupo_id')->count('grupo_id');
 
         $stats = [
             'total'       => PurchaseRequest::count(),
@@ -105,7 +108,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList', 'aba'));
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList', 'aba', 'countPendentes', 'countHistorico'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)

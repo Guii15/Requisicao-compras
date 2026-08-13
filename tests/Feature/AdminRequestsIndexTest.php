@@ -60,7 +60,6 @@ class AdminRequestsIndexTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.index'));
 
-        $response->assertSee('1 aprovada(s)', false);
-        $response->assertSee('1 pendente(s)', false);
+        $response->assertSee('Parcial', false);
     }
 }
