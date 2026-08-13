@@ -339,8 +339,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($requests as $req)
-                        <tr style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                    @forelse($requests as $grupo)
+                        @php
+                            $primeiroAdm = $grupo->first();
+                            $chaveAdm = $primeiroAdm->grupo_id;
+                            $statusUnicosAdm = $grupo->pluck('status')->unique();
+                            $rotuloGrupoAdm = $statusUnicosAdm->count() === 1
+                                ? ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusUnicosAdm->first()] ?? ucfirst($statusUnicosAdm->first())
+                                : $grupo->countBy('status')->map(fn($qtd, $st) => $qtd . ' ' . (['aprovado' => 'aprovada(s)', 'rejeitado' => 'rejeitada(s)', 'pendente' => 'pendente(s)'][$st] ?? $st))->implode(' · ');
+                        @endphp
+                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #e5e7eb; background:#f8fafc; cursor:pointer;" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
+                            <td colspan="9" style="padding:12px 16px; font-size:14px; color:#05018D; font-weight:700;">
+                                Requisição #{{ $primeiroAdm->id }} — {{ $primeiroAdm->requester_name ?? 'Não informado' }} —
+                                {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }} —
+                                <span style="font-weight:600; color:#374151;">{{ $rotuloGrupoAdm }}</span>
+                                <span id="seta-grupo-{{ $chaveAdm }}" style="float:right; color:#9ca3af;">▾ ver itens</span>
+                            </td>
+                        </tr>
+                    @foreach($grupo as $req)
+                        <tr class="grupo-item-{{ $chaveAdm }}" style="display:none; border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? '—' }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">
                                 {{ $req->product_name }}
@@ -439,9 +456,10 @@
                                 </form>
                             </div>
                         </div>
+                    @endforeach
                     @empty
                         <tr>
-                            <td colspan="8" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="9" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 Nenhuma requisição encontrada
                             </td>
                         </tr>
@@ -458,8 +476,23 @@
 
     {{-- CARDS (mobile) --}}
     <div class="adm-mobile-cards">
-        @forelse($requests as $req)
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        @forelse($requests as $grupo)
+            @php
+                $primeiroAdmM = $grupo->first();
+                $chaveAdmM = $primeiroAdmM->grupo_id;
+                $statusUnicosAdmM = $grupo->pluck('status')->unique();
+                $rotuloGrupoAdmM = $statusUnicosAdmM->count() === 1
+                    ? ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusUnicosAdmM->first()] ?? ucfirst($statusUnicosAdmM->first())
+                    : $grupo->countBy('status')->map(fn($qtd, $st) => $qtd . ' ' . (['aprovado' => 'aprovada(s)', 'rejeitado' => 'rejeitada(s)', 'pendente' => 'pendente(s)'][$st] ?? $st))->implode(' · ');
+            @endphp
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); cursor:pointer;"
+                 onclick="toggleGrupoRequisicao('{{ $chaveAdmM }}')">
+                <div style="font-size:14px; font-weight:700; color:#05018D;">Requisição #{{ $primeiroAdmM->id }}</div>
+                <div style="font-size:13px; color:#374151; margin-top:2px;">{{ $primeiroAdmM->requester_name ?? 'Não informado' }} — {{ $grupo->count() }} item{{ $grupo->count() > 1 ? 's' : '' }}</div>
+                <div style="font-size:12px; color:#6b7280; margin-top:4px;">{{ $rotuloGrupoAdmM }} <span id="seta-grupo-{{ $chaveAdmM }}" style="float:right; color:#9ca3af;">▾ ver itens</span></div>
+            </div>
+            @foreach($grupo as $req)
+            <div class="grupo-item-{{ $chaveAdmM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
                     <div>
@@ -566,6 +599,7 @@
                     </form>
                 </div>
             </div>
+            @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
                 <p style="color:#6b7280; font-size:15px; margin:0;">Nenhuma requisição encontrada</p>
@@ -663,6 +697,17 @@ function openMonthModal(year, month, label) {
 
 function closeMonthModal() {
     document.getElementById('month-modal').style.display = 'none';
+}
+
+function toggleGrupoRequisicao(chave) {
+    var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
+    var seta = document.getElementById('seta-grupo-' + chave);
+    if (!linhas.length) return;
+    var abrindo = linhas[0].style.display === 'none';
+    linhas.forEach(function (linha) {
+        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+    });
+    if (seta) seta.textContent = abrindo ? '▴ ocultar itens' : '▾ ver itens';
 }
 </script>
 

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use App\Models\User;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 
 class AdminController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
     public function index(Request $request)
     {
         $query = PurchaseRequest::with('user');
@@ -32,7 +35,7 @@ class AdminController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->paginate(15)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
 
         $stats = [
             'total'       => PurchaseRequest::count(),
