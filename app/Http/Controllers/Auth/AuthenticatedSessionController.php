@@ -12,11 +12,19 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Display the login view for a specific perfil (vendedor, conferencia, entrada, admin).
      */
-    public function create(): View
+    public function create(string $perfil): View
     {
-        return view('auth.login');
+        return view('auth.login', ['perfil' => $perfil]);
+    }
+
+    /**
+     * Display the login perfil picker (default /login).
+     */
+    public function escolha(): View
+    {
+        return view('auth.login-escolha');
     }
 
     /**

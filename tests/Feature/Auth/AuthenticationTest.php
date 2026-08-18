@@ -25,31 +25,62 @@ class AuthenticationTest extends TestCase
         $response->assertDontSee('Bem-vindo, Conferente!');
     }
 
-    public function test_login_screen_shows_conferencia_heading_after_hitting_protected_route(): void
+    public function test_login_screen_shows_conferencia_heading_on_its_own_url(): void
     {
-        $this->get(route('conferencia.index'));
-
-        $response = $this->get('/login');
+        $response = $this->get(route('login.perfil', 'conferencia'));
 
         $response->assertSee('Bem-vindo, Conferente!');
     }
 
-    public function test_login_screen_shows_entrada_heading_after_hitting_protected_route(): void
+    public function test_login_screen_shows_entrada_heading_on_its_own_url(): void
     {
-        $this->get(route('entrada.index'));
-
-        $response = $this->get('/login');
+        $response = $this->get(route('login.perfil', 'entrada'));
 
         $response->assertSee('Bem-vindo à Entrada!');
     }
 
-    public function test_login_screen_shows_admin_heading_after_hitting_protected_route(): void
+    public function test_login_screen_shows_admin_heading_on_its_own_url(): void
     {
-        $this->get(route('admin.index'));
-
-        $response = $this->get('/login');
+        $response = $this->get(route('login.perfil', 'admin'));
 
         $response->assertSee('Bem-vindo, Administrador!');
+    }
+
+    public function test_login_screen_shows_vendedor_heading_on_its_own_url(): void
+    {
+        $response = $this->get(route('login.perfil', 'vendedor'));
+
+        $response->assertSee('Bem-vindo, Vendedor!');
+    }
+
+    public function test_invalid_perfil_returns_404(): void
+    {
+        $this->get('/login/gerente')->assertNotFound();
+    }
+
+    public function test_picker_page_lists_the_4_perfil_links(): void
+    {
+        $response = $this->get('/login');
+
+        $response->assertSee(route('login.perfil', 'vendedor'), false);
+        $response->assertSee(route('login.perfil', 'conferencia'), false);
+        $response->assertSee(route('login.perfil', 'entrada'), false);
+        $response->assertSee(route('login.perfil', 'admin'), false);
+    }
+
+    public function test_pode_autenticar_a_partir_de_qualquer_url_de_login_por_perfil(): void
+    {
+        $vendedor = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $this->get(route('login.perfil', 'admin'));
+
+        $response = $this->post('/login', [
+            'email' => $vendedor->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
     }
 
     public function test_login_redirects_to_intended_admin_screen_after_authentication(): void
