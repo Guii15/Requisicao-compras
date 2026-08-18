@@ -35,11 +35,11 @@
                   background:#05018D; color:#fff; border:2px solid #05018D; border-bottom:2px solid #05018D;">
             📋 Pendências
         </a>
-        <a href="{{ route('admin.itens-mais-solicitados') }}"
+        <a href="{{ route('admin.historico-compras') }}"
            style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
                   background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
            onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            📦 Itens Mais Solicitados
+            🗂️ Histórico de Compras
         </a>
     </div>
 

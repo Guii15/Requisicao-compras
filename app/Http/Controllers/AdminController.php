@@ -12,10 +12,25 @@ class AdminController extends Controller
 {
     use AgrupaRequisicoesPorGrupoId;
 
+    /**
+     * Um item "nao finalizado" ainda precisa de alguma acao (aprovacao ou entrada).
+     * Um GRUPO fica em "Novas"/pendente enquanto tiver pelo menos um item nessa condicao;
+     * so' e' considerado finalizado quando TODOS os itens do grupo estiverem resolvidos.
+     */
+    private function subqueryGrupoNaoFinalizado(): \Closure
+    {
+        return function ($sub) {
+            $sub->select('grupo_id')->from('purchase_requests')->where(function ($condicao) {
+                $condicao->where('status', 'pendente')
+                    ->orWhere(function ($aprovadoSemEntrada) {
+                        $aprovadoSemEntrada->where('status', 'aprovado')->whereNull('entrada_concluida_em');
+                    });
+            });
+        };
+    }
+
     public function index(Request $request)
     {
-        $aba = $request->query('aba') === 'historico' ? 'historico' : 'pendentes';
-
         $query = PurchaseRequest::with('user');
 
         if ($request->filled('status')) {
@@ -38,28 +53,10 @@ class AdminController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        // Um item "nao finalizado" ainda precisa de alguma acao (aprovacao ou entrada).
-        // Um GRUPO fica em "Novas" enquanto tiver pelo menos um item nessa condicao;
-        // so' passa pra "Historico" quando TODOS os itens do grupo estiverem finalizados.
-        $grupoComItemNaoFinalizado = function ($sub) {
-            $sub->select('grupo_id')->from('purchase_requests')->where(function ($condicao) {
-                $condicao->where('status', 'pendente')
-                    ->orWhere(function ($aprovadoSemEntrada) {
-                        $aprovadoSemEntrada->where('status', 'aprovado')->whereNull('entrada_concluida_em');
-                    });
-            });
-        };
-
-        if ($aba === 'historico') {
-            $query->whereNotIn('grupo_id', $grupoComItemNaoFinalizado);
-        } else {
-            $query->whereIn('grupo_id', $grupoComItemNaoFinalizado);
-        }
+        $grupoComItemNaoFinalizado = $this->subqueryGrupoNaoFinalizado();
+        $query->whereIn('grupo_id', $grupoComItemNaoFinalizado);
 
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
-
-        $countPendentes = PurchaseRequest::whereIn('grupo_id', $grupoComItemNaoFinalizado)->distinct('grupo_id')->count('grupo_id');
-        $countHistorico = PurchaseRequest::whereNotIn('grupo_id', $grupoComItemNaoFinalizado)->distinct('grupo_id')->count('grupo_id');
 
         $stats = [
             'total'       => PurchaseRequest::count(),
@@ -109,7 +106,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList', 'aba', 'countPendentes', 'countHistorico'));
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
@@ -149,6 +146,78 @@ class AdminController extends Controller
         $atualizadoEm = $itens->max('atualizado_em');
 
         return view('admin.itens-mais-solicitados', compact('itens', 'atualizadoEm'));
+    }
+
+    /**
+     * Historico unificado: requisicoes reais ja finalizadas (aprovadas com entrada
+     * concluida, ou rejeitadas) + tudo que foi importado da planilha antiga.
+     */
+    public function historicoCompras(Request $request)
+    {
+        $grupoComItemNaoFinalizado = $this->subqueryGrupoNaoFinalizado();
+        $dataUnificada = 'COALESCE(data_compra, created_at)';
+
+        $baseQuery = function () use ($grupoComItemNaoFinalizado) {
+            return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
+                ->where(function ($unificado) use ($grupoComItemNaoFinalizado) {
+                    $unificado->where(function ($ativoFinalizado) use ($grupoComItemNaoFinalizado) {
+                        $ativoFinalizado->where('tipo_registro', 'requisicao')
+                            ->whereNotIn('grupo_id', $grupoComItemNaoFinalizado);
+                    })->orWhere('tipo_registro', '!=', 'requisicao');
+                });
+        };
+
+        $query = $baseQuery()->with('user');
+
+        if ($request->filled('produto')) {
+            $query->where('product_name', 'like', '%' . $request->produto . '%');
+        }
+
+        if ($request->filled('vendedor')) {
+            $query->where('requester_name', 'like', '%' . $request->vendedor . '%');
+        }
+
+        if ($request->filled('mes')) {
+            $query->whereRaw("strftime('%Y-%m', {$dataUnificada}) = ?", [$request->mes]);
+        }
+
+        if ($request->filled('aba_origem')) {
+            $query->where('aba_origem', $request->aba_origem);
+        }
+
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], $dataUnificada)->withQueryString();
+
+        $totalGeral = $baseQuery()->count();
+        $valorTotal = (float) $baseQuery()->sum('valor');
+        $totalPlanilha = $baseQuery()->where('tipo_registro', '!=', 'requisicao')->count();
+        $totalFluxoAtivo = $totalGeral - $totalPlanilha;
+
+        $totaisPorAba = PurchaseRequest::historico()
+            ->select('aba_origem')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('aba_origem')
+            ->orderBy('aba_origem')
+            ->get();
+
+        $abasDisponiveis = PurchaseRequest::historico()->select('aba_origem')->distinct()->orderBy('aba_origem')->pluck('aba_origem');
+
+        $mesesDisponiveis = $baseQuery()
+            ->selectRaw("strftime('%Y-%m', {$dataUnificada}) as mes_chave")
+            ->distinct()
+            ->whereRaw("{$dataUnificada} IS NOT NULL")
+            ->orderByDesc('mes_chave')
+            ->pluck('mes_chave')
+            ->map(function ($chave) {
+                return [
+                    'valor' => $chave,
+                    'label' => \Carbon\Carbon::createFromFormat('Y-m', $chave)->translatedFormat('M/Y'),
+                ];
+            });
+
+        return view('admin.historico-compras', compact(
+            'requests', 'totaisPorAba', 'totalGeral', 'valorTotal', 'totalPlanilha', 'totalFluxoAtivo',
+            'abasDisponiveis', 'mesesDisponiveis'
+        ));
     }
 
     public function users()

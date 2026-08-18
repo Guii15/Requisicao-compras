@@ -8,6 +8,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
+/**
+ * A tela de Requisições do Admin so' mostra pendentes (itens que ainda precisam de
+ * acao). Requisições finalizadas (aprovadas com entrada, ou rejeitadas) saem daqui
+ * e passam a viver em admin.historico-compras (ver AdminHistoricoComprasTest).
+ */
 class AdminRequestsNovasHistoricoTest extends TestCase
 {
     use RefreshDatabase;
@@ -17,7 +22,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         return User::factory()->create(['is_admin' => true]);
     }
 
-    public function test_novas_shows_pendente_item(): void
+    public function test_shows_pendente_item(): void
     {
         $admin = $this->admin();
         PurchaseRequest::factory()->create(['status' => 'pendente', 'product_name' => 'Item Pendente']);
@@ -27,7 +32,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         $response->assertSee('Item Pendente');
     }
 
-    public function test_novas_shows_aprovado_aguardando_entrada(): void
+    public function test_shows_aprovado_aguardando_entrada(): void
     {
         $admin = $this->admin();
         PurchaseRequest::factory()->create([
@@ -39,7 +44,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         $response->assertSee('Item Aprovado Sem Entrada');
     }
 
-    public function test_novas_does_not_show_rejeitado(): void
+    public function test_does_not_show_rejeitado(): void
     {
         $admin = $this->admin();
         PurchaseRequest::factory()->create(['status' => 'rejeitado', 'product_name' => 'Item Rejeitado']);
@@ -49,7 +54,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         $response->assertDontSee('Item Rejeitado');
     }
 
-    public function test_novas_does_not_show_aprovado_com_entrada_concluida(): void
+    public function test_does_not_show_aprovado_com_entrada_concluida(): void
     {
         $admin = $this->admin();
         PurchaseRequest::factory()->create([
@@ -61,51 +66,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         $response->assertDontSee('Item Finalizado');
     }
 
-    public function test_historico_shows_rejeitado(): void
-    {
-        $admin = $this->admin();
-        PurchaseRequest::factory()->create(['status' => 'rejeitado', 'product_name' => 'Item Rejeitado Historico']);
-
-        $response = $this->actingAs($admin)->get(route('admin.index', ['aba' => 'historico']));
-
-        $response->assertSee('Item Rejeitado Historico');
-    }
-
-    public function test_historico_shows_aprovado_com_entrada_concluida(): void
-    {
-        $admin = $this->admin();
-        PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'entrada_concluida_em' => now(), 'product_name' => 'Item Concluido Historico',
-        ]);
-
-        $response = $this->actingAs($admin)->get(route('admin.index', ['aba' => 'historico']));
-
-        $response->assertSee('Item Concluido Historico');
-    }
-
-    public function test_historico_does_not_show_pendente(): void
-    {
-        $admin = $this->admin();
-        PurchaseRequest::factory()->create(['status' => 'pendente', 'product_name' => 'Item Ainda Pendente']);
-
-        $response = $this->actingAs($admin)->get(route('admin.index', ['aba' => 'historico']));
-
-        $response->assertDontSee('Item Ainda Pendente');
-    }
-
-    public function test_historico_does_not_show_aprovado_sem_entrada(): void
-    {
-        $admin = $this->admin();
-        PurchaseRequest::factory()->create([
-            'status' => 'aprovado', 'entrada_concluida_em' => null, 'product_name' => 'Item Aprovado Aguardando Entrada',
-        ]);
-
-        $response = $this->actingAs($admin)->get(route('admin.index', ['aba' => 'historico']));
-
-        $response->assertDontSee('Item Aprovado Aguardando Entrada');
-    }
-
-    public function test_group_with_at_least_one_unfinalized_item_shows_in_novas(): void
+    public function test_group_with_at_least_one_unfinalized_item_shows(): void
     {
         $admin = $this->admin();
         $grupoId = (string) Str::uuid();
@@ -118,23 +79,20 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         $response->assertSee('Item Ainda Pendente No Grupo');
     }
 
-    public function test_group_fully_finalized_shows_only_in_historico(): void
+    public function test_group_fully_finalized_is_hidden(): void
     {
         $admin = $this->admin();
         $grupoId = (string) Str::uuid();
         PurchaseRequest::factory()->create(['grupo_id' => $grupoId, 'status' => 'rejeitado', 'product_name' => 'Item A Finalizado']);
         PurchaseRequest::factory()->create(['grupo_id' => $grupoId, 'status' => 'aprovado', 'entrada_concluida_em' => now(), 'product_name' => 'Item B Finalizado']);
 
-        $novas = $this->actingAs($admin)->get(route('admin.index'));
-        $historico = $this->actingAs($admin)->get(route('admin.index', ['aba' => 'historico']));
+        $response = $this->actingAs($admin)->get(route('admin.index'));
 
-        $novas->assertDontSee('Item A Finalizado');
-        $novas->assertDontSee('Item B Finalizado');
-        $historico->assertSee('Item A Finalizado');
-        $historico->assertSee('Item B Finalizado');
+        $response->assertDontSee('Item A Finalizado');
+        $response->assertDontSee('Item B Finalizado');
     }
 
-    public function test_filters_still_work_within_aba(): void
+    public function test_filters_still_work(): void
     {
         $admin = $this->admin();
         PurchaseRequest::factory()->create(['status' => 'pendente', 'product_name' => 'Filtro Alvo']);

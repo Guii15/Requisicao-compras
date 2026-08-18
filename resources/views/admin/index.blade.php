@@ -77,28 +77,20 @@
            onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
             📋 Pendências
         </a>
-        <a href="{{ route('admin.itens-mais-solicitados') }}"
+        <a href="{{ route('admin.historico-compras') }}"
            style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
                   background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
            onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            📦 Itens Mais Solicitados
+            🗂️ Histórico de Compras
         </a>
     </div>
 
-    {{-- Sub-abas: Pendentes / Histórico --}}
-    <div style="display:flex; gap:24px; margin-bottom:24px; border-bottom:1px solid #e5e7eb;">
-        <a href="{{ route('admin.index', array_filter(['status' => request('status'), 'requester_name' => request('requester_name'), 'product_name' => request('product_name'), 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
-           style="padding:9px 2px; font-size:14px; font-weight:600; text-decoration:none; margin-bottom:-1px;
-                  color:{{ $aba === 'pendentes' ? '#111827' : '#9ca3af' }};
-                  border-bottom:2px solid {{ $aba === 'pendentes' ? '#111827' : 'transparent' }};">
-            Pendentes <span style="color:#c7cbd3; font-weight:500;">{{ $countPendentes }}</span>
-        </a>
-        <a href="{{ route('admin.index', array_filter(['aba' => 'historico', 'status' => request('status'), 'requester_name' => request('requester_name'), 'product_name' => request('product_name'), 'date_from' => request('date_from'), 'date_to' => request('date_to')])) }}"
-           style="padding:9px 2px; font-size:14px; font-weight:600; text-decoration:none; margin-bottom:-1px;
-                  color:{{ $aba === 'historico' ? '#111827' : '#9ca3af' }};
-                  border-bottom:2px solid {{ $aba === 'historico' ? '#111827' : 'transparent' }};">
-            Histórico <span style="color:#c7cbd3; font-weight:500;">{{ $countHistorico }}</span>
-        </a>
+    <div style="margin-bottom:20px;">
+        <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Pendentes</h2>
+        <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
+            Requisições que ainda precisam de alguma ação. Requisições já finalizadas ficam em
+            <a href="{{ route('admin.historico-compras') }}" style="color:#05018D; font-weight:600;">Histórico de Compras</a>.
+        </p>
     </div>
 
     {{-- Mensagem de sucesso --}}
@@ -300,7 +292,6 @@
     {{-- Filtros --}}
     <div class="adm-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
         <form method="GET" action="{{ route('admin.index') }}" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end;">
-            <input type="hidden" name="aba" value="{{ $aba }}">
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Vendedor</label>
                 <input type="text" name="requester_name" value="{{ request('requester_name') }}" placeholder="Nome..."
@@ -332,7 +323,7 @@
             </div>
             <div style="display:flex; gap:8px;">
                 <button type="submit" style="flex:1; background:#05018D; color:#fff; padding:9px; border:none; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer;">Filtrar</button>
-                <a href="{{ route('admin.index', array_filter(['aba' => $aba !== 'pendentes' ? $aba : null])) }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px; border-radius:7px; font-size:13px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
+                <a href="{{ route('admin.index') }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px; border-radius:7px; font-size:13px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
             </div>
         </form>
     </div>

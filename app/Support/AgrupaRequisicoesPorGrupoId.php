@@ -31,9 +31,12 @@ trait AgrupaRequisicoesPorGrupoId
 
         $grupoIds = $paginadorDeGrupos->pluck('grupo_id')->all();
 
+        // withoutGlobalScope: os grupo_id ja vieram da query original (ja filtrada pelo
+        // chamador); reaplicar o escopo padrao aqui excluiria grupos de historico importado.
         $itensPorGrupo = empty($grupoIds)
             ? collect()
-            : PurchaseRequest::whereIn('grupo_id', $grupoIds)
+            : PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
+                ->whereIn('grupo_id', $grupoIds)
                 ->with($with)
                 ->orderBy('created_at')
                 ->get()
