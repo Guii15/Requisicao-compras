@@ -236,26 +236,29 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
-                                <div>
-                                    @if($req->entrada_concluida_em)
-                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
-                                    @elseif($req->status_conferencia === 'conferido_ok')
-                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
-                                    @elseif($req->status_conferencia === 'divergente')
-                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
-                                    @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                                        <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
-                                    @elseif($req->status_conferencia === 'cancelado')
-                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
-                                    @elseif($req->status_conferencia === 'legado')
-                                    @elseif($req->status === 'aprovado')
-                                        <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
-                                    @endif
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <div>
+                                        @if($req->entrada_concluida_em)
+                                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                                            <span style="display:block; margin-top:2px; font-size:11px; color:#9ca3af;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
+                                        @elseif($req->status_conferencia === 'conferido_ok')
+                                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
+                                        @elseif($req->status_conferencia === 'divergente')
+                                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
+                                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                                            <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                                        @elseif($req->status_conferencia === 'cancelado')
+                                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
+                                        @elseif($req->status_conferencia === 'legado')
+                                        @elseif($req->status === 'aprovado')
+                                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
+                                        @endif
+                                    </div>
                                     @if($req->fotosConferencia->isNotEmpty())
-                                        <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'"
-                                                style="display:inline-block; margin-top:4px; margin-left:4px; background:none; border:none; color:#1e3a8a; font-size:11px; font-weight:600; cursor:pointer; padding:0; text-decoration:underline;">
-                                            📷 Ver foto
-                                        </button>
+                                        <a href="javascript:void(0)" onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência">
+                                            <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                                                 style="width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:block; margin-top:4px;">
+                                        </a>
                                     @endif
                                 </div>
                             </td>
@@ -374,6 +377,7 @@
                         @endif
                         @if($req->entrada_concluida_em)
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                            <span style="display:block; margin-top:2px; font-size:11px; color:#9ca3af;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
                         @elseif($req->status_conferencia === 'conferido_ok')
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
                         @elseif($req->status_conferencia === 'divergente')
@@ -387,10 +391,10 @@
                             <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
                         @endif
                         @if($req->fotosConferencia->isNotEmpty())
-                            <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'"
-                                    style="display:inline-block; margin-top:4px; margin-left:4px; background:none; border:none; color:#1e3a8a; font-size:11px; font-weight:600; cursor:pointer; padding:0; text-decoration:underline;">
-                                📷 Ver foto
-                            </button>
+                            <a href="javascript:void(0)" onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência">
+                                <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                                     style="width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:block; margin-top:4px;">
+                            </a>
                         @endif
                     </div>
                     @if($req->status=='aprovado')

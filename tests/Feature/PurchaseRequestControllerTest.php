@@ -473,6 +473,23 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertSame(2, substr_count($html, '>Entrada Realizada<'));
     }
 
+    public function test_index_entrada_realizada_mostra_data_da_entrada(): void
+    {
+        $user = User::factory()->create();
+        $dataEntrada = now();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => $dataEntrada,
+            'product_name' => 'Produto Com Data De Entrada',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee($dataEntrada->copy()->timezone('America/Sao_Paulo')->format('d/m/Y H:i'), false);
+    }
+
     public function test_index_without_entrada_still_shows_conferido_ok(): void
     {
         $user = User::factory()->create();
