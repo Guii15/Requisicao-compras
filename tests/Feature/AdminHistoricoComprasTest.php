@@ -334,6 +334,20 @@ class AdminHistoricoComprasTest extends TestCase
         $response->assertSeeInOrder(['Item Comprado Depois', 'Item Comprado Antes'], false);
     }
 
+    public function test_cotacao_sem_data_compra_nao_aparece_como_mes_1970_no_filtro(): void
+    {
+        $this->criarHistorico([
+            'product_name' => 'Cotacao Sem Data',
+            'tipo_registro' => 'cotacao_historica',
+            'status' => 'pendente',
+            'data_compra' => null,
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
+
+        $response->assertDontSee('1970', false);
+    }
+
     public function test_agrupa_itens_do_mesmo_pedido(): void
     {
         $this->criarHistorico(['grupo_id' => 'JAN.  FEV._PEDIDO_202348', 'product_name' => 'Item A do Pedido']);
