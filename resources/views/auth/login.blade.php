@@ -27,7 +27,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login.perfil.store', $perfil) }}">
         @csrf
 
         <div style="margin-bottom:16px;">

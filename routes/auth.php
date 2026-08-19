@@ -19,7 +19,9 @@ Route::middleware('guest')->group(function () {
         ->whereIn('perfil', ['vendedor', 'conferencia', 'entrada', 'admin'])
         ->name('login.perfil');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login/{perfil}', [AuthenticatedSessionController::class, 'store'])
+        ->whereIn('perfil', ['vendedor', 'conferencia', 'entrada', 'admin'])
+        ->name('login.perfil.store');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

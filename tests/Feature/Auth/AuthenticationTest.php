@@ -68,14 +68,38 @@ class AuthenticationTest extends TestCase
         $response->assertSee(route('login.perfil', 'admin'), false);
     }
 
-    public function test_pode_autenticar_a_partir_de_qualquer_url_de_login_por_perfil(): void
+    public function test_login_e_bloqueado_quando_a_conta_nao_bate_com_o_perfil_da_url(): void
     {
         $vendedor = User::factory()->create(['is_admin' => false, 'role' => null]);
 
-        $this->get(route('login.perfil', 'admin'));
-
-        $response = $this->post('/login', [
+        $response = $this->post(route('login.perfil.store', 'admin'), [
             'email' => $vendedor->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_login_permite_autenticar_quando_a_conta_bate_com_o_perfil_da_url(): void
+    {
+        $vendedor = User::factory()->create(['is_admin' => false, 'role' => null]);
+
+        $response = $this->post(route('login.perfil.store', 'vendedor'), [
+            'email' => $vendedor->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_admin_pode_autenticar_pelo_login_de_conferencia_e_de_entrada(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $response = $this->post(route('login.perfil.store', 'conferencia'), [
+            'email' => $admin->email,
             'password' => 'password',
         ]);
 
@@ -89,7 +113,7 @@ class AuthenticationTest extends TestCase
 
         $this->get(route('admin.index'));
 
-        $response = $this->post('/login', [
+        $response = $this->post(route('login.perfil.store', 'admin'), [
             'email' => $admin->email,
             'password' => 'password',
         ]);
@@ -103,7 +127,7 @@ class AuthenticationTest extends TestCase
 
         $this->get(route('conferencia.index'));
 
-        $response = $this->post('/login', [
+        $response = $this->post(route('login.perfil.store', 'conferencia'), [
             'email' => $conferente->email,
             'password' => 'password',
         ]);
@@ -149,9 +173,9 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_admin' => false, 'role' => null]);
 
-        $response = $this->post('/login', [
+        $response = $this->post(route('login.perfil.store', 'vendedor'), [
             'email' => $user->email,
             'password' => 'password',
         ]);
@@ -162,9 +186,9 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['is_admin' => false, 'role' => null]);
 
-        $this->post('/login', [
+        $this->post(route('login.perfil.store', 'vendedor'), [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
