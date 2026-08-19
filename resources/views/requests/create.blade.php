@@ -231,7 +231,7 @@
                                     onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                     onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
                                 <option value="estoque" {{ old('tipo_entrega', 'estoque')=='estoque' ? 'selected' : '' }}>Estoque (CD)</option>
-                                <option value="entrega_direta" {{ old('tipo_entrega')=='entrega_direta' ? 'selected' : '' }}>Venda Casada (Dropship)</option>
+                                <option value="entrega_direta" {{ old('tipo_entrega')=='entrega_direta' ? 'selected' : '' }}>Venda Casada</option>
                             </select>
                         </div>
 
