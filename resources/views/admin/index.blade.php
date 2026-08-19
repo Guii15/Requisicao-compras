@@ -77,6 +77,20 @@
            onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
             📋 Pendências
         </a>
+        <a href="{{ route('admin.historico-compras') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
+            🗂️ Histórico de Compras
+        </a>
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Pendentes</h2>
+        <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
+            Requisições que ainda precisam de aprovação ou rejeição. Depois de decidido, o item sai daqui — acompanhe tudo (inclusive aguardando entrada) em
+            <a href="{{ route('admin.historico-compras') }}" style="color:#05018D; font-weight:600;">Histórico de Compras</a>.
+        </p>
     </div>
 
     {{-- Mensagem de sucesso --}}
@@ -339,8 +353,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($requests as $req)
-                        <tr style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                    @forelse($requests as $grupo)
+                        @php
+                            $primeiroAdm = $grupo->first();
+                            $chaveAdm = $primeiroAdm->grupo_id;
+                            $statusUnicosAdm = $grupo->pluck('status')->unique();
+                            if ($statusUnicosAdm->count() === 1) {
+                                $statusChaveAdm = $statusUnicosAdm->first();
+                                $rotuloGrupoAdm = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveAdm] ?? ucfirst($statusChaveAdm);
+                            } else {
+                                $statusChaveAdm = 'parcial';
+                                $rotuloGrupoAdm = 'Parcial';
+                            }
+                            $corsGrupoAdm = [
+                                'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                            ][$statusChaveAdm];
+                            $produtosResumoAdm = $grupo->pluck('product_name')->filter()->implode(', ');
+                            if (mb_strlen($produtosResumoAdm) > 60) {
+                                $produtosResumoAdm = mb_substr($produtosResumoAdm, 0, 60) . '…';
+                            }
+                        @endphp
+                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
+                            <td colspan="9" style="padding:0;">
+                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoAdm['barra'] }};"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:13.5px; line-height:1.4;">
+                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroAdm->id }}</span>
+                                            <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroAdm->requester_name ?? 'Não informado' }}</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoAdm }}
+                                        </div>
+                                    </div>
+                                    <span style="background:{{ $corsGrupoAdm['bg'] }}; color:{{ $corsGrupoAdm['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoAdm }}</span>
+                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdm }}')"
+                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        <span id="seta-grupo-{{ $chaveAdm }}">Ver itens</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @foreach($grupo as $req)
+                        <tr class="grupo-item-{{ $chaveAdm }}" style="display:none; border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? '—' }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">
                                 {{ $req->product_name }}
@@ -439,9 +497,10 @@
                                 </form>
                             </div>
                         </div>
+                    @endforeach
                     @empty
                         <tr>
-                            <td colspan="8" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="9" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 Nenhuma requisição encontrada
                             </td>
                         </tr>
@@ -458,8 +517,51 @@
 
     {{-- CARDS (mobile) --}}
     <div class="adm-mobile-cards">
-        @forelse($requests as $req)
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        @forelse($requests as $grupo)
+            @php
+                $primeiroAdmM = $grupo->first();
+                $chaveAdmM = $primeiroAdmM->grupo_id;
+                $statusUnicosAdmM = $grupo->pluck('status')->unique();
+                if ($statusUnicosAdmM->count() === 1) {
+                    $statusChaveAdmM = $statusUnicosAdmM->first();
+                    $rotuloGrupoAdmM = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveAdmM] ?? ucfirst($statusChaveAdmM);
+                } else {
+                    $statusChaveAdmM = 'parcial';
+                    $rotuloGrupoAdmM = 'Parcial';
+                }
+                $corsGrupoAdmM = [
+                    'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                    'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                ][$statusChaveAdmM];
+                $produtosResumoAdmM = $grupo->pluck('product_name')->filter()->implode(', ');
+                if (mb_strlen($produtosResumoAdmM) > 60) {
+                    $produtosResumoAdmM = mb_substr($produtosResumoAdmM, 0, 60) . '…';
+                }
+            @endphp
+            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
+                 onclick="toggleGrupoRequisicao('{{ $chaveAdmM }}')">
+                <div style="display:flex; align-items:stretch; gap:10px;">
+                    <div style="width:4px; background:{{ $corsGrupoAdmM['barra'] }};"></div>
+                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroAdmM->id }}</div>
+                            <span style="background:{{ $corsGrupoAdmM['bg'] }}; color:{{ $corsGrupoAdmM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoAdmM }}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ $primeiroAdmM->requester_name ?? 'Não informado' }}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoAdmM }}
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdmM }}')"
+                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <span id="seta-grupo-{{ $chaveAdmM }}">Ver itens</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @foreach($grupo as $req)
+            <div class="grupo-item-{{ $chaveAdmM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
                     <div>
@@ -566,6 +668,7 @@
                     </form>
                 </div>
             </div>
+            @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
                 <p style="color:#6b7280; font-size:15px; margin:0;">Nenhuma requisição encontrada</p>
@@ -663,6 +766,17 @@ function openMonthModal(year, month, label) {
 
 function closeMonthModal() {
     document.getElementById('month-modal').style.display = 'none';
+}
+
+function toggleGrupoRequisicao(chave) {
+    var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
+    var seta = document.getElementById('seta-grupo-' + chave);
+    if (!linhas.length) return;
+    var abrindo = linhas[0].style.display === 'none';
+    linhas.forEach(function (linha) {
+        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+    });
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 </script>
 

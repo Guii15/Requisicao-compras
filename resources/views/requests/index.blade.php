@@ -181,8 +181,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($requests as $req)
-                        <tr style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                    @forelse($requests as $grupo)
+                        @php
+                            $primeiroDoGrupo = $grupo->first();
+                            $chaveGrupo = $primeiroDoGrupo->grupo_id;
+                            $statusUnicos = $grupo->pluck('status')->unique();
+                            if ($statusUnicos->count() === 1) {
+                                $statusChaveV = $statusUnicos->first();
+                                $rotuloGrupoStatus = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveV] ?? ucfirst($statusChaveV);
+                            } else {
+                                $statusChaveV = 'parcial';
+                                $rotuloGrupoStatus = 'Parcial';
+                            }
+                            $corsGrupoV = [
+                                'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                            ][$statusChaveV];
+                            $produtosResumoV = $grupo->pluck('product_name')->filter()->implode(', ');
+                            if (mb_strlen($produtosResumoV) > 60) {
+                                $produtosResumoV = mb_substr($produtosResumoV, 0, 60) . '…';
+                            }
+                        @endphp
+                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveGrupo }}')">
+                            <td colspan="8" style="padding:0;">
+                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoV['barra'] }};"></div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:13.5px; line-height:1.4;">
+                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroDoGrupo->id }}</span>
+                                            <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroDoGrupo->requester_name ?? 'Não informado' }}</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoV }}
+                                        </div>
+                                    </div>
+                                    <span style="background:{{ $corsGrupoV['bg'] }}; color:{{ $corsGrupoV['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoStatus }}</span>
+                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupo }}')"
+                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                        <span id="seta-grupo-{{ $chaveGrupo }}">Ver itens</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @foreach($grupo as $req)
+                        <tr class="grupo-item-{{ $chaveGrupo }}" style="display:none; border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
                             <td style="padding:14px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? 'Não informado' }}</td>
                             <td style="padding:14px 16px; font-size:14px; color:#374151;">
                                 {{ $req->product_name }}
@@ -192,26 +236,29 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
-                                <div>
-                                    @if($req->entrada_concluida_em)
-                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
-                                    @elseif($req->status_conferencia === 'conferido_ok')
-                                        <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
-                                    @elseif($req->status_conferencia === 'divergente')
-                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
-                                    @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                                        <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
-                                    @elseif($req->status_conferencia === 'cancelado')
-                                        <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
-                                    @elseif($req->status_conferencia === 'legado')
-                                    @elseif($req->status === 'aprovado')
-                                        <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
-                                    @endif
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <div>
+                                        @if($req->entrada_concluida_em)
+                                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                                            <span style="display:block; margin-top:2px; font-size:11px; color:#9ca3af;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
+                                        @elseif($req->status_conferencia === 'conferido_ok')
+                                            <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
+                                        @elseif($req->status_conferencia === 'divergente')
+                                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
+                                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
+                                            <span style="display:inline-block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
+                                        @elseif($req->status_conferencia === 'cancelado')
+                                            <span style="display:inline-block; margin-top:4px; background:#fee2e2; color:#dc2626; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
+                                        @elseif($req->status_conferencia === 'legado')
+                                        @elseif($req->status === 'aprovado')
+                                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
+                                        @endif
+                                    </div>
                                     @if($req->fotosConferencia->isNotEmpty())
-                                        <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'"
-                                                style="display:inline-block; margin-top:4px; margin-left:4px; background:none; border:none; color:#1e3a8a; font-size:11px; font-weight:600; cursor:pointer; padding:0; text-decoration:underline;">
-                                            📷 Ver foto
-                                        </button>
+                                        <a href="javascript:void(0)" onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência">
+                                            <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                                                 style="width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:block; margin-top:4px;">
+                                        </a>
                                     @endif
                                 </div>
                             </td>
@@ -259,6 +306,7 @@
                                 </div>
                             </td>
                         </tr>
+                        @endforeach
                     @empty
                         <tr>
                             <td colspan="8" style="padding:48px 16px; text-align:center;">
@@ -274,8 +322,51 @@
 
     {{-- CARDS (mobile) --}}
     <div class="idx-mobile-cards">
-        @forelse($requests as $req)
-            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+        @forelse($requests as $grupo)
+            @php
+                $primeiroDoGrupoM = $grupo->first();
+                $chaveGrupoM = $primeiroDoGrupoM->grupo_id;
+                $statusUnicosM = $grupo->pluck('status')->unique();
+                if ($statusUnicosM->count() === 1) {
+                    $statusChaveVM = $statusUnicosM->first();
+                    $rotuloGrupoStatusM = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveVM] ?? ucfirst($statusChaveVM);
+                } else {
+                    $statusChaveVM = 'parcial';
+                    $rotuloGrupoStatusM = 'Parcial';
+                }
+                $corsGrupoVM = [
+                    'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                    'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                ][$statusChaveVM];
+                $produtosResumoVM = $grupo->pluck('product_name')->filter()->implode(', ');
+                if (mb_strlen($produtosResumoVM) > 60) {
+                    $produtosResumoVM = mb_substr($produtosResumoVM, 0, 60) . '…';
+                }
+            @endphp
+            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
+                 onclick="toggleGrupoRequisicao('{{ $chaveGrupoM }}')">
+                <div style="display:flex; align-items:stretch; gap:10px;">
+                    <div style="width:4px; background:{{ $corsGrupoVM['barra'] }};"></div>
+                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroDoGrupoM->id }}</div>
+                            <span style="background:{{ $corsGrupoVM['bg'] }}; color:{{ $corsGrupoVM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoStatusM }}</span>
+                        </div>
+                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ $primeiroDoGrupoM->requester_name ?? 'Não informado' }}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoVM }}
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupoM }}')"
+                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                            <span id="seta-grupo-{{ $chaveGrupoM }}">Ver itens</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @foreach($grupo as $req)
+            <div class="grupo-item-{{ $chaveGrupoM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
 
                 {{-- Topo do card: produto + status --}}
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
@@ -286,6 +377,7 @@
                         @endif
                         @if($req->entrada_concluida_em)
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
+                            <span style="display:block; margin-top:2px; font-size:11px; color:#9ca3af;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
                         @elseif($req->status_conferencia === 'conferido_ok')
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
                         @elseif($req->status_conferencia === 'divergente')
@@ -299,10 +391,10 @@
                             <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
                         @endif
                         @if($req->fotosConferencia->isNotEmpty())
-                            <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'"
-                                    style="display:inline-block; margin-top:4px; margin-left:4px; background:none; border:none; color:#1e3a8a; font-size:11px; font-weight:600; cursor:pointer; padding:0; text-decoration:underline;">
-                                📷 Ver foto
-                            </button>
+                            <a href="javascript:void(0)" onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência">
+                                <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                                     style="width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:block; margin-top:4px;">
+                            </a>
                         @endif
                     </div>
                     @if($req->status=='aprovado')
@@ -367,6 +459,7 @@
                 </div>
 
             </div>
+            @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
                 <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
@@ -385,44 +478,61 @@
 </div>
 
 {{-- Modais de observação do compras --}}
-@foreach($requests as $req)
-    @if($req->admin_note)
-        <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-                <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
-                <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px; white-space:pre-line;">
-                    {{ $req->admin_note }}
-                </div>
-                <div style="text-align:right;">
-                    <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
-                            style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
-                        Fechar
-                    </button>
+@foreach($requests as $grupo)
+    @foreach($grupo as $req)
+        @if($req->admin_note)
+            <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                    <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
+                    <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
+                    <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px; white-space:pre-line;">
+                        {{ $req->admin_note }}
+                    </div>
+                    <div style="text-align:right;">
+                        <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
+                                style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                            Fechar
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
+    @endforeach
 @endforeach
 
 {{-- Modais de foto da conferência --}}
-@foreach($requests as $req)
-    @if($req->fotosConferencia->isNotEmpty())
-        <div id="foto-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-                <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Foto da Conferência</h3>
-                <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
-                     style="width:100%; border-radius:8px; margin-bottom:20px; display:block;">
-                <div style="text-align:right;">
-                    <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='none'"
-                            style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
-                        Fechar
-                    </button>
+@foreach($requests as $grupo)
+    @foreach($grupo as $req)
+        @if($req->fotosConferencia->isNotEmpty())
+            <div id="foto-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                    <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Foto da Conferência</h3>
+                    <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
+                    <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
+                         style="width:100%; border-radius:8px; margin-bottom:20px; display:block;">
+                    <div style="text-align:right;">
+                        <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='none'"
+                                style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                            Fechar
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
+    @endforeach
 @endforeach
+
+<script>
+function toggleGrupoRequisicao(chave) {
+    var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
+    var seta = document.getElementById('seta-grupo-' + chave);
+    if (!linhas.length) return;
+    var abrindo = linhas[0].style.display === 'none';
+    linhas.forEach(function (linha) {
+        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+    });
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+}
+</script>
 
 @endsection

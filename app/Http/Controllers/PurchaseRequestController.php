@@ -6,14 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use App\Mail\PurchaseRequestCreated;
 use App\Http\Controllers\AdminController;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 
 class PurchaseRequestController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
     public function index(Request $request)
     {
-        $query = PurchaseRequest::with('fotosConferencia')->where('user_id', auth()->id());
+        $query = PurchaseRequest::where('user_id', auth()->id());
 
         if ($request->filled('requester_name')) {
             $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
@@ -31,7 +35,7 @@ class PurchaseRequestController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->paginate(15)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['fotosConferencia'])->withQueryString();
 
         $userId = auth()->id();
 
@@ -193,12 +197,14 @@ class PurchaseRequestController extends Controller
         ]);
 
         $created = [];
+        $grupoId = (string) Str::uuid();
 
         foreach ($request->products as $product) {
             if (empty(trim($product['product_name'] ?? ''))) continue;
 
             $created[] = PurchaseRequest::create([
                 'user_id'        => Auth::id(),
+                'grupo_id'       => $grupoId,
                 'requester_name' => $request->requester_name,
                 'supplier'       => $request->supplier,
                 'urgency'        => $request->urgency,

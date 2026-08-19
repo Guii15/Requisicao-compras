@@ -3,11 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\ItemMaisSolicitado;
 use App\Models\PurchaseRequest;
 use App\Models\User;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 
 class AdminController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
+    /**
+     * Um item "nao finalizado" ainda precisa de acao do ADMIN (aprovar ou rejeitar).
+     * Um GRUPO fica em "Pendentes" enquanto tiver pelo menos um item pendente; assim
+     * que o admin decide (aprova ou rejeita), o item sai daqui — a entrada em si e'
+     * acompanhada na fila da Entrada e no Historico de Compras, nao aqui.
+     */
+    private function subqueryGrupoNaoFinalizado(): \Closure
+    {
+        return function ($sub) {
+            $sub->select('grupo_id')->from('purchase_requests')->where('status', 'pendente');
+        };
+    }
+
     public function index(Request $request)
     {
         $query = PurchaseRequest::with('user');
@@ -32,7 +49,10 @@ class AdminController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $requests = $query->latest()->paginate(15)->withQueryString();
+        $grupoComItemNaoFinalizado = $this->subqueryGrupoNaoFinalizado();
+        $query->whereIn('grupo_id', $grupoComItemNaoFinalizado);
+
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
 
         $stats = [
             'total'       => PurchaseRequest::count(),
@@ -114,6 +134,90 @@ class AdminController extends Controller
         ]);
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
+    }
+
+    public function itensMaisSolicitados()
+    {
+        $itens = ItemMaisSolicitado::orderByDesc('total_pedidos')->orderBy('nome_canonico')->get();
+        $atualizadoEm = $itens->max('atualizado_em');
+
+        return view('admin.itens-mais-solicitados', compact('itens', 'atualizadoEm'));
+    }
+
+    /**
+     * Historico unificado: TODAS as requisicoes reais (pendente, aprovada, rejeitada,
+     * com ou sem entrada) + tudo que foi importado da planilha antiga. Cada item mostra
+     * seu proprio status/entrada — nada fica escondido aqui, mesmo que ainda nao tenha
+     * sido resolvido (essas ainda aparecem tambem em "Pendentes", que e' so' a fila de acao).
+     */
+    public function historicoCompras(Request $request)
+    {
+        // Data da COMPRA (pra filtro de mes e pro texto exibido) — nao serve pra ordenar a
+        // lista, so' informa "quando isso aconteceu de verdade". Planilha sem data_compra
+        // (ex: cotacoes da Pati) cai no fim (1970) em vez de fingir que foi "agora".
+        $dataUnificada = "CASE WHEN tipo_registro = 'requisicao' THEN COALESCE(data_compra, created_at) ELSE COALESCE(data_compra, '1970-01-01') END";
+
+        $baseQuery = function () {
+            return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo');
+        };
+
+        $query = $baseQuery()->with('user');
+
+        if ($request->filled('produto')) {
+            $query->where('product_name', 'like', '%' . $request->produto . '%');
+        }
+
+        if ($request->filled('vendedor')) {
+            $query->where('requester_name', 'like', '%' . $request->vendedor . '%');
+        }
+
+        if ($request->filled('mes')) {
+            $query->whereRaw("strftime('%Y-%m', {$dataUnificada}) = ?", [$request->mes]);
+        }
+
+        if ($request->filled('aba_origem')) {
+            $query->where('aba_origem', $request->aba_origem);
+        }
+
+        // Ordena por ULTIMA ATIVIDADE (updated_at), nao pela data da compra: uma requisicao
+        // criada ha dias mas aprovada/conferida/entrada hoje precisa aparecer no topo — e'
+        // o que a pessoa acabou de fazer. Desempate por data da compra: o lote inteiro da
+        // planilha antiga tem o MESMO updated_at (o horario do import), entao sem um segundo
+        // criterio a ordem entre eles fica arbitraria — usa a data real da compra pra
+        // continuar saindo cronologico dentro desse empate.
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], 'updated_at', $dataUnificada)->withQueryString();
+
+        $totalGeral = $baseQuery()->count();
+        $valorTotal = (float) $baseQuery()->sum('valor');
+        $totalPlanilha = $baseQuery()->where('tipo_registro', '!=', 'requisicao')->count();
+        $totalFluxoAtivo = $totalGeral - $totalPlanilha;
+
+        $totaisPorAba = PurchaseRequest::historico()
+            ->select('aba_origem')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('aba_origem')
+            ->orderBy('aba_origem')
+            ->get();
+
+        $abasDisponiveis = PurchaseRequest::historico()->select('aba_origem')->distinct()->orderBy('aba_origem')->pluck('aba_origem');
+
+        $mesesDisponiveis = $baseQuery()
+            ->selectRaw("strftime('%Y-%m', {$dataUnificada}) as mes_chave")
+            ->distinct()
+            ->whereRaw("{$dataUnificada} IS NOT NULL")
+            ->orderByDesc('mes_chave')
+            ->pluck('mes_chave')
+            ->map(function ($chave) {
+                return [
+                    'valor' => $chave,
+                    'label' => \Carbon\Carbon::createFromFormat('Y-m', $chave)->translatedFormat('M/Y'),
+                ];
+            });
+
+        return view('admin.historico-compras', compact(
+            'requests', 'totaisPorAba', 'totalGeral', 'valorTotal', 'totalPlanilha', 'totalFluxoAtivo',
+            'abasDisponiveis', 'mesesDisponiveis'
+        ));
     }
 
     public function users()

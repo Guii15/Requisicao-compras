@@ -69,7 +69,7 @@
                     <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Tipo de Entrega *</label>
                     <select name="tipo_entrega" required style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         <option value="estoque" {{ old('tipo_entrega', $purchaseRequest->tipo_entrega) === 'estoque' ? 'selected' : '' }}>Estoque (CD)</option>
-                        <option value="entrega_direta" {{ old('tipo_entrega', $purchaseRequest->tipo_entrega) === 'entrega_direta' ? 'selected' : '' }}>Venda Casada (Dropship)</option>
+                        <option value="entrega_direta" {{ old('tipo_entrega', $purchaseRequest->tipo_entrega) === 'entrega_direta' ? 'selected' : '' }}>Venda Casada</option>
                     </select>
                 </div>
                 <div></div>

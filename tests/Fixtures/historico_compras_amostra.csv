@@ -1,0 +1,6 @@
+﻿origem_id,aba_origem,mes_origem,linha_excel_original,data,pedido,quantidade,preco_unitario,preco_total,descricao,codigo,requisitante,modalidade_compra,observacao,fornecedor_ou_marca,filial,data_coleta,data_entrada,data_pagamento,vencimento_1,vencimento_2,vencimento_3,conferencia,forma_pagamento,data_reposicao,vendedor,data_retirada,entrada_showroom,quantidade_varejo_cotada,preco_unitario_varejo_cotado,subtotal_varejo_cotado,quantidade_caixa_cotada,preco_unitario_caixa_cotado,valor_total_caixa_cotado,flags_qualidade
+JAN._FEV._L8,"JAN.  FEV.",Jan-Fev,8,"2026-01-26 00:00:00",202348,100.0,18.4022,1840.22,"Suporte P/ Gabinte",,Yhan,Casada,,"C3 Tech",1.0,,,,,,,,,,,,,,,,,,,
+JAN._FEV._L9,"JAN.  FEV.",Jan-Fev,9,"2026-01-28 00:00:00",202348,50.0,320.0,16000.0,"ssd 512 GB Markvision",,Gley,Licitação,,"Bird Tech",31.0,,,,,,,,,,,,,,,,,,,
+JAN._FEV._L100,"JAN.  FEV.",Jan-Fev,100,"2026-02-05 00:00:00",,,,84.0,"Licença Acrobat PRO",,,,,,,,,,,,,,,,,,,,,,,,,quantidade_ausente;
+SHOWROOM_L5,SHOWROOM,Showroom,5,"2026-03-10 00:00:00",,1.0,1512.0,1512.0,"COMPUTADOR ALL IN ONE I5",AI08,,,,GRASEP,,,,,,,,,,"2026-03-20 00:00:00",Yhan,,,,,,,,,
+Compra_Pati_L2,"Compra Pati","Cotação Pati",2,,,,,,"TOMATE MTR-1090 MICROFONE GAMER RGB",MTR-1090,,,"Sem saldo no Fornecedor",,,,,,,,,,,,,,,1.0,"R$ 114,90","R$ 114,90",50,79.9,3995.0,

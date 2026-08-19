@@ -97,6 +97,46 @@ class ConferenciaControllerTest extends TestCase
         $response->assertDontSee('Produto Nao Aprovado');
     }
 
+    public function test_index_groups_items_with_same_grupo_id(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        PurchaseRequest::factory()->create(['grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Item Um']);
+        PurchaseRequest::factory()->create(['grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Item Dois']);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+        $grupos = $response->original->getData()['requests'];
+
+        $this->assertCount(1, $grupos);
+        $this->assertCount(2, $grupos->first());
+    }
+
+    public function test_index_aguardando_shows_already_conferred_item_from_same_group_without_conferir_button(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        PurchaseRequest::factory()->create([
+            'grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Item Pendente De Conferencia',
+        ]);
+        PurchaseRequest::factory()->create([
+            'grupo_id' => $grupoId, 'status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Item Ja Conferido No Mesmo Grupo',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+        $html = $response->getContent();
+
+        $response->assertSee('Item Pendente De Conferencia');
+        $response->assertSee('Item Ja Conferido No Mesmo Grupo');
+
+        $posJaConferido = strpos($html, 'Item Ja Conferido No Mesmo Grupo');
+        $posProximoBotaoConferir = strpos($html, 'Conferir', $posJaConferido);
+        $posOkBadge = strpos($html, '>OK<', $posJaConferido);
+        $this->assertNotFalse($posOkBadge);
+        if ($posProximoBotaoConferir !== false) {
+            $this->assertLessThan($posProximoBotaoConferir, $posOkBadge, 'O badge OK do item ja conferido deve aparecer antes de qualquer botao Conferir seguinte.');
+        }
+    }
+
     public function test_conferir_with_resultado_ok_persists_conferido_ok_and_photo(): void
     {
         Storage::fake('public');
@@ -268,8 +308,31 @@ class ConferenciaControllerTest extends TestCase
             'acao' => 'salvar',
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('conferencia.index'));
+        $response->assertSessionHas('aviso');
         $this->assertSame('conferido_ok', $purchaseRequest->fresh()->status_conferencia);
+    }
+
+    public function test_conferir_ja_conferido_mostra_mensagem_amigavel_na_tela(): void
+    {
+        Storage::fake('public');
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'tipo_entrega' => 'estoque',
+        ]);
+
+        $this->actingAs($conferente)->patch(route('conferencia.conferir', $purchaseRequest), [
+            'quantidade_recebida' => 3,
+            'foto' => UploadedFile::fake()->image('produto.jpg'),
+            'resultado' => 'ok',
+            'acao' => 'salvar',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('Este item já foi conferido', false);
     }
 
     public function test_conferir_rejects_non_aprovado_request(): void
@@ -289,7 +352,8 @@ class ConferenciaControllerTest extends TestCase
             'acao' => 'salvar',
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('conferencia.index'));
+        $response->assertSessionHas('aviso');
         $this->assertNull($purchaseRequest->fresh()->status_conferencia);
     }
 
@@ -601,7 +665,7 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $html = $response->getContent();
-        $this->assertSame(2, substr_count($html, '>Cancelado<'));
+        $this->assertSame(4, substr_count($html, '>Cancelado<'));
     }
 
     public function test_index_conferidos_still_shows_avancado_mesmo_assim_correctly(): void

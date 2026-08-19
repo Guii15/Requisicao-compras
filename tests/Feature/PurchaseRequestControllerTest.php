@@ -78,6 +78,53 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertDatabaseCount('purchase_requests', 0);
     }
 
+    public function test_store_assigns_same_grupo_id_to_all_products_in_submission(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload());
+
+        $registros = PurchaseRequest::whereIn('product_name', ['Produto A', 'Produto B'])->get();
+        $this->assertCount(2, $registros);
+        $this->assertNotNull($registros[0]->grupo_id);
+        $this->assertSame($registros[0]->grupo_id, $registros[1]->grupo_id);
+    }
+
+    public function test_store_assigns_different_grupo_id_to_separate_submissions(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'products' => [['product_name' => 'Produto A', 'quantity' => 1]],
+        ]));
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'products' => [['product_name' => 'Produto C', 'quantity' => 1]],
+        ]));
+
+        $a = PurchaseRequest::where('product_name', 'Produto A')->firstOrFail();
+        $c = PurchaseRequest::where('product_name', 'Produto C')->firstOrFail();
+        $this->assertNotSame($a->grupo_id, $c->grupo_id);
+    }
+
+    public function test_store_sends_purchase_request_created_email_once_per_group_with_all_items(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2],
+                ['product_name' => 'Produto B', 'quantity' => 1],
+                ['product_name' => 'Produto C', 'quantity' => 3],
+            ],
+        ]));
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PurchaseRequestCreated::class, 1);
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PurchaseRequestCreated::class, function ($mail) {
+            return count($mail->purchaseRequests) === 3;
+        });
+    }
+
     public function test_update_changes_tipo_entrega(): void
     {
         $user = User::factory()->create();
@@ -125,6 +172,74 @@ class PurchaseRequestControllerTest extends TestCase
 
         $response->assertSessionHasErrors('tipo_entrega');
         $this->assertSame('estoque', $purchaseRequest->fresh()->tipo_entrega);
+    }
+
+    public function test_index_groups_items_with_same_grupo_id(): void
+    {
+        $user = User::factory()->create();
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'grupo_id' => $grupoId, 'product_name' => 'Item Um']);
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'grupo_id' => $grupoId, 'product_name' => 'Item Dois']);
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'grupo_id' => $grupoId, 'product_name' => 'Item Tres']);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+        $grupos = $response->original->getData()['requests'];
+
+        $this->assertCount(1, $grupos);
+        $this->assertCount(3, $grupos->first());
+    }
+
+    public function test_index_keeps_different_grupo_id_as_separate_groups(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'product_name' => 'Item A']);
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'product_name' => 'Item B']);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+        $grupos = $response->original->getData()['requests'];
+
+        $this->assertCount(2, $grupos);
+    }
+
+    public function test_index_paginates_by_group_not_by_item(): void
+    {
+        $user = User::factory()->create();
+        foreach (range(1, 16) as $i) {
+            $grupoId = (string) \Illuminate\Support\Str::uuid();
+            PurchaseRequest::factory()->count(2)->create(['user_id' => $user->id, 'grupo_id' => $grupoId]);
+        }
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+        $grupos = $response->original->getData()['requests'];
+
+        $this->assertCount(15, $grupos);
+        $this->assertSame(16, $grupos->total());
+    }
+
+    public function test_index_product_filter_matching_one_item_shows_whole_group(): void
+    {
+        $user = User::factory()->create();
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'grupo_id' => $grupoId, 'product_name' => 'Amortecedor Dianteiro']);
+        PurchaseRequest::factory()->create(['user_id' => $user->id, 'grupo_id' => $grupoId, 'product_name' => 'Filtro de Ar']);
+
+        $response = $this->actingAs($user)->get(route('requests.index', ['product_name' => 'Amortecedor']));
+
+        $response->assertSee('Amortecedor Dianteiro');
+        $response->assertSee('Filtro de Ar');
+    }
+
+    public function test_index_only_shows_current_user_groups(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+        PurchaseRequest::factory()->create(['user_id' => $userA->id, 'product_name' => 'Item Do Usuario A']);
+        PurchaseRequest::factory()->create(['user_id' => $userB->id, 'product_name' => 'Item Do Usuario B']);
+
+        $response = $this->actingAs($userA)->get(route('requests.index'));
+
+        $response->assertSee('Item Do Usuario A');
+        $response->assertDontSee('Item Do Usuario B');
     }
 
     public function test_index_shows_aguardando_conferencia_for_aprovado_without_status_conferencia(): void
@@ -356,6 +471,23 @@ class PurchaseRequestControllerTest extends TestCase
 
         $html = $response->getContent();
         $this->assertSame(2, substr_count($html, '>Entrada Realizada<'));
+    }
+
+    public function test_index_entrada_realizada_mostra_data_da_entrada(): void
+    {
+        $user = User::factory()->create();
+        $dataEntrada = now();
+        PurchaseRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => $dataEntrada,
+            'product_name' => 'Produto Com Data De Entrada',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('requests.index'));
+
+        $response->assertSee($dataEntrada->copy()->timezone('America/Sao_Paulo')->format('d/m/Y H:i'), false);
     }
 
     public function test_index_without_entrada_still_shows_conferido_ok(): void

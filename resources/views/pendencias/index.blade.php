@@ -35,11 +35,23 @@
                   background:#05018D; color:#fff; border:2px solid #05018D; border-bottom:2px solid #05018D;">
             📋 Pendências
         </a>
+        <a href="{{ route('admin.historico-compras') }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
+           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
+            🗂️ Histórico de Compras
+        </a>
     </div>
 
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             ✓ {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('aviso'))
+        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
+            ⚠️ {{ session('aviso') }}
         </div>
     @endif
 
@@ -101,7 +113,7 @@
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Resolver Pendência</h3>
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
-                                <form method="POST" action="{{ route('pendencias.resolver', $req) }}" id="form-resolver-{{ $req->id }}">
+                                <form method="POST" action="{{ route('pendencias.resolver', $req) }}" id="form-resolver-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
                                     @method('PATCH')
 
@@ -216,7 +228,7 @@
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Resolver Pendência</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
-                    <form method="POST" action="{{ route('pendencias.resolver', $req) }}" id="form-resolver-m-{{ $req->id }}">
+                    <form method="POST" action="{{ route('pendencias.resolver', $req) }}" id="form-resolver-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf
                         @method('PATCH')
 
@@ -276,5 +288,18 @@
     </div>
 
 </div>
+
+<script>
+function protegerEnvioDuplo(form) {
+    if (form.dataset.enviando === '1') {
+        return false;
+    }
+    form.dataset.enviando = '1';
+    form.querySelectorAll('button[type="submit"]').forEach(function (botao) {
+        botao.disabled = true;
+    });
+    return true;
+}
+</script>
 
 @endsection

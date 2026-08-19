@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Mail\PurchaseRequestApproved;
 use App\Models\PurchaseRequest;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class ConferenciaController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
     public function index(Request $request)
     {
         $aba = $request->query('aba') === 'conferidos' ? 'conferidos' : 'aguardando';
@@ -37,7 +40,7 @@ class ConferenciaController extends Controller
             });
         }
 
-        $requests = $query->latest()->paginate(15)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente'])->withQueryString();
 
         return view('conferencia.index', compact('requests', 'aba', 'resultado', 'q'));
     }
@@ -45,7 +48,8 @@ class ConferenciaController extends Controller
     public function conferir(Request $request, PurchaseRequest $purchaseRequest)
     {
         if ($purchaseRequest->status !== 'aprovado' || $purchaseRequest->status_conferencia !== null) {
-            abort(409, 'Esta requisição já foi conferida ou não está mais aprovada.');
+            return redirect()->route('conferencia.index')
+                ->with('aviso', 'Este item já foi conferido (provavelmente um clique duplicado) — nada foi alterado.');
         }
 
         $request->validate([
