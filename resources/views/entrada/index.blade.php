@@ -40,6 +40,12 @@
         </div>
     @endif
 
+    @if(session('aviso'))
+        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
+            ⚠️ {{ session('aviso') }}
+        </div>
+    @endif
+
     @if($errors->any())
         <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             <strong>Não foi possível registrar a entrada:</strong>
@@ -129,25 +135,30 @@
                                     —
                                 @endif
                             </td>
+                            @php
+                                $elegivelEntradaEntr = $req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
+                            @endphp
                             @if($req->entrada_concluida_em)
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
-                            @else
+                            @elseif($elegivelEntradaEntr)
                             <td style="padding:12px 16px; text-align:center;">
                                 <button onclick="document.getElementById('modal-entrada-{{ $req->id }}').style.display='flex'"
                                         style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
                                     Dar Entrada
                                 </button>
                             </td>
+                            @else
+                            <td style="padding:12px 16px; text-align:center; font-size:12px; color:#9ca3af;">Aguardando conferência</td>
                             @endif
                         </tr>
 
-                        @if(!$req->entrada_concluida_em)
+                        @if(!$req->entrada_concluida_em && $elegivelEntradaEntr)
                         <div id="modal-entrada-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
-                                <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}">
+                                <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
                                     @method('PATCH')
 
@@ -159,8 +170,9 @@
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Dada Entrada</label>
-                                        <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida }}" min="0" required
+                                        <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" min="0" max="{{ $req->quantidade_recebida ?? $req->quantity }}" required
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Máximo: {{ $req->quantidade_recebida ?? $req->quantity }} (recebido na conferência)</div>
                                     </div>
 
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
@@ -273,27 +285,32 @@
                     </div>
                 </div>
 
+                @php
+                    $elegivelEntradaEntrM = $req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
+                @endphp
                 @if($req->entrada_concluida_em)
                 <div style="text-align:right; font-size:12px; color:#6b7280;">
                     Entrada em {{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}
                 </div>
-                @else
+                @elseif($elegivelEntradaEntrM)
                 <div style="display:flex; justify-content:flex-end;">
                     <button onclick="document.getElementById('modal-entrada-m-{{ $req->id }}').style.display='flex'"
                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                         Dar Entrada
                     </button>
                 </div>
+                @else
+                <div style="text-align:right; font-size:12px; color:#9ca3af;">Aguardando conferência</div>
                 @endif
             </div>
 
-            @if(!$req->entrada_concluida_em)
+            @if(!$req->entrada_concluida_em && $elegivelEntradaEntrM)
             <div id="modal-entrada-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
-                    <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-m-{{ $req->id }}">
+                    <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf
                         @method('PATCH')
 
@@ -305,8 +322,9 @@
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Dada Entrada</label>
-                            <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida }}" min="0" required
+                            <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" min="0" max="{{ $req->quantidade_recebida ?? $req->quantity }}" required
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                            <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Máximo: {{ $req->quantidade_recebida ?? $req->quantity }} (recebido na conferência)</div>
                         </div>
 
                         <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
@@ -348,6 +366,17 @@ function toggleGrupoRequisicao(chave) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
     if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+}
+
+function protegerEnvioDuplo(form) {
+    if (form.dataset.enviando === '1') {
+        return false;
+    }
+    form.dataset.enviando = '1';
+    form.querySelectorAll('button[type="submit"]').forEach(function (botao) {
+        botao.disabled = true;
+    });
+    return true;
 }
 </script>
 

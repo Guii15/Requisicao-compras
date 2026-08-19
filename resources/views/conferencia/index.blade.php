@@ -72,6 +72,12 @@
         </div>
     @endif
 
+    @if(session('aviso'))
+        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
+            ⚠️ {{ session('aviso') }}
+        </div>
+    @endif
+
     @if($errors->any())
         <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             <strong>Não foi possível salvar a conferência:</strong>
@@ -192,7 +198,7 @@
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
-                                <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-{{ $req->id }}">
+                                <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
                                     @method('PATCH')
 
@@ -395,7 +401,7 @@
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
-                    <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-m-{{ $req->id }}">
+                    <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf
                         @method('PATCH')
 
@@ -496,6 +502,17 @@ function toggleGrupoRequisicao(chave) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
     if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+}
+
+function protegerEnvioDuplo(form) {
+    if (form.dataset.enviando === '1') {
+        return false;
+    }
+    form.dataset.enviando = '1';
+    form.querySelectorAll('button[type="submit"]').forEach(function (botao) {
+        botao.disabled = true;
+    });
+    return true;
 }
 </script>
 

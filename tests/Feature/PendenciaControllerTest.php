@@ -196,7 +196,8 @@ class PendenciaControllerTest extends TestCase
             'decisao' => 'aceitar',
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('pendencias.index'));
+        $response->assertSessionHas('aviso');
     }
 
     public function test_resolver_rejects_non_estoque_tipo_entrega(): void
@@ -208,7 +209,8 @@ class PendenciaControllerTest extends TestCase
             'decisao' => 'aceitar',
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('pendencias.index'));
+        $response->assertSessionHas('aviso');
     }
 
     public function test_resolver_requires_admin(): void

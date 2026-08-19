@@ -271,6 +271,63 @@ class EntradaControllerTest extends TestCase
         $response->assertSessionHasErrors('quantidade_entrada');
     }
 
+    public function test_dar_entrada_rejeita_quantidade_maior_que_a_recebida(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada(['quantity' => 4, 'quantidade_recebida' => 4]);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 20,
+        ]);
+
+        $response->assertSessionHasErrors('quantidade_entrada');
+        $this->assertNull($req->fresh()->entrada_concluida_em);
+    }
+
+    public function test_dar_entrada_aceita_quantidade_igual_a_recebida(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada(['quantity' => 4, 'quantidade_recebida' => 4]);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 4,
+        ]);
+
+        $response->assertRedirect(route('entrada.index'));
+        $this->assertNotNull($req->fresh()->entrada_concluida_em);
+    }
+
+    public function test_dar_entrada_em_item_ainda_nao_conferido_mostra_mensagem_especifica(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = PurchaseRequest::factory()->create(['status' => 'pendente', 'status_conferencia' => null]);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 4,
+        ]);
+
+        $response->assertRedirect(route('entrada.index'));
+        $response->assertSessionHas('aviso', 'Este item ainda não foi aprovado/conferido — não é possível dar entrada nele ainda.');
+    }
+
+    public function test_item_nao_conferido_no_mesmo_grupo_nao_mostra_botao_dar_entrada(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $grupoId = (string) \Illuminate\Support\Str::uuid();
+        $this->itemLiberadoParaEntrada(['grupo_id' => $grupoId, 'product_name' => 'Item Elegivel']);
+        PurchaseRequest::factory()->create([
+            'grupo_id' => $grupoId, 'status' => 'pendente', 'status_conferencia' => null, 'product_name' => 'Item Nao Conferido',
+        ]);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index'));
+
+        $response->assertSee('Item Nao Conferido');
+        $response->assertSee('Aguardando conferência', false);
+    }
+
     public function test_dar_entrada_rejects_already_concluded_item(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
@@ -281,7 +338,8 @@ class EntradaControllerTest extends TestCase
             'quantidade_entrada' => 10,
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('entrada.index'));
+        $response->assertSessionHas('aviso');
     }
 
     public function test_dar_entrada_rejects_item_not_conferido_ok_or_avancado(): void
@@ -294,7 +352,8 @@ class EntradaControllerTest extends TestCase
             'quantidade_entrada' => 10,
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('entrada.index'));
+        $response->assertSessionHas('aviso');
     }
 
     public function test_index_does_not_list_item_with_status_not_aprovado(): void
@@ -322,7 +381,8 @@ class EntradaControllerTest extends TestCase
             'quantidade_entrada' => 10,
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('entrada.index'));
+        $response->assertSessionHas('aviso');
     }
 
     public function test_dar_entrada_requires_entrada_role(): void

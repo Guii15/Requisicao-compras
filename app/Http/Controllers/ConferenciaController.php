@@ -48,7 +48,8 @@ class ConferenciaController extends Controller
     public function conferir(Request $request, PurchaseRequest $purchaseRequest)
     {
         if ($purchaseRequest->status !== 'aprovado' || $purchaseRequest->status_conferencia !== null) {
-            abort(409, 'Esta requisição já foi conferida ou não está mais aprovada.');
+            return redirect()->route('conferencia.index')
+                ->with('aviso', 'Este item já foi conferido (provavelmente um clique duplicado) — nada foi alterado.');
         }
 
         $request->validate([

@@ -308,8 +308,31 @@ class ConferenciaControllerTest extends TestCase
             'acao' => 'salvar',
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('conferencia.index'));
+        $response->assertSessionHas('aviso');
         $this->assertSame('conferido_ok', $purchaseRequest->fresh()->status_conferencia);
+    }
+
+    public function test_conferir_ja_conferido_mostra_mensagem_amigavel_na_tela(): void
+    {
+        Storage::fake('public');
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $purchaseRequest = PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'tipo_entrega' => 'estoque',
+        ]);
+
+        $this->actingAs($conferente)->patch(route('conferencia.conferir', $purchaseRequest), [
+            'quantidade_recebida' => 3,
+            'foto' => UploadedFile::fake()->image('produto.jpg'),
+            'resultado' => 'ok',
+            'acao' => 'salvar',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee('Este item já foi conferido', false);
     }
 
     public function test_conferir_rejects_non_aprovado_request(): void
@@ -329,7 +352,8 @@ class ConferenciaControllerTest extends TestCase
             'acao' => 'salvar',
         ]);
 
-        $response->assertStatus(409);
+        $response->assertRedirect(route('conferencia.index'));
+        $response->assertSessionHas('aviso');
         $this->assertNull($purchaseRequest->fresh()->status_conferencia);
     }
 

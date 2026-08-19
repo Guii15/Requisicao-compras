@@ -24,7 +24,8 @@ class PendenciaController extends Controller
         if ($purchaseRequest->status !== 'aprovado'
             || $purchaseRequest->status_conferencia !== 'divergente'
             || $purchaseRequest->tipo_entrega !== 'estoque') {
-            abort(409, 'Esta pendência já foi resolvida ou não está mais nesse estado.');
+            return redirect()->route('pendencias.index')
+                ->with('aviso', 'Esta pendência já foi resolvida (provavelmente um clique duplicado) — nada foi alterado.');
         }
 
         $request->validate([
