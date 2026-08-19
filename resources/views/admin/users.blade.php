@@ -2,6 +2,14 @@
 
 @section('content')
 
+<style>
+@media (max-width: 768px) {
+    .adm-users-grid { grid-template-columns: 1fr !important; }
+    .adm-users-table-wrap { overflow-x: auto; }
+    .adm-users-table-wrap table { min-width: 620px; }
+}
+</style>
+
 <div style="padding: 8px 0;">
 
     {{-- Cabeçalho --}}
@@ -51,7 +59,7 @@
         </div>
     @endif
 
-    <div style="display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start;">
+    <div class="adm-users-grid" style="display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start;">
 
         {{-- Tabela de usuários --}}
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
@@ -59,6 +67,7 @@
                 <span style="font-size:15px; font-weight:700; color:#111827;">Usuários cadastrados</span>
                 <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $users->count() }}</span>
             </div>
+            <div class="adm-users-table-wrap">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
                     <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
@@ -199,6 +208,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{-- Formulário novo usuário --}}
