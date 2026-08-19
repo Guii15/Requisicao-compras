@@ -13,19 +13,15 @@ class AdminController extends Controller
     use AgrupaRequisicoesPorGrupoId;
 
     /**
-     * Um item "nao finalizado" ainda precisa de alguma acao (aprovacao ou entrada).
-     * Um GRUPO fica em "Novas"/pendente enquanto tiver pelo menos um item nessa condicao;
-     * so' e' considerado finalizado quando TODOS os itens do grupo estiverem resolvidos.
+     * Um item "nao finalizado" ainda precisa de acao do ADMIN (aprovar ou rejeitar).
+     * Um GRUPO fica em "Pendentes" enquanto tiver pelo menos um item pendente; assim
+     * que o admin decide (aprova ou rejeita), o item sai daqui — a entrada em si e'
+     * acompanhada na fila da Entrada e no Historico de Compras, nao aqui.
      */
     private function subqueryGrupoNaoFinalizado(): \Closure
     {
         return function ($sub) {
-            $sub->select('grupo_id')->from('purchase_requests')->where(function ($condicao) {
-                $condicao->where('status', 'pendente')
-                    ->orWhere(function ($aprovadoSemEntrada) {
-                        $aprovadoSemEntrada->where('status', 'aprovado')->whereNull('entrada_concluida_em');
-                    });
-            });
+            $sub->select('grupo_id')->from('purchase_requests')->where('status', 'pendente');
         };
     }
 
@@ -149,22 +145,20 @@ class AdminController extends Controller
     }
 
     /**
-     * Historico unificado: requisicoes reais ja finalizadas (aprovadas com entrada
-     * concluida, ou rejeitadas) + tudo que foi importado da planilha antiga.
+     * Historico unificado: TODAS as requisicoes reais (pendente, aprovada, rejeitada,
+     * com ou sem entrada) + tudo que foi importado da planilha antiga. Cada item mostra
+     * seu proprio status/entrada — nada fica escondido aqui, mesmo que ainda nao tenha
+     * sido resolvido (essas ainda aparecem tambem em "Pendentes", que e' so' a fila de acao).
      */
     public function historicoCompras(Request $request)
     {
-        $grupoComItemNaoFinalizado = $this->subqueryGrupoNaoFinalizado();
-        $dataUnificada = 'COALESCE(data_compra, created_at)';
+        // Data da COMPRA (pra filtro de mes e pro texto exibido) — nao serve pra ordenar a
+        // lista, so' informa "quando isso aconteceu de verdade". Planilha sem data_compra
+        // (ex: cotacoes da Pati) cai no fim (1970) em vez de fingir que foi "agora".
+        $dataUnificada = "CASE WHEN tipo_registro = 'requisicao' THEN COALESCE(data_compra, created_at) ELSE COALESCE(data_compra, '1970-01-01') END";
 
-        $baseQuery = function () use ($grupoComItemNaoFinalizado) {
-            return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
-                ->where(function ($unificado) use ($grupoComItemNaoFinalizado) {
-                    $unificado->where(function ($ativoFinalizado) use ($grupoComItemNaoFinalizado) {
-                        $ativoFinalizado->where('tipo_registro', 'requisicao')
-                            ->whereNotIn('grupo_id', $grupoComItemNaoFinalizado);
-                    })->orWhere('tipo_registro', '!=', 'requisicao');
-                });
+        $baseQuery = function () {
+            return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo');
         };
 
         $query = $baseQuery()->with('user');
@@ -185,7 +179,13 @@ class AdminController extends Controller
             $query->where('aba_origem', $request->aba_origem);
         }
 
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], $dataUnificada)->withQueryString();
+        // Ordena por ULTIMA ATIVIDADE (updated_at), nao pela data da compra: uma requisicao
+        // criada ha dias mas aprovada/conferida/entrada hoje precisa aparecer no topo — e'
+        // o que a pessoa acabou de fazer. Desempate por data da compra: o lote inteiro da
+        // planilha antiga tem o MESMO updated_at (o horario do import), entao sem um segundo
+        // criterio a ordem entre eles fica arbitraria — usa a data real da compra pra
+        // continuar saindo cronologico dentro desse empate.
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], 'updated_at', $dataUnificada)->withQueryString();
 
         $totalGeral = $baseQuery()->count();
         $valorTotal = (float) $baseQuery()->sum('valor');

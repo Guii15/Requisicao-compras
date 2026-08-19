@@ -9,9 +9,10 @@ use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
- * A tela de Requisições do Admin so' mostra pendentes (itens que ainda precisam de
- * acao). Requisições finalizadas (aprovadas com entrada, ou rejeitadas) saem daqui
- * e passam a viver em admin.historico-compras (ver AdminHistoricoComprasTest).
+ * A tela de Requisições do Admin so' mostra o que ainda precisa de acao do ADMIN
+ * (aprovar ou rejeitar). Assim que o admin decide, o item sai daqui — mesmo que a
+ * entrada ainda não tenha sido feita (isso é acompanhado na fila da Entrada e no
+ * admin.historico-compras, que já mostra tudo, ver AdminHistoricoComprasTest).
  */
 class AdminRequestsNovasHistoricoTest extends TestCase
 {
@@ -32,7 +33,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
         $response->assertSee('Item Pendente');
     }
 
-    public function test_shows_aprovado_aguardando_entrada(): void
+    public function test_does_not_show_aprovado_aguardando_entrada(): void
     {
         $admin = $this->admin();
         PurchaseRequest::factory()->create([
@@ -41,7 +42,7 @@ class AdminRequestsNovasHistoricoTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.index'));
 
-        $response->assertSee('Item Aprovado Sem Entrada');
+        $response->assertDontSee('Item Aprovado Sem Entrada');
     }
 
     public function test_does_not_show_rejeitado(): void

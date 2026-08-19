@@ -42,7 +42,7 @@
     <div style="margin-bottom:20px;">
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Histórico de Compras</h2>
         <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
-            Requisições já finalizadas + tudo que foi importado da planilha antiga (Binário Tecnologia) — só leitura.
+            Todas as requisições (pendente, aprovada, rejeitada) + tudo que foi importado da planilha antiga (Binário Tecnologia) — só leitura.
         </p>
     </div>
 
@@ -155,6 +155,7 @@
                     'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
                     'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
                     'cotacao'   => ['barra' => '#d97706', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                    'pendente'  => ['barra' => '#d97706', 'bg' => '#fef3c7', 'texto' => '#b45309'],
                     'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
                 ][$tipoChaveHist] ?? ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'];
                 $produtosResumoHist = $grupo->pluck('product_name')->filter()->implode(', ');
@@ -165,7 +166,8 @@
                 $origemLabel = $primeiroHist->aba_origem
                     ? $primeiroHist->aba_origem . ($primeiroHist->mes_origem ? ' · ' . $primeiroHist->mes_origem : '')
                     : 'Requisição #' . $primeiroHist->id;
-                $dataGrupoHist = $primeiroHist->data_compra?->format('d/m/Y') ?? $primeiroHist->created_at->format('d/m/Y');
+                $dataGrupoHist = $primeiroHist->data_compra?->format('d/m/Y')
+                    ?? ($primeiroHist->tipo_registro === 'requisicao' ? $primeiroHist->created_at->format('d/m/Y') : 'Sem data');
             @endphp
             <div style="border-bottom:0.5px solid #e5e7eb;">
                 <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0; cursor:pointer;"
@@ -194,29 +196,41 @@
                     @foreach($grupo as $itemHist)
                         @php
                             $dadosItem = $itemHist->dados_importacao ?? [];
-                            $rotuloEntrada = 'Entrada';
-                            $entradaBruta = $dadosItem['data_entrada'] ?? null;
-                            if (!$entradaBruta) {
-                                $entradaBruta = $dadosItem['entrada_showroom'] ?? null;
-                            }
-                            if (!$entradaBruta) {
-                                $entradaBruta = $dadosItem['data_retirada'] ?? null;
-                                $rotuloEntrada = 'Retirada';
-                            }
                             $entradaLabel = null;
                             $entradaCor = '#9ca3af';
-                            if ($itemHist->tipo_registro === 'cotacao_historica') {
-                                $entradaLabel = null;
-                            } elseif ($entradaBruta) {
-                                try {
-                                    $entradaLabel = $rotuloEntrada . ' em ' . \Carbon\Carbon::parse($entradaBruta)->format('d/m/Y');
-                                } catch (\Throwable) {
-                                    $entradaLabel = $rotuloEntrada . ': ' . $entradaBruta;
+
+                            if ($itemHist->tipo_registro === 'requisicao') {
+                                // Requisicao real: a entrada vem do fluxo normal (entrada_concluida_em), nao da planilha.
+                                if ($itemHist->entrada_concluida_em) {
+                                    $entradaLabel = 'Entrada em ' . $itemHist->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y');
+                                    $entradaCor = '#15803d';
+                                } elseif (in_array($itemHist->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true)) {
+                                    $entradaLabel = 'Aguardando entrada';
+                                    $entradaCor = '#b45309';
                                 }
-                                $entradaCor = '#15803d';
+                            } elseif ($itemHist->tipo_registro === 'cotacao_historica') {
+                                $entradaLabel = null;
                             } else {
-                                $entradaLabel = 'Sem confirmação de entrada/retirada na planilha';
-                                $entradaCor = '#b45309';
+                                $rotuloEntrada = 'Entrada';
+                                $entradaBruta = $dadosItem['data_entrada'] ?? null;
+                                if (!$entradaBruta) {
+                                    $entradaBruta = $dadosItem['entrada_showroom'] ?? null;
+                                }
+                                if (!$entradaBruta) {
+                                    $entradaBruta = $dadosItem['data_retirada'] ?? null;
+                                    $rotuloEntrada = 'Retirada';
+                                }
+                                if ($entradaBruta) {
+                                    try {
+                                        $entradaLabel = $rotuloEntrada . ' em ' . \Carbon\Carbon::parse($entradaBruta)->format('d/m/Y');
+                                    } catch (\Throwable) {
+                                        $entradaLabel = $rotuloEntrada . ': ' . $entradaBruta;
+                                    }
+                                    $entradaCor = '#15803d';
+                                } else {
+                                    $entradaLabel = 'Sem confirmação de entrada/retirada na planilha';
+                                    $entradaCor = '#b45309';
+                                }
                             }
                         @endphp
                         <div style="padding:8px 0; border-bottom:0.5px solid #eee;">
@@ -272,7 +286,7 @@
         @empty
             <div style="padding:48px 16px; text-align:center;">
                 <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhum registro no histórico ainda</p>
-                <p style="color:#9ca3af; font-size:13px; margin:0;">Requisições aparecem aqui quando finalizadas. Rode <code>php artisan compras:importar-historico</code> para trazer o histórico da planilha.</p>
+                <p style="color:#9ca3af; font-size:13px; margin:0;">Requisições aparecem aqui assim que criadas. Rode <code>php artisan compras:importar-historico</code> para trazer o histórico da planilha.</p>
             </div>
         @endforelse
     </div>

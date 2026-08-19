@@ -59,7 +59,7 @@ class AdminHistoricoComprasTest extends TestCase
         $response->assertSee('R$ 100,00', false);
     }
 
-    public function test_nao_mostra_requisicoes_do_fluxo_ainda_pendentes(): void
+    public function test_mostra_requisicoes_do_fluxo_ainda_pendentes_com_rotulo_pendente(): void
     {
         PurchaseRequest::factory()->create(['product_name' => 'Requisição Pendente', 'status' => 'pendente']);
         $this->criarHistorico(['product_name' => 'Item Histórico']);
@@ -67,7 +67,8 @@ class AdminHistoricoComprasTest extends TestCase
         $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
 
         $response->assertSee('Item Histórico', false);
-        $response->assertDontSee('Requisição Pendente', false);
+        $response->assertSee('Requisição Pendente', false);
+        $response->assertSee('Pendente', false);
     }
 
     public function test_mostra_requisicao_real_ja_finalizada_junto_com_o_historico_da_planilha(): void
@@ -98,7 +99,7 @@ class AdminHistoricoComprasTest extends TestCase
         $response->assertSee('Rejeitado', false);
     }
 
-    public function test_nao_mostra_requisicao_aprovada_mas_ainda_sem_entrada(): void
+    public function test_mostra_requisicao_aprovada_mas_ainda_sem_entrada(): void
     {
         PurchaseRequest::factory()->create([
             'product_name' => 'Aguardando Entrada',
@@ -108,7 +109,7 @@ class AdminHistoricoComprasTest extends TestCase
 
         $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
 
-        $response->assertDontSee('Aguardando Entrada', false);
+        $response->assertSee('Aguardando Entrada', false);
     }
 
     public function test_pesquisa_por_produto(): void
@@ -210,6 +211,36 @@ class AdminHistoricoComprasTest extends TestCase
         $response->assertSee('Sem confirmação de entrada/retirada na planilha', false);
     }
 
+    public function test_requisicao_real_finalizada_mostra_data_de_entrada_do_fluxo_e_nao_mensagem_da_planilha(): void
+    {
+        PurchaseRequest::factory()->create([
+            'product_name' => 'Requisicao Real Com Entrada',
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => \Carbon\Carbon::parse('2026-08-19 11:53:50', 'UTC'),
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
+
+        $entradaEsperada = \Carbon\Carbon::parse('2026-08-19 11:53:50', 'UTC')->timezone('America/Sao_Paulo')->format('d/m/Y');
+        $response->assertSee('Entrada em ' . $entradaEsperada, false);
+        $response->assertDontSee('Sem confirmação de entrada/retirada na planilha', false);
+    }
+
+    public function test_requisicao_real_conferida_mas_sem_entrada_mostra_aguardando_entrada(): void
+    {
+        PurchaseRequest::factory()->create([
+            'product_name' => 'Requisicao Conferida Sem Entrada',
+            'status' => 'rejeitado',
+            'status_conferencia' => 'conferido_ok',
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
+
+        $response->assertSee('Aguardando entrada', false);
+        $response->assertDontSee('Sem confirmação de entrada/retirada na planilha', false);
+    }
+
     public function test_showroom_usa_data_de_retirada_quando_nao_ha_data_de_entrada(): void
     {
         $this->criarHistorico([
@@ -234,6 +265,73 @@ class AdminHistoricoComprasTest extends TestCase
         $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
 
         $response->assertDontSee('Sem confirmação de entrada/retirada na planilha', false);
+    }
+
+    public function test_grupo_com_item_ainda_pendente_aparece_inteiro_no_historico(): void
+    {
+        PurchaseRequest::factory()->create([
+            'grupo_id' => 'GRUPO-MISTO-1',
+            'product_name' => 'Item Ja Conferido Com Entrada',
+            'status' => 'aprovado',
+            'status_conferencia' => 'conferido_ok',
+            'entrada_concluida_em' => now(),
+        ]);
+        PurchaseRequest::factory()->create([
+            'grupo_id' => 'GRUPO-MISTO-1',
+            'product_name' => 'Item Ainda Pendente Do Mesmo Pedido',
+            'status' => 'pendente',
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
+
+        $response->assertSee('Item Ja Conferido Com Entrada', false);
+        $response->assertSee('Item Ainda Pendente Do Mesmo Pedido', false);
+        $response->assertSee('Parcial', false);
+    }
+
+    public function test_ordena_por_ultima_atividade_e_nao_pela_data_de_criacao_original(): void
+    {
+        // Requisicao criada ha muito tempo mas aprovada AGORA precisa aparecer antes de
+        // um item da planilha parado desde o import — o admin quer ver o que acabou de
+        // acontecer, nao uma ordenacao pela data original da compra/criacao.
+        $this->criarHistorico([
+            'product_name' => 'Item Da Planilha Parado Desde O Import',
+            'created_at' => now()->subDays(10),
+            'updated_at' => now()->subDays(10),
+        ]);
+
+        PurchaseRequest::factory()->create([
+            'product_name' => 'Requisicao Antiga Aprovada Agora Mesmo',
+            'status' => 'aprovado',
+            'created_at' => now()->subDays(20),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
+
+        $response->assertSeeInOrder(['Requisicao Antiga Aprovada Agora Mesmo', 'Item Da Planilha Parado Desde O Import'], false);
+    }
+
+    public function test_desempata_por_data_da_compra_quando_ultima_atividade_e_igual(): void
+    {
+        // Lote inteiro de planilha importado de uma vez tem o MESMO updated_at (horario
+        // do import) — sem desempate, a ordem entre eles seria arbitraria em vez de
+        // cronologica pela data real da compra.
+        $mesmoInstante = now()->subDays(10);
+        $this->criarHistorico([
+            'product_name' => 'Item Comprado Depois',
+            'data_compra' => '2026-08-20',
+            'updated_at' => $mesmoInstante,
+        ]);
+        $this->criarHistorico([
+            'product_name' => 'Item Comprado Antes',
+            'data_compra' => '2026-08-01',
+            'updated_at' => $mesmoInstante,
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.historico-compras'));
+
+        $response->assertSeeInOrder(['Item Comprado Depois', 'Item Comprado Antes'], false);
     }
 
     public function test_agrupa_itens_do_mesmo_pedido(): void

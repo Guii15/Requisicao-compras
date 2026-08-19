@@ -88,7 +88,7 @@
     <div style="margin-bottom:20px;">
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Pendentes</h2>
         <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
-            Requisições que ainda precisam de alguma ação. Requisições já finalizadas ficam em
+            Requisições que ainda precisam de aprovação ou rejeição. Depois de decidido, o item sai daqui — acompanhe tudo (inclusive aguardando entrada) em
             <a href="{{ route('admin.historico-compras') }}" style="color:#05018D; font-weight:600;">Histórico de Compras</a>.
         </p>
     </div>

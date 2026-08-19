@@ -20,14 +20,27 @@ trait AgrupaRequisicoesPorGrupoId
         int $porPagina = 15,
         string $pageName = 'page',
         array $with = [],
-        string $ordenarPor = 'created_at'
+        string $ordenarPor = 'created_at',
+        ?string $ordenarPorDesempate = null
     ): LengthAwarePaginator {
         $paginadorDeGrupos = (clone $query)
             ->select('grupo_id')
-            ->selectRaw("MAX({$ordenarPor}) as ultima_data")
-            ->groupBy('grupo_id')
-            ->orderByDesc('ultima_data')
-            ->paginate($porPagina, ['*'], $pageName);
+            ->selectRaw("MAX({$ordenarPor}) as ultima_data");
+
+        if ($ordenarPorDesempate !== null) {
+            // Desempate: quando varios grupos tem o mesmo "ultima_data" (ex: um lote
+            // inteiro importado de uma vez, todos com o mesmo updated_at), usa essa
+            // segunda coluna pra nao deixar a ordem entre eles ficar arbitraria.
+            $paginadorDeGrupos->selectRaw("MAX({$ordenarPorDesempate}) as desempate");
+        }
+
+        $paginadorDeGrupos = $paginadorDeGrupos->groupBy('grupo_id')->orderByDesc('ultima_data');
+
+        if ($ordenarPorDesempate !== null) {
+            $paginadorDeGrupos->orderByDesc('desempate');
+        }
+
+        $paginadorDeGrupos = $paginadorDeGrupos->paginate($porPagina, ['*'], $pageName);
 
         $grupoIds = $paginadorDeGrupos->pluck('grupo_id')->all();
 
