@@ -202,9 +202,15 @@ class AdminController extends Controller
         $abasDisponiveis = PurchaseRequest::historico()->select('aba_origem')->distinct()->orderBy('aba_origem')->pluck('aba_origem');
 
         $mesesDisponiveis = $baseQuery()
+            ->where(function ($comDataReal) {
+                // So' entra no filtro de mes quem tem data de verdade: requisicao real
+                // (sempre tem created_at) ou planilha com data_compra preenchida. Cotacao
+                // sem data (ex: Compra Pati) nao pode inventar um mes so' por causa do
+                // fallback de ordenacao (1970) usado em outro lugar.
+                $comDataReal->where('tipo_registro', 'requisicao')->orWhereNotNull('data_compra');
+            })
             ->selectRaw("strftime('%Y-%m', {$dataUnificada}) as mes_chave")
             ->distinct()
-            ->whereRaw("{$dataUnificada} IS NOT NULL")
             ->orderByDesc('mes_chave')
             ->pluck('mes_chave')
             ->map(function ($chave) {
