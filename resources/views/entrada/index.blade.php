@@ -34,6 +34,22 @@
         </a>
     </div>
 
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <form method="GET" action="{{ route('entrada.index') }}" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="hidden" name="aba" value="{{ $aba }}">
+            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..."
+                   style="flex:1; min-width:200px; border:1px solid #d1d5db; border-radius:7px; padding:9px 14px; font-size:14px; box-sizing:border-box;">
+            <button type="submit" style="background:#05018D; color:#fff; padding:9px 20px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                Buscar
+            </button>
+            @if($q !== '')
+                <a href="{{ route('entrada.index', ['aba' => $aba]) }}" style="padding:9px 16px; border-radius:7px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:14px; white-space:nowrap;">
+                    Limpar
+                </a>
+            @endif
+        </form>
+    </div>
+
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
             ✓ {{ session('success') }}

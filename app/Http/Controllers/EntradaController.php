@@ -13,6 +13,7 @@ class EntradaController extends Controller
     public function index(Request $request)
     {
         $aba = $request->query('aba') === 'concluidas' ? 'concluidas' : 'aguardando';
+        $q = trim((string) $request->query('q', ''));
 
         $query = PurchaseRequest::where('status', 'aprovado')
             ->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim']);
@@ -25,9 +26,17 @@ class EntradaController extends Controller
             $ordenarPor = 'created_at';
         }
 
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('product_name', 'like', '%' . $q . '%')
+                    ->orWhere('requester_name', 'like', '%' . $q . '%')
+                    ->orWhere('supplier', 'like', '%' . $q . '%');
+            });
+        }
+
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente', 'fotosConferencia'], $ordenarPor)->withQueryString();
 
-        return view('entrada.index', compact('requests', 'aba'));
+        return view('entrada.index', compact('requests', 'aba', 'q'));
     }
 
     public function darEntrada(Request $request, PurchaseRequest $purchaseRequest)

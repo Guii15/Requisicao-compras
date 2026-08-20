@@ -158,7 +158,7 @@
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
             </div>
             <div style="display:flex; gap:8px;">
-                <button type="submit" style="flex:1; background:#1d4ed8; color:#fff; padding:9px 16px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer;">Filtrar</button>
+                <button type="submit" style="flex:1; background:#05018D; color:#fff; padding:9px 16px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer;">Filtrar</button>
                 <a href="{{ route('requests.index') }}" style="flex:1; background:#f3f4f6; color:#374151; padding:9px 16px; border-radius:7px; font-size:14px; font-weight:500; text-decoration:none; text-align:center; border:1px solid #e5e7eb;">Limpar</a>
             </div>
         </form>

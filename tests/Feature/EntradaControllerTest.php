@@ -135,6 +135,42 @@ class EntradaControllerTest extends TestCase
         $response->assertDontSee('Item Ja Com Entrada');
     }
 
+    public function test_search_filters_by_product_name(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Bateria G7 Plus']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Carregador Turbo']);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index', ['q' => 'bateria']));
+
+        $response->assertSee('Bateria G7 Plus');
+        $response->assertDontSee('Carregador Turbo');
+    }
+
+    public function test_search_filters_by_requester_name(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto A', 'requester_name' => 'Guilherme Souza']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto B', 'requester_name' => 'Maria Silva']);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index', ['q' => 'guilherme']));
+
+        $response->assertSee('Produto A');
+        $response->assertDontSee('Produto B');
+    }
+
+    public function test_search_filters_by_supplier(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto A', 'supplier' => 'Bomvink']);
+        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => 'conferido_ok', 'product_name' => 'Produto B', 'supplier' => 'GPJ']);
+
+        $response = $this->actingAs($entrada)->get(route('entrada.index', ['q' => 'bomvink']));
+
+        $response->assertSee('Produto A');
+        $response->assertDontSee('Produto B');
+    }
+
     public function test_index_concluidas_aba_lists_only_items_with_entrada_registrada(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);

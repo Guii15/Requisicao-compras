@@ -290,7 +290,7 @@
     </script>
 
     {{-- Filtros --}}
-    <div class="adm-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
+    <div class="adm-filters" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route('admin.index') }}" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; align-items:end;">
             <div>
                 <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:5px;">Vendedor</label>
