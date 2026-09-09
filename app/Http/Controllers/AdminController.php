@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ItemMaisSolicitado;
 use App\Models\PurchaseRequest;
 use App\Models\User;
+use App\Services\PlanilhaOriginalHistorico;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 
 class AdminController extends Controller
@@ -220,10 +221,45 @@ class AdminController extends Controller
                 ];
             });
 
+        $planilhaOriginal = new PlanilhaOriginalHistorico();
+        $planilhaOriginalAtualizadaEm = $planilhaOriginal->atualizadaEm();
+        $planilhaOriginalAbas = $planilhaOriginal->nomesDasAbas();
+
+        $planilhaOriginalAbaSelecionada = $request->query('planilha_aba');
+        $planilhaOriginalLinhas = null;
+        if ($planilhaOriginalAbaSelecionada && in_array($planilhaOriginalAbaSelecionada, $planilhaOriginalAbas, true)) {
+            $planilhaOriginalLinhas = $planilhaOriginal->lerLinhasDaAba($planilhaOriginalAbaSelecionada);
+        }
+
         return view('admin.historico-compras', compact(
             'requests', 'totaisPorAba', 'totalGeral', 'valorTotal', 'totalPlanilha', 'totalFluxoAtivo',
-            'abasDisponiveis', 'mesesDisponiveis'
+            'abasDisponiveis', 'mesesDisponiveis', 'planilhaOriginalAtualizadaEm', 'planilhaOriginalAbas',
+            'planilhaOriginalAbaSelecionada', 'planilhaOriginalLinhas'
         ));
+    }
+
+    public function downloadPlanilhaOriginal(PlanilhaOriginalHistorico $planilhaOriginal)
+    {
+        if (!$planilhaOriginal->existe()) {
+            abort(404, 'Nenhuma planilha original foi enviada ainda.');
+        }
+
+        return response()->download($planilhaOriginal->caminhoCompleto(), 'Requisicao_de_Compras_Historico.xlsx');
+    }
+
+    public function downloadAbaPlanilhaOriginal(string $aba, PlanilhaOriginalHistorico $planilhaOriginal)
+    {
+        if (!$planilhaOriginal->existe()) {
+            abort(404, 'Nenhuma planilha original foi enviada ainda.');
+        }
+
+        try {
+            $caminhoTemp = $planilhaOriginal->extrairAba($aba);
+        } catch (\RuntimeException $e) {
+            abort(404, $e->getMessage());
+        }
+
+        return response()->download($caminhoTemp, $aba . '.xlsx')->deleteFileAfterSend(true);
     }
 
     public function users()
@@ -237,14 +273,15 @@ class AdminController extends Controller
         $request->validate([
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users,email',
-            'password'              => 'required|string|min:8|confirmed',
+            'password'              => ['required', 'string', 'min:10', 'confirmed', 'regex:/[A-Za-zÀ-ÿ]/', 'regex:/[0-9]/'],
             'perfil'                => 'required|in:vendedor,conferente,entrada,admin',
         ], [
             'name.required'         => 'O nome é obrigatório.',
             'email.required'        => 'O e-mail é obrigatório.',
             'email.unique'          => 'Já existe um usuário com este e-mail.',
             'password.required'     => 'A senha é obrigatória.',
-            'password.min'          => 'A senha deve ter pelo menos 8 caracteres.',
+            'password.min'          => 'A senha deve ter pelo menos 10 caracteres.',
+            'password.regex'        => 'A senha precisa ter pelo menos uma letra e um número.',
             'password.confirmed'    => 'As senhas não coincidem.',
             'perfil.required'       => 'Selecione um perfil.',
             'perfil.in'             => 'Perfil inválido.',
@@ -339,10 +376,11 @@ class AdminController extends Controller
     public function resetPassword(Request $request, User $user)
     {
         $request->validate([
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'string', 'min:10', 'confirmed', 'regex:/[A-Za-zÀ-ÿ]/', 'regex:/[0-9]/'],
         ], [
             'password.required'  => 'A nova senha é obrigatória.',
-            'password.min'       => 'A senha deve ter pelo menos 8 caracteres.',
+            'password.min'       => 'A senha deve ter pelo menos 10 caracteres.',
+            'password.regex'     => 'A senha precisa ter pelo menos uma letra e um número.',
             'password.confirmed' => 'As senhas não coincidem.',
         ]);
 
