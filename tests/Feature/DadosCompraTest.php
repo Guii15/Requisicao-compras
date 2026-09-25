@@ -1,0 +1,184 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\PurchaseRequest;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class DadosCompraTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function admin(): User
+    {
+        return User::factory()->create(['is_admin' => true]);
+    }
+
+    private function dadosValidos(array $extra = []): array
+    {
+        return array_merge([
+            'data_compra'       => '2026-09-20',
+            'preco_unitario'    => '1.250,50',
+            'codigo_fornecedor' => 'FORN-123',
+            'supplier'          => 'kabum',
+            'data_coleta'       => '2026-09-22',
+        ], $extra);
+    }
+
+    public function test_guest_e_vendedor_nao_acessam_fila_de_compras(): void
+    {
+        $this->get(route('admin.compras.index'))->assertRedirect(route('login'));
+
+        $vendedor = User::factory()->create(['is_admin' => false, 'role' => null]);
+        $this->actingAs($vendedor)->get(route('admin.compras.index'))->assertForbidden();
+    }
+
+    public function test_fila_lista_so_requisicoes_aprovadas(): void
+    {
+        $aprovada = PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Mouse Aprovado']);
+        PurchaseRequest::factory()->create(['product_name' => 'Teclado Pendente']);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.compras.index'))
+            ->assertOk()
+            ->assertSee('Mouse Aprovado')
+            ->assertDontSee('Teclado Pendente');
+    }
+
+    public function test_filtro_sem_dados_esconde_quem_ja_tem_dados_da_compra(): void
+    {
+        PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Item Sem Dados']);
+        PurchaseRequest::factory()->aprovado()->create([
+            'product_name'   => 'Item Com Dados',
+            'data_compra'    => '2026-09-20',
+            'preco_unitario' => 10,
+        ]);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.compras.index', ['situacao' => 'sem_dados']))
+            ->assertSee('Item Sem Dados')
+            ->assertDontSee('Item Com Dados');
+    }
+
+    public function test_formulario_abre_para_requisicao_aprovada(): void
+    {
+        $item = PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Monitor 24']);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.compras.edit', $item))
+            ->assertOk()
+            ->assertSee('Monitor 24');
+    }
+
+    public function test_nao_registra_compra_de_requisicao_nao_aprovada(): void
+    {
+        $item = PurchaseRequest::factory()->create();
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.compras.edit', $item))
+            ->assertNotFound();
+
+        $this->actingAs($this->admin())
+            ->patch(route('admin.compras.update', $item), $this->dadosValidos())
+            ->assertNotFound();
+    }
+
+    public function test_salva_dados_e_calcula_total_pela_quantidade(): void
+    {
+        $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 3]);
+
+        $this->actingAs($this->admin())
+            ->patch(route('admin.compras.update', $item), $this->dadosValidos())
+            ->assertRedirect();
+
+        $item->refresh();
+        $this->assertSame('2026-09-20', $item->data_compra->format('Y-m-d'));
+        $this->assertSame('2026-09-22', $item->data_coleta->format('Y-m-d'));
+        $this->assertEquals(1250.50, (float) $item->preco_unitario);
+        $this->assertEquals(3751.50, (float) $item->valor);
+        $this->assertSame('FORN-123', $item->codigo_fornecedor);
+        $this->assertSame('Kabum', $item->supplier);
+    }
+
+    public function test_anexa_pedido_de_compra_em_disco_privado(): void
+    {
+        Storage::fake('local');
+        $item = PurchaseRequest::factory()->aprovado()->create();
+
+        $this->actingAs($this->admin())->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('pedido 4512.pdf', 200, 'application/pdf'),
+        ]));
+
+        $item->refresh();
+        $this->assertSame('pedido 4512.pdf', $item->pedido_compra_nome);
+        Storage::disk('local')->assertExists($item->pedido_compra_path);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.compras.pedido', $item))
+            ->assertOk()
+            ->assertDownload('pedido 4512.pdf');
+    }
+
+    public function test_trocar_o_anexo_apaga_o_arquivo_antigo(): void
+    {
+        Storage::fake('local');
+        $item = PurchaseRequest::factory()->aprovado()->create();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('antigo.pdf', 10, 'application/pdf'),
+        ]));
+        $caminhoAntigo = $item->refresh()->pedido_compra_path;
+
+        $this->actingAs($admin)->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('novo.pdf', 10, 'application/pdf'),
+        ]));
+
+        Storage::disk('local')->assertMissing($caminhoAntigo);
+        $this->assertSame('novo.pdf', $item->refresh()->pedido_compra_nome);
+    }
+
+    public function test_salvar_sem_novo_anexo_mantem_o_anterior(): void
+    {
+        Storage::fake('local');
+        $item = PurchaseRequest::factory()->aprovado()->create();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('pedido.pdf', 10, 'application/pdf'),
+        ]));
+        $this->actingAs($admin)->patch(route('admin.compras.update', $item), $this->dadosValidos(['codigo_fornecedor' => 'X']));
+
+        $this->assertSame('pedido.pdf', $item->refresh()->pedido_compra_nome);
+    }
+
+    public function test_rejeita_anexo_que_nao_e_pdf_nem_imagem(): void
+    {
+        Storage::fake('local');
+        $item = PurchaseRequest::factory()->aprovado()->create();
+
+        $this->actingAs($this->admin())->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('virus.exe', 10, 'application/x-msdownload'),
+        ]))->assertSessionHasErrors('pedido_compra');
+    }
+
+    public function test_coleta_nao_pode_ser_antes_da_compra(): void
+    {
+        $item = PurchaseRequest::factory()->aprovado()->create();
+
+        $this->actingAs($this->admin())
+            ->patch(route('admin.compras.update', $item), $this->dadosValidos(['data_coleta' => '2026-09-01']))
+            ->assertSessionHasErrors('data_coleta');
+    }
+
+    public function test_download_sem_anexo_da_404(): void
+    {
+        $item = PurchaseRequest::factory()->aprovado()->create();
+
+        $this->actingAs($this->admin())->get(route('admin.compras.pedido', $item))->assertNotFound();
+    }
+}

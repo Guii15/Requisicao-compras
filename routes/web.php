@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DadosCompraController;
 use App\Http\Controllers\ConferenciaController;
 use App\Http\Controllers\PendenciaController;
 use App\Http\Controllers\EntradaController;
@@ -69,6 +70,10 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::get('/requisicoes/{purchaseRequest}/exportar', [AdminController::class, 'export'])->name('requests.export');
 
     Route::get('/mensal/{year}/{month}', [AdminController::class, 'monthlyRequests'])->name('monthly');
+    Route::get('/compras', [DadosCompraController::class, 'index'])->name('compras.index');
+    Route::get('/compras/{purchaseRequest}', [DadosCompraController::class, 'edit'])->name('compras.edit');
+    Route::patch('/compras/{purchaseRequest}', [DadosCompraController::class, 'update'])->middleware('throttle:60,1')->name('compras.update');
+    Route::get('/compras/{purchaseRequest}/pedido', [DadosCompraController::class, 'baixarPedido'])->name('compras.pedido');
     Route::get('/itens-mais-solicitados', [AdminController::class, 'itensMaisSolicitados'])->name('itens-mais-solicitados');
     Route::get('/historico-compras', [AdminController::class, 'historicoCompras'])->name('historico-compras');
     Route::get('/historico-compras/planilha', [AdminController::class, 'downloadPlanilhaOriginal'])->name('historico-compras.planilha.download');
