@@ -181,4 +181,22 @@ class DadosCompraTest extends TestCase
 
         $this->actingAs($this->admin())->get(route('admin.compras.pedido', $item))->assertNotFound();
     }
+
+    public function test_compras_feitas_lista_so_quem_tem_dados_da_compra(): void
+    {
+        PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Item Sem Dados']);
+        PurchaseRequest::factory()->aprovado()->create([
+            'product_name'   => 'Item Com Dados',
+            'data_compra'    => '2026-09-20',
+            'preco_unitario' => 10,
+        ]);
+        PurchaseRequest::factory()->create(['product_name' => 'Item Pendente']);
+
+        $this->actingAs($this->admin())
+            ->get(route('admin.compras.feitas'))
+            ->assertOk()
+            ->assertSee('Item Com Dados')
+            ->assertDontSee('Item Sem Dados')
+            ->assertDontSee('Item Pendente');
+    }
 }

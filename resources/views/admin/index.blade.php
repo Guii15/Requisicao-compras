@@ -58,44 +58,13 @@
         </div>
     </div>
 
-    {{-- Abas --}}
-    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
-        <a href="{{ route('admin.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:#05018D; color:#fff; border:2px solid #05018D; border-bottom:2px solid #05018D;">
-            Requisições
-        </a>
-        <a href="{{ route('admin.users.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            Usuários
-        </a>
-        <a href="{{ route('pendencias.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            📋 Pendências
-        </a>
-        <a href="{{ route('admin.compras.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            🧾 Compras
-        </a>
-        <a href="{{ route('admin.historico-compras') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            🗂️ Histórico de Compras
-        </a>
-    </div>
+    @include('admin._abas')
 
     <div style="margin-bottom:20px;">
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Pendentes</h2>
         <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
-            Requisições que ainda precisam de aprovação ou rejeição. Depois de decidido, o item sai daqui — acompanhe tudo (inclusive aguardando entrada) em
-            <a href="{{ route('admin.historico-compras') }}" style="color:#05018D; font-weight:600;">Histórico de Compras</a>.
+            Requisições que ainda precisam de aprovação ou rejeição. Depois de decidido, o item sai daqui. Depois de aprovada, registre os dados da compra em
+            <a href="{{ route('admin.compras.index') }}" style="color:#05018D; font-weight:600;">Compras</a>.
         </p>
     </div>
 

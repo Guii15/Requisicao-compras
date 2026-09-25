@@ -23,7 +23,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_store_user_with_perfil_admin_sets_is_admin_true_and_role_null(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $this->actingAs($admin)->post(route('admin.users.store'), $this->validStoreUserPayload([
             'email' => 'novo.admin@example.com',
@@ -38,7 +38,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_store_user_with_perfil_conferente_sets_role_conferente(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $this->actingAs($admin)->post(route('admin.users.store'), $this->validStoreUserPayload([
             'email' => 'novo.conferente@example.com',
@@ -52,7 +52,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_store_user_with_perfil_entrada_sets_role_entrada(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $this->actingAs($admin)->post(route('admin.users.store'), $this->validStoreUserPayload([
             'email' => 'nova.entrada@example.com',
@@ -66,7 +66,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_store_user_with_perfil_vendedor_sets_is_admin_false_and_role_null(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $this->actingAs($admin)->post(route('admin.users.store'), $this->validStoreUserPayload([
             'email' => 'novo.vendedor@example.com',
@@ -80,7 +80,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_store_user_rejects_missing_perfil(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $payload = $this->validStoreUserPayload();
         unset($payload['perfil']);
@@ -92,7 +92,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_store_user_rejects_invalid_perfil(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $response = $this->actingAs($admin)->post(route('admin.users.store'), $this->validStoreUserPayload([
             'email' => 'invalido@example.com',
@@ -105,7 +105,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_update_role_changes_existing_user_to_admin(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
         $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
 
         $response = $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
@@ -120,7 +120,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_update_role_changes_existing_user_to_conferente(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
         $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
 
         $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
@@ -134,7 +134,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_update_role_changes_existing_user_to_entrada(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
         $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
 
         $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
@@ -148,7 +148,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_update_role_changes_existing_user_back_to_vendedor(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
         $alvo = User::factory()->create(['is_admin' => false, 'role' => 'conferente']);
 
         $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
@@ -162,7 +162,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_update_role_rejects_invalid_perfil(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
         $alvo = User::factory()->create(['is_admin' => false, 'role' => null]);
 
         $response = $this->actingAs($admin)->patch(route('admin.users.updateRole', $alvo), [
@@ -175,7 +175,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_update_role_blocks_admin_from_changing_own_profile(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'role' => null]);
+        $admin = User::factory()->create(['is_admin' => true, 'role' => null, 'email' => 'superadmin.teste@example.com']);
 
         $response = $this->actingAs($admin)->patch(route('admin.users.updateRole', $admin), [
             'perfil' => 'conferente',
@@ -202,7 +202,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_users_index_shows_correct_badge_for_each_perfil(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado', 'email' => 'superadmin.teste@example.com']);
         User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Fulano Conferente']);
         User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Fulano Entrada']);
         User::factory()->create(['is_admin' => false, 'role' => null, 'name' => 'Fulano Vendedor']);
@@ -217,7 +217,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_users_index_does_not_show_perfil_button_on_own_row(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $response = $this->actingAs($admin)->get(route('admin.users.index'));
 
@@ -227,7 +227,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_users_index_shows_perfil_button_on_other_rows(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
         $outro = User::factory()->create(['is_admin' => false, 'role' => null]);
 
         $response = $this->actingAs($admin)->get(route('admin.users.index'));
@@ -237,7 +237,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_create_user_form_has_perfil_select_with_four_options(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->create(['is_admin' => true, 'email' => 'superadmin.teste@example.com']);
 
         $response = $this->actingAs($admin)->get(route('admin.users.index'));
 
@@ -270,7 +270,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_edit_perfil_modal_preselects_current_perfil_for_conferente_user(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Um']);
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Um', 'email' => 'superadmin.teste@example.com']);
         $conferente = User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Beltrano Conferente']);
         User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Ciclano Entrada']);
 
@@ -286,7 +286,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_edit_perfil_modal_preselects_current_perfil_for_admin_user(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado', 'email' => 'superadmin.teste@example.com']);
         $outroAdmin = User::factory()->create(['is_admin' => true, 'role' => null, 'name' => 'Outro Admin']);
         User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Fulano Entrada']);
 
@@ -302,7 +302,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_edit_perfil_modal_preselects_current_perfil_for_entrada_user(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado', 'email' => 'superadmin.teste@example.com']);
         $entrada = User::factory()->create(['is_admin' => false, 'role' => 'entrada', 'name' => 'Fulano Entrada']);
         User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Fulano Conferente']);
 
@@ -318,7 +318,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_edit_perfil_modal_preselects_current_perfil_for_vendedor_user(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado']);
+        $admin = User::factory()->create(['is_admin' => true, 'name' => 'Admin Logado', 'email' => 'superadmin.teste@example.com']);
         $vendedor = User::factory()->create(['is_admin' => false, 'role' => null, 'name' => 'Fulano Vendedor']);
         User::factory()->create(['is_admin' => false, 'role' => 'conferente', 'name' => 'Fulano Conferente']);
 

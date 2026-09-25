@@ -39,6 +39,20 @@ class DadosCompraController extends Controller
         return view('admin.compras.index', compact('itens', 'situacao', 'totalSemDados'));
     }
 
+    public function feitas(Request $request)
+    {
+        $query = PurchaseRequest::with('user')->where('status', 'aprovado')
+            ->whereNotNull('data_compra')->whereNotNull('preco_unitario');
+
+        if ($request->filled('produto')) {
+            $query->where('product_name', 'like', '%' . $request->produto . '%');
+        }
+
+        $itens = $query->orderByDesc('updated_at')->paginate(20)->withQueryString();
+
+        return view('admin.compras.feitas', compact('itens'));
+    }
+
     public function edit(PurchaseRequest $purchaseRequest)
     {
         $this->garantirAprovada($purchaseRequest);

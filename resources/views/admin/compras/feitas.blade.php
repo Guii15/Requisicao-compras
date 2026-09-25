@@ -11,42 +11,19 @@
 
     @include('admin._abas')
 
-    <div style="margin-bottom:16px;">
-        <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Compras</h2>
-        <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
-            Requisições aprovadas. Registre aqui os dados da compra: data, preço, fornecedor, coleta e o pedido de compra.
-        </p>
-    </div>
-
-    {{-- Filtros --}}
-    @php
-        $filtros = [
-            ''          => 'Todas',
-            'sem_dados' => 'Sem dados da compra (' . $totalSemDados . ')',
-            'com_dados' => 'Com dados da compra',
-        ];
-    @endphp
-    <form method="GET" action="{{ route('admin.compras.index') }}" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
-        @foreach($filtros as $chave => $rotulo)
-            @php $ativo = ($situacao ?? '') === (string) $chave; @endphp
-            <a href="{{ route('admin.compras.index', array_filter(['situacao' => $chave, 'produto' => request('produto')])) }}"
-               style="padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; text-decoration:none;
-                      {{ $ativo ? 'background:#05018D; color:#fff;' : 'background:#fff; color:#374151; border:1px solid #d1d5db;' }}">
-                {{ $rotulo }}
-            </a>
-        @endforeach
-        @if($situacao)
-            <input type="hidden" name="situacao" value="{{ $situacao }}">
-        @endif
-        <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Buscar produto..."
-               style="margin-left:auto; padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:220px;">
-    </form>
-
-    @if(session('success'))
-        <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px;">
-            ✓ {{ session('success') }}
+    <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Compras Feitas</h2>
+            <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
+                Requisições aprovadas que já têm os dados da compra registrados. Falta alguma? Registre em
+                <a href="{{ route('admin.compras.index') }}" style="color:#05018D; font-weight:600;">Compras</a>.
+            </p>
         </div>
-    @endif
+        <form method="GET" action="{{ route('admin.compras.feitas') }}">
+            <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Buscar produto..."
+                   style="padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; min-width:220px;">
+        </form>
+    </div>
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow-x:auto; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <table style="width:100%; border-collapse:collapse; font-size:13px;">
@@ -67,7 +44,7 @@
             </thead>
             <tbody>
                 @forelse($itens as $item)
-                    <tr style="border-top:1px solid #f3f4f6; {{ $item->temDadosDaCompra() ? '' : 'background:#fffbeb;' }}">
+                    <tr style="border-top:1px solid #f3f4f6;">
                         <td style="padding:10px 14px; color:#111827;">
                             <strong>{{ $item->product_name }}</strong>
                             @if($item->codigo_fornecedor)
@@ -94,15 +71,14 @@
                         </td>
                         <td style="padding:10px 14px; text-align:right;">
                             <a href="{{ route('admin.compras.edit', $item) }}"
-                               style="display:inline-block; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap;
-                                      {{ $item->temDadosDaCompra() ? 'border:1px solid #d1d5db; color:#374151; background:#fff;' : 'background:#05018D; color:#fff;' }}">
-                                {{ $item->temDadosDaCompra() ? 'Editar' : 'Registrar compra' }}
+                               style="display:inline-block; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap; border:1px solid #d1d5db; color:#374151; background:#fff;">
+                                Editar
                             </a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" style="padding:40px 16px; text-align:center; color:#6b7280;">Nenhuma requisição aprovada encontrada.</td>
+                        <td colspan="11" style="padding:40px 16px; text-align:center; color:#6b7280;">Nenhuma compra registrada ainda.</td>
                     </tr>
                 @endforelse
             </tbody>

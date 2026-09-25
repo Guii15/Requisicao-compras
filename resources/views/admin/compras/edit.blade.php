@@ -16,7 +16,7 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Gerencie todas as requisições de compra</p>
     </div>
 
-    @include('admin.compras._abas')
+    @include('admin._abas')
 
     <a href="{{ route('admin.compras.index') }}" style="font-size:13px; color:#6b7280; text-decoration:none;">← Voltar para Compras</a>
 
