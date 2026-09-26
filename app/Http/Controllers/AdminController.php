@@ -111,87 +111,49 @@ class AdminController extends Controller
         return view('admin.index', compact('requests', 'stats', 'aprovadasSemDadosDaCompra', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
-    private const DISCO_PEDIDO_COMPRA = 'local';
+    private const DISCO_ANEXO = 'local';
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
-        if ($request->filled('preco_unitario')) {
-            $request->merge(['preco_unitario' => $this->decimalBrasileiro($request->input('preco_unitario'))]);
-        }
-
         $request->validate([
-            'status'            => 'required|in:pendente,aprovado,rejeitado',
-            'admin_note'        => 'nullable|string|max:2000',
-            'supplier'          => 'nullable|string|max:255',
-            'codigo_fornecedor' => 'nullable|string|max:255',
-            'preco_unitario'    => 'nullable|numeric|min:0',
-            'data_compra'       => 'nullable|date',
-            'data_coleta'       => 'nullable|date|after_or_equal:data_compra',
-            'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
-            'anexo'             => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'status'     => 'required|in:pendente,aprovado,rejeitado',
+            'admin_note' => 'nullable|string|max:2000',
+            'supplier'   => 'nullable|string|max:255',
+            'anexo'      => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
-            'data_coleta.after_or_equal' => 'A data da coleta não pode ser antes da data da compra.',
-            'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
-            'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
-            'anexo.mimes'                => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
-            'anexo.max'                  => 'O anexo pode ter no máximo 10 MB.',
+            'anexo.mimes' => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
+            'anexo.max'   => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
-        $supplier = $request->supplier ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8') : null;
-
         $atualizacao = [
-            'status'             => $request->status,
-            'admin_note'         => $request->admin_note,
-            'supplier'           => $supplier,
-            'codigo_fornecedor'  => $request->codigo_fornecedor ?: null,
-            'preco_unitario'     => $request->preco_unitario ?: null,
-            'valor'              => $request->filled('preco_unitario')
-                ? round((float) $request->preco_unitario * (int) $purchaseRequest->quantity, 2)
-                : null,
-            'data_compra'        => $request->data_compra ?: null,
-            'data_coleta'        => $request->data_coleta ?: null,
+            'status'     => $request->status,
+            'admin_note' => $request->admin_note,
         ];
 
-        if ($request->hasFile('pedido_compra')) {
-            $arquivo = $request->file('pedido_compra');
-            $caminhoAntigo = $purchaseRequest->pedido_compra_path;
-
-            $atualizacao['pedido_compra_path'] = $arquivo->store('pedidos-compra', self::DISCO_PEDIDO_COMPRA);
-            $atualizacao['pedido_compra_nome'] = $arquivo->getClientOriginalName();
-
-            if ($caminhoAntigo) {
-                Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
-            }
+        // O modal de Atualizar Requisicao nao tem mais campo de Fornecedor (isso e'
+        // "dados da compra", exclusivo da tela de Compras) — so' mexe aqui se alguem
+        // enviar o campo direto (uso legado), pra nao zerar o valor ja registrado.
+        if ($request->has('supplier')) {
+            $atualizacao['supplier'] = $request->supplier
+                ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8')
+                : null;
         }
 
         if ($request->hasFile('anexo')) {
             $arquivo = $request->file('anexo');
             $caminhoAntigo = $purchaseRequest->anexo_path;
 
-            $atualizacao['anexo_path'] = $arquivo->store('anexos-requisicao', self::DISCO_PEDIDO_COMPRA);
+            $atualizacao['anexo_path'] = $arquivo->store('anexos-requisicao', self::DISCO_ANEXO);
             $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
 
             if ($caminhoAntigo) {
-                Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
+                Storage::disk(self::DISCO_ANEXO)->delete($caminhoAntigo);
             }
         }
 
         $purchaseRequest->update($atualizacao);
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
-    }
-
-    /** Converte "1.250,50" em "1250.50"; valor ja' com ponto decimal passa direto. */
-    private function decimalBrasileiro(string $valor): string
-    {
-        $valor = trim(str_replace(['R$', ' '], '', $valor));
-
-        if (str_contains($valor, ',')) {
-            $valor = str_replace('.', '', $valor);
-            $valor = str_replace(',', '.', $valor);
-        }
-
-        return $valor;
     }
 
     public function itensMaisSolicitados()
