@@ -438,17 +438,11 @@
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
                             <td style="padding:12px 16px; text-align:center;">
-                                <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+                                <div style="display:flex; gap:6px; justify-content:center;">
                                     <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
                                        style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
                                         Exportar
                                     </a>
-                                    @if($req->status === 'aprovado')
-                                        <a href="{{ route('admin.compras.edit', $req) }}"
-                                           style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
-                                            {{ $req->temDadosDaCompra() ? 'Ver dados da compra' : 'Registrar compra' }}
-                                        </a>
-                                    @endif
                                     <button onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
                                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">
                                         Atualizar
@@ -458,7 +452,7 @@
                         </tr>
 
                         {{-- Modal --}}
-                        <div id="modal-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                        <div id="modal-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
@@ -474,6 +468,54 @@
                                             <option value="aprovado"  {{ $req->status=='aprovado'  ? 'selected' : '' }}>🟢 Aprovado</option>
                                             <option value="rejeitado" {{ $req->status=='rejeitado' ? 'selected' : '' }}>🔴 Rejeitado</option>
                                         </select>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
+                                        <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Cód. no fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                                        <input type="text" name="codigo_fornecedor" value="{{ $req->codigo_fornecedor }}" placeholder="Ex: FORN-123"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Preço unitário (R$)</label>
+                                            <input type="text" inputmode="decimal" name="preco_unitario" value="{{ $req->preco_unitario !== null ? number_format($req->preco_unitario, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl preco-unitario-input"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        </div>
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
+                                            <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
+                                                {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da compra</label>
+                                            <input type="date" name="data_compra" value="{{ $req->data_compra?->format('Y-m-d') }}"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                                        </div>
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
+                                            <input type="date" name="data_coleta" value="{{ $req->data_coleta?->format('Y-m-d') }}"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
+                                        @if($req->pedido_compra_path)
+                                            <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                        @endif
+                                        <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                               style="width:100%; font-size:13px;">
                                     </div>
 
                                     <div style="margin-bottom:16px;">
@@ -640,17 +682,11 @@
                     @else
                         <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
                     @endif
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:6px;">
                         <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
                            style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:8px 12px; font-size:13px; font-weight:600; text-decoration:none;">
                             Exportar
                         </a>
-                        @if($req->status === 'aprovado')
-                            <a href="{{ route('admin.compras.edit', $req) }}"
-                               style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:13px; font-weight:600; text-decoration:none;">
-                                {{ $req->temDadosDaCompra() ? 'Ver dados da compra' : 'Registrar compra' }}
-                            </a>
-                        @endif
                         <button onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='flex'"
                                 style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                             Atualizar
@@ -661,7 +697,7 @@
             </div>
 
             {{-- Modal mobile --}}
-            <div id="modal-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div id="modal-m-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
@@ -675,6 +711,49 @@
                                 <option value="aprovado"  {{ $req->status=='aprovado'  ? 'selected' : '' }}>🟢 Aprovado</option>
                                 <option value="rejeitado" {{ $req->status=='rejeitado' ? 'selected' : '' }}>🔴 Rejeitado</option>
                             </select>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
+                            <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Cód. no fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                            <input type="text" name="codigo_fornecedor" value="{{ $req->codigo_fornecedor }}" placeholder="Ex: FORN-123"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Preço unitário (R$)</label>
+                                <input type="text" inputmode="decimal" name="preco_unitario" value="{{ $req->preco_unitario !== null ? number_format($req->preco_unitario, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl preco-unitario-input"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
+                                <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
+                                    {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da compra</label>
+                                <input type="date" name="data_compra" value="{{ $req->data_compra?->format('Y-m-d') }}"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
+                                <input type="date" name="data_coleta" value="{{ $req->data_coleta?->format('Y-m-d') }}"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
+                            @if($req->pedido_compra_path)
+                                <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                            @endif
+                            <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                   style="width:100%; font-size:13px;">
                         </div>
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
@@ -733,6 +812,50 @@
 </div>
 
 <script>
+(function () {
+    function applyBRLMask(input) {
+        input.addEventListener('input', function () {
+            let digits = this.value.replace(/\D/g, '');
+            if (digits === '') { this.value = ''; return; }
+            let num = parseInt(digits, 10) / 100;
+            this.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+    }
+
+    function convertBRLBeforeSubmit(form) {
+        form.addEventListener('submit', function () {
+            form.querySelectorAll('.valor-brl').forEach(function (input) {
+                if (input.value.trim() !== '') {
+                    input.value = input.value.replace(/\./g, '').replace(',', '.');
+                }
+            });
+        });
+    }
+
+    function atualizarTotalAuto(input) {
+        // Os modais ficam dentro do <tbody>, o que e' HTML invalido — o navegador
+        // "esvazia" a tag <form> na arvore do DOM (os campos continuam associados a
+        // ela por baixo dos panos pro envio, mas closest('form') nao os encontra).
+        // Por isso usamos o container do modal, e nao o form, pra achar os elementos.
+        var container = input.closest('[data-quantity]');
+        if (!container) return;
+        var qtd = parseFloat(container.dataset.quantity || '0');
+        var raw = input.value.replace(/\./g, '').replace(',', '.');
+        var preco = parseFloat(raw) || 0;
+        var totalEl = container.querySelector('.total-auto-display');
+        if (!totalEl) return;
+        if (input.value.trim() === '') { totalEl.textContent = '—'; return; }
+        var total = preco * qtd;
+        totalEl.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
+    document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
+    document.querySelectorAll('.preco-unitario-input').forEach(function (input) {
+        input.addEventListener('input', function () { atualizarTotalAuto(input); });
+    });
+})();
+
 function openMonthModal(year, month, label) {
     var modal = document.getElementById('month-modal');
     modal.style.display = 'flex';
