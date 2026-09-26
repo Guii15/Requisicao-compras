@@ -423,12 +423,12 @@
                         </tr>
 
                         {{-- Modal --}}
-                        <div id="modal-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                        <div id="modal-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
-                                <form method="POST" action="{{ route('admin.requests.update', $req) }}">
+                                <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data">
                                     @csrf
                                     @method('PATCH')
 
@@ -448,15 +448,51 @@
                                     </div>
 
                                     <div style="margin-bottom:16px;">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                                        <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
-                                                  style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Cód. no fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                                        <input type="text" name="codigo_fornecedor" value="{{ $req->codigo_fornecedor }}" placeholder="Ex: FORN-123"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Preço unitário (R$)</label>
+                                            <input type="text" inputmode="decimal" name="preco_unitario" value="{{ $req->preco_unitario !== null ? number_format($req->preco_unitario, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl preco-unitario-input"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        </div>
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
+                                            <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
+                                                {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da compra</label>
+                                            <input type="date" name="data_compra" value="{{ $req->data_compra?->format('Y-m-d') }}"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                                        </div>
+                                        <div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
+                                            <input type="date" name="data_coleta" value="{{ $req->data_coleta?->format('Y-m-d') }}"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
+                                        @if($req->pedido_compra_path)
+                                            <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                        @endif
+                                        <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                               style="width:100%; font-size:13px;">
                                     </div>
 
                                     <div style="margin-bottom:20px;">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Valor Pago (R$) <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                                        <input type="text" inputmode="decimal" name="valor" value="{{ $req->valor ? number_format($req->valor, 2, ',', '.') : '' }}" placeholder="Ex: 1.250,00" class="valor-brl"
-                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                                        <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
+                                                  style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
                                     </div>
 
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
@@ -600,11 +636,11 @@
             </div>
 
             {{-- Modal mobile --}}
-            <div id="modal-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div id="modal-m-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
-                    <form method="POST" action="{{ route('admin.requests.update', $req) }}">
+                    <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PATCH')
                         <div style="margin-bottom:16px;">
@@ -621,14 +657,47 @@
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
                         <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Cód. no fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                            <input type="text" name="codigo_fornecedor" value="{{ $req->codigo_fornecedor }}" placeholder="Ex: FORN-123"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Preço unitário (R$)</label>
+                                <input type="text" inputmode="decimal" name="preco_unitario" value="{{ $req->preco_unitario !== null ? number_format($req->preco_unitario, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl preco-unitario-input"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
+                                <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
+                                    {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da compra</label>
+                                <input type="date" name="data_compra" value="{{ $req->data_compra?->format('Y-m-d') }}"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
+                                <input type="date" name="data_coleta" value="{{ $req->data_coleta?->format('Y-m-d') }}"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
+                            @if($req->pedido_compra_path)
+                                <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                            @endif
+                            <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                   style="width:100%; font-size:13px;">
+                        </div>
+                        <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
                             <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
-                        </div>
-                        <div style="margin-bottom:20px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Valor Pago (R$) <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                            <input type="text" inputmode="decimal" name="valor" value="{{ $req->valor ? number_format($req->valor, 2, ',', '.') : '' }}" placeholder="Ex: 1.250,00" class="valor-brl"
-                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
                         <div style="display:flex; gap:10px; justify-content:flex-end;">
                             <button type="button" onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='none'"
@@ -694,8 +763,28 @@
         });
     }
 
+    function atualizarTotalAuto(input) {
+        // Os modais ficam dentro do <tbody>, o que e' HTML invalido — o navegador
+        // "esvazia" a tag <form> na arvore do DOM (os campos continuam associados a
+        // ela por baixo dos panos pro envio, mas closest('form') nao os encontra).
+        // Por isso usamos o container do modal, e nao o form, pra achar os elementos.
+        var container = input.closest('[data-quantity]');
+        if (!container) return;
+        var qtd = parseFloat(container.dataset.quantity || '0');
+        var raw = input.value.replace(/\./g, '').replace(',', '.');
+        var preco = parseFloat(raw) || 0;
+        var totalEl = container.querySelector('.total-auto-display');
+        if (!totalEl) return;
+        if (input.value.trim() === '') { totalEl.textContent = '—'; return; }
+        var total = preco * qtd;
+        totalEl.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
     document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
+    document.querySelectorAll('.preco-unitario-input').forEach(function (input) {
+        input.addEventListener('input', function () { atualizarTotalAuto(input); });
+    });
 })();
 
 function openMonthModal(year, month, label) {
