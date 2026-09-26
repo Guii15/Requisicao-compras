@@ -668,6 +668,26 @@ class PurchaseRequestControllerTest extends TestCase
         $this->actingAs($admin)->get(route('requests.anexo', $item))->assertOk();
     }
 
+    public function test_vendedor_ve_os_dados_da_compra_preenchidos_pelo_admin(): void
+    {
+        $user = User::factory()->create();
+        PurchaseRequest::factory()->aprovado()->create([
+            'user_id'        => $user->id,
+            'supplier'       => 'Auto Peças Sul',
+            'preco_unitario' => 890.50,
+            'valor'          => 2671.50,
+            'data_compra'    => '2026-09-01',
+            'data_coleta'    => '2026-09-15',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('requests.index'))
+            ->assertSee('Unitário: R$ 890,50', false)
+            ->assertSee('2.671,50', false)
+            ->assertSee('01/09/2026', false)
+            ->assertSee('15/09/2026', false);
+    }
+
     public function test_vendedor_substitui_anexo_ao_editar_requisicao_pendente(): void
     {
         Storage::fake('local');

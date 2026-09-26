@@ -78,6 +78,24 @@ class AdminRequestsIndexTest extends TestCase
             ->assertSee('1 aprovada ainda sem dados da compra');
     }
 
+    public function test_index_mostra_dados_da_compra_do_item_pendente_no_grupo(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        PurchaseRequest::factory()->create([
+            'status'         => 'pendente',
+            'supplier'       => 'Auto Peças Sul',
+            'preco_unitario' => 890.50,
+            'valor'          => 2671.50,
+            'data_compra'    => '2026-09-01',
+            'data_coleta'    => '2026-09-15',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.index'))
+            ->assertSee('Unitário: R$ 890,50', false)
+            ->assertSee('01/09/2026', false);
+    }
+
     public function test_index_nao_mostra_aviso_quando_todas_tem_dados_da_compra(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);

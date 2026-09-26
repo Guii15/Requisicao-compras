@@ -110,6 +110,10 @@ class DadosCompraController extends Controller
 
     public function baixarPedido(PurchaseRequest $purchaseRequest)
     {
+        if ($purchaseRequest->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         $caminho = $purchaseRequest->pedido_compra_path;
 
         if (!$caminho || !Storage::disk(self::DISCO)->exists($caminho)) {

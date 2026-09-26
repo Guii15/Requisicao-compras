@@ -182,6 +182,36 @@ class DadosCompraTest extends TestCase
         $this->actingAs($this->admin())->get(route('admin.compras.pedido', $item))->assertNotFound();
     }
 
+    public function test_vendedor_dono_baixa_o_pedido_de_compra_registrado_pelo_admin(): void
+    {
+        Storage::fake('local');
+        $vendedor = User::factory()->create();
+        $item = PurchaseRequest::factory()->aprovado()->create(['user_id' => $vendedor->id]);
+
+        $this->actingAs($this->admin())->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('pedido.pdf', 10, 'application/pdf'),
+        ]));
+
+        $this->actingAs($vendedor)
+            ->get(route('admin.compras.pedido', $item))
+            ->assertOk()
+            ->assertDownload('pedido.pdf');
+    }
+
+    public function test_outro_vendedor_nao_baixa_pedido_de_compra_alheio(): void
+    {
+        Storage::fake('local');
+        $dono = User::factory()->create();
+        $outro = User::factory()->create();
+        $item = PurchaseRequest::factory()->aprovado()->create(['user_id' => $dono->id]);
+
+        $this->actingAs($this->admin())->patch(route('admin.compras.update', $item), $this->dadosValidos([
+            'pedido_compra' => UploadedFile::fake()->create('pedido.pdf', 10, 'application/pdf'),
+        ]));
+
+        $this->actingAs($outro)->get(route('admin.compras.pedido', $item))->assertForbidden();
+    }
+
     public function test_compras_feitas_lista_so_quem_tem_dados_da_compra(): void
     {
         PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Item Sem Dados']);
