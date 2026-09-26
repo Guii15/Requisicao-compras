@@ -6,6 +6,7 @@ use App\Models\ConferenciaFoto;
 use App\Models\PurchaseRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -601,5 +602,102 @@ class PurchaseRequestControllerTest extends TestCase
         DB::disableQueryLog();
 
         $this->assertSame($queryCountUm, $queryCountCinco, 'A quantidade de queries não deveria crescer com o número de linhas (foto por linha = N+1).');
+    }
+
+    public function test_store_anexa_arquivo_e_aplica_em_todos_os_itens_do_grupo(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+        ]));
+
+        $itens = PurchaseRequest::all();
+        $this->assertCount(2, $itens);
+        foreach ($itens as $item) {
+            $this->assertSame('orcamento.pdf', $item->anexo_nome);
+            Storage::disk('local')->assertExists($item->anexo_path);
+        }
+    }
+
+    public function test_vendedor_baixa_o_proprio_anexo(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+        ]));
+
+        $item = PurchaseRequest::first();
+
+        $this->actingAs($user)
+            ->get(route('requests.anexo', $item))
+            ->assertOk()
+            ->assertDownload('orcamento.pdf');
+    }
+
+    public function test_outro_vendedor_nao_baixa_anexo_alheio(): void
+    {
+        Storage::fake('local');
+        $dono = User::factory()->create();
+        $outro = User::factory()->create();
+
+        $this->actingAs($dono)->post(route('requests.store'), $this->validStorePayload([
+            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+        ]));
+
+        $item = PurchaseRequest::first();
+
+        $this->actingAs($outro)->get(route('requests.anexo', $item))->assertForbidden();
+    }
+
+    public function test_admin_baixa_anexo_de_qualquer_vendedor(): void
+    {
+        Storage::fake('local');
+        $dono = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($dono)->post(route('requests.store'), $this->validStorePayload([
+            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+        ]));
+
+        $item = PurchaseRequest::first();
+
+        $this->actingAs($admin)->get(route('requests.anexo', $item))->assertOk();
+    }
+
+    public function test_vendedor_substitui_anexo_ao_editar_requisicao_pendente(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $item = PurchaseRequest::factory()->create(['user_id' => $user->id]);
+
+        $this->actingAs($user)->patch(route('requests.update', $item), [
+            'requester_name' => 'Vendedor Teste',
+            'urgency'        => 'media',
+            'reason'         => 'Reposição',
+            'justification'  => 'Filial 31',
+            'tipo_entrega'   => 'estoque',
+            'product_name'   => $item->product_name,
+            'quantity'       => 1,
+            'anexo'          => UploadedFile::fake()->create('antigo.pdf', 10, 'application/pdf'),
+        ]);
+        $caminhoAntigo = $item->refresh()->anexo_path;
+
+        $this->actingAs($user)->patch(route('requests.update', $item), [
+            'requester_name' => 'Vendedor Teste',
+            'urgency'        => 'media',
+            'reason'         => 'Reposição',
+            'justification'  => 'Filial 31',
+            'tipo_entrega'   => 'estoque',
+            'product_name'   => $item->product_name,
+            'quantity'       => 1,
+            'anexo'          => UploadedFile::fake()->create('novo.pdf', 10, 'application/pdf'),
+        ]);
+
+        Storage::disk('local')->assertMissing($caminhoAntigo);
+        $this->assertSame('novo.pdf', $item->refresh()->anexo_nome);
     }
 }

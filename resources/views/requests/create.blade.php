@@ -179,7 +179,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('requests.store') }}" method="POST">
+                <form action="{{ route('requests.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     @php
@@ -241,6 +241,11 @@
                                       style="{{ $inputStyle }} resize:none; font-family:inherit;"
                                       onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
                                       onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">{{ old('justification') }}</textarea>
+                        </div>
+
+                        <div style="grid-column:1/-1;">
+                            <label style="{{ $labelStyle }}">Anexo <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — orçamento, print, cotação... PDF ou imagem)</span></label>
+                            <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
                         </div>
 
                     </div>

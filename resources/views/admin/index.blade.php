@@ -383,6 +383,9 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
+                                @if($req->anexo_path)
+                                    <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                                @endif
                             </td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
                             <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
@@ -489,6 +492,15 @@
                                                style="width:100%; font-size:13px;">
                                     </div>
 
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
+                                        @if($req->anexo_path)
+                                            <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                        @endif
+                                        <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                               style="width:100%; font-size:13px;">
+                                    </div>
+
                                     <div style="margin-bottom:20px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
                                         <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
@@ -579,6 +591,12 @@
                         <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af;">Cód: {{ $req->product_code }}</div>
+                        @endif
+                        @if($req->product_url)
+                            <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">Ver link</a>
+                        @endif
+                        @if($req->anexo_path)
+                            <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
                         @endif
                     </div>
                     @if($req->status=='aprovado')
@@ -692,6 +710,14 @@
                                 <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
                             @endif
                             <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                   style="width:100%; font-size:13px;">
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
+                            @if($req->anexo_path)
+                                <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                            @endif
+                            <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                    style="width:100%; font-size:13px;">
                         </div>
                         <div style="margin-bottom:16px;">

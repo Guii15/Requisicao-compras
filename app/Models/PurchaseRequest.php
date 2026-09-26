@@ -36,6 +36,8 @@ class PurchaseRequest extends Model
         'product_name',
         'product_code',
         'product_url',
+        'anexo_path',
+        'anexo_nome',
         'supplier',
         'quantity',
         'reason',

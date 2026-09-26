@@ -84,6 +84,26 @@ class AdminRequestsUpdateComprasTest extends TestCase
             ->assertDownload('pedido 4512.pdf');
     }
 
+    public function test_admin_anexa_orcamento_do_vendedor_quando_ele_esqueceu(): void
+    {
+        Storage::fake('local');
+        $item = PurchaseRequest::factory()->create();
+
+        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
+            'status' => 'aprovado',
+            'anexo'  => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+        ]);
+
+        $item->refresh();
+        $this->assertSame('orcamento.pdf', $item->anexo_nome);
+        Storage::disk('local')->assertExists($item->anexo_path);
+
+        $this->actingAs($this->admin())
+            ->get(route('requests.anexo', $item))
+            ->assertOk()
+            ->assertDownload('orcamento.pdf');
+    }
+
     public function test_trocar_o_anexo_pelo_modal_apaga_o_arquivo_antigo(): void
     {
         Storage::fake('local');

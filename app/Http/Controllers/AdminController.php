@@ -124,10 +124,13 @@ class AdminController extends Controller
             'data_compra'       => 'nullable|date',
             'data_coleta'       => 'nullable|date|after_or_equal:data_compra',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'anexo'             => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'data_coleta.after_or_equal' => 'A data da coleta não pode ser antes da data da compra.',
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
+            'anexo.mimes'                => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
+            'anexo.max'                  => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
         $supplier = $request->supplier ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8') : null;
@@ -151,6 +154,18 @@ class AdminController extends Controller
 
             $atualizacao['pedido_compra_path'] = $arquivo->store('pedidos-compra', self::DISCO_PEDIDO_COMPRA);
             $atualizacao['pedido_compra_nome'] = $arquivo->getClientOriginalName();
+
+            if ($caminhoAntigo) {
+                Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
+            }
+        }
+
+        if ($request->hasFile('anexo')) {
+            $arquivo = $request->file('anexo');
+            $caminhoAntigo = $purchaseRequest->anexo_path;
+
+            $atualizacao['anexo_path'] = $arquivo->store('anexos-requisicao', self::DISCO_PEDIDO_COMPRA);
+            $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
 
             if ($caminhoAntigo) {
                 Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
