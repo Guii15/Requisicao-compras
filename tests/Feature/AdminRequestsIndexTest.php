@@ -62,4 +62,32 @@ class AdminRequestsIndexTest extends TestCase
 
         $response->assertSee('Parcial', false);
     }
+
+    public function test_index_avisa_quantas_aprovadas_ainda_nao_tem_dados_da_compra(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Sem Dados']);
+        PurchaseRequest::factory()->aprovado()->create([
+            'product_name'   => 'Com Dados',
+            'data_compra'    => '2026-09-20',
+            'preco_unitario' => 10,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.index'))
+            ->assertSee('1 aprovada ainda sem dados da compra');
+    }
+
+    public function test_index_nao_mostra_aviso_quando_todas_tem_dados_da_compra(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        PurchaseRequest::factory()->aprovado()->create([
+            'data_compra'    => '2026-09-20',
+            'preco_unitario' => 10,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.index'))
+            ->assertDontSee('sem dados da compra');
+    }
 }

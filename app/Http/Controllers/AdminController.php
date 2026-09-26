@@ -64,6 +64,10 @@ class AdminController extends Controller
             'total_gasto' => (float) PurchaseRequest::where('status', 'aprovado')->sum('valor'),
         ];
 
+        $aprovadasSemDadosDaCompra = PurchaseRequest::where('status', 'aprovado')
+            ->where(fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario'))
+            ->count();
+
         $vendorSpending = PurchaseRequest::select('requester_name')
             ->selectRaw('SUM(valor) as total_gasto')
             ->where('status', 'aprovado')
@@ -104,7 +108,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
+        return view('admin.index', compact('requests', 'stats', 'aprovadasSemDadosDaCompra', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     private const DISCO_PEDIDO_COMPRA = 'local';
