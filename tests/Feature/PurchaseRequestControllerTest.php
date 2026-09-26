@@ -688,6 +688,23 @@ class PurchaseRequestControllerTest extends TestCase
             ->assertSee('15/09/2026', false);
     }
 
+    public function test_vendedor_ve_o_link_do_proprio_anexo_na_listagem(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
+            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+        ]));
+
+        $item = PurchaseRequest::first();
+
+        $this->actingAs($user)
+            ->get(route('requests.index'))
+            ->assertSee('orcamento.pdf')
+            ->assertSee(route('requests.anexo', $item), false);
+    }
+
     public function test_vendedor_substitui_anexo_ao_editar_requisicao_pendente(): void
     {
         Storage::fake('local');

@@ -236,6 +236,9 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
+                                @if($req->anexo_path)
+                                    <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                                @endif
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                     <div>
                                         @if($req->entrada_concluida_em)
@@ -393,6 +396,12 @@
                         <div style="font-size:15px; font-weight:700; color:#1e3a8a;">{{ $req->product_name }}</div>
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
+                        @endif
+                        @if($req->product_url)
+                            <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
+                        @endif
+                        @if($req->anexo_path)
+                            <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
                         @endif
                         @if($req->entrada_concluida_em)
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
