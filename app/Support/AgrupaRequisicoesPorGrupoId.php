@@ -12,8 +12,14 @@ trait AgrupaRequisicoesPorGrupoId
      * Pagina a query por grupo_id (uma requisicao = varios itens) em vez de por linha.
      * Assume que todo registro visivel ja tem grupo_id preenchido (migration +
      * comando de backfill garantem isso). Cada pagina traz o item mais recente
-     * de cada grupo pra ordenar/paginar, depois busca TODOS os itens dos grupos
-     * daquela pagina, ja que grupo_id e' unico por usuario/submissao.
+     * de cada grupo pra ordenar/paginar, depois busca os itens dos grupos daquela
+     * pagina, ja que grupo_id e' unico por usuario/submissao.
+     *
+     * $filtrarItensPelaQuery: por padrao (false) traz TODOS os itens do grupo,
+     * mesmo os que nao batem com o filtro (ex: admin ve a requisicao inteira pra
+     * ter contexto). Quando true, so' traz os itens que TAMBEM batem com o filtro
+     * original (ex: em Conferencia/Entrada, um item ainda pendente de aprovacao
+     * nao deve aparecer misturado com os itens ja liberados pra aquela etapa).
      */
     protected function paginarAgrupadoPorGrupoId(
         Builder $query,
@@ -21,7 +27,8 @@ trait AgrupaRequisicoesPorGrupoId
         string $pageName = 'page',
         array $with = [],
         string $ordenarPor = 'created_at',
-        ?string $ordenarPorDesempate = null
+        ?string $ordenarPorDesempate = null,
+        bool $filtrarItensPelaQuery = false
     ): LengthAwarePaginator {
         $paginadorDeGrupos = (clone $query)
             ->select('grupo_id')
@@ -48,7 +55,7 @@ trait AgrupaRequisicoesPorGrupoId
         // chamador); reaplicar o escopo padrao aqui excluiria grupos de historico importado.
         $itensPorGrupo = empty($grupoIds)
             ? collect()
-            : PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
+            : ($filtrarItensPelaQuery ? (clone $query) : PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo'))
                 ->whereIn('grupo_id', $grupoIds)
                 ->with($with)
                 ->orderBy('created_at')
