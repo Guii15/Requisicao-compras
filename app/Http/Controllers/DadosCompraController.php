@@ -120,7 +120,7 @@ class DadosCompraController extends Controller
             abort(404, 'Nenhum pedido de compra anexado.');
         }
 
-        return Storage::disk(self::DISCO)->download($caminho, $purchaseRequest->pedido_compra_nome ?? basename($caminho));
+        return Storage::disk(self::DISCO)->response($caminho, $purchaseRequest->pedido_compra_nome ?? basename($caminho));
     }
 
     private function garantirAprovada(PurchaseRequest $purchaseRequest): void

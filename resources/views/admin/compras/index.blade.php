@@ -87,7 +87,7 @@
                         <td style="padding:10px 14px; white-space:nowrap;">{{ $item->entrada_concluida_em?->timezone('America/Sao_Paulo')->format('d/m/Y') ?? '—' }}</td>
                         <td style="padding:10px 14px;">
                             @if($item->pedido_compra_path)
-                                <a href="{{ route('admin.compras.pedido', $item) }}" style="color:#05018D; font-weight:600;">Baixar</a>
+                                <a href="{{ route('admin.compras.pedido', $item) }}" target="_blank" style="color:#05018D; font-weight:600;">Ver</a>
                             @else
                                 <span style="color:#9ca3af;">—</span>
                             @endif

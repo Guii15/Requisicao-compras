@@ -626,7 +626,7 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertNull($itemB->anexo_path);
     }
 
-    public function test_vendedor_baixa_o_proprio_anexo(): void
+    public function test_vendedor_abre_o_proprio_anexo_inline(): void
     {
         Storage::fake('local');
         $user = User::factory()->create();
@@ -639,10 +639,12 @@ class PurchaseRequestControllerTest extends TestCase
 
         $item = PurchaseRequest::first();
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->get(route('requests.anexo', $item))
-            ->assertOk()
-            ->assertDownload('orcamento.pdf');
+            ->assertOk();
+
+        $this->assertStringContainsString('inline', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('orcamento.pdf', $response->headers->get('content-disposition'));
     }
 
     public function test_outro_vendedor_nao_baixa_anexo_alheio(): void

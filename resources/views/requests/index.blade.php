@@ -237,7 +237,7 @@
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
                                 @if($req->anexo_path)
-                                    <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                                    <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
                                 @endif
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                     <div>
@@ -280,7 +280,7 @@
                                             <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
                                         @endif
                                         @if($req->pedido_compra_path)
-                                            <br><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
+                                            <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
                                         @endif
                                     </div>
                                 @endif
@@ -401,7 +401,7 @@
                             <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                         @endif
                         @if($req->anexo_path)
-                            <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                            <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
                         @endif
                         @if($req->entrada_concluida_em)
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
@@ -456,7 +456,7 @@
                                     <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
                                 @endif
                                 @if($req->pedido_compra_path)
-                                    <br><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
+                                    <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
                                 @endif
                             </div>
                         @endif

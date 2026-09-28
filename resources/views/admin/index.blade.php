@@ -384,7 +384,7 @@
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
                                 @if($req->anexo_path)
-                                    <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                                    <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
                                 @endif
                             </td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">
@@ -402,7 +402,7 @@
                                             <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
                                         @endif
                                         @if($req->pedido_compra_path)
-                                            <br><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
+                                            <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
                                         @endif
                                     </div>
                                 @endif
@@ -505,7 +505,7 @@
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
                                         @if($req->pedido_compra_path)
-                                            <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                            <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
                                         @endif
                                         <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                                style="width:100%; font-size:13px;">
@@ -514,7 +514,7 @@
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
                                         @if($req->anexo_path)
-                                            <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                            <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
                                         @endif
                                         <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                                style="width:100%; font-size:13px;">
@@ -615,7 +615,7 @@
                             <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">Ver link</a>
                         @endif
                         @if($req->anexo_path)
-                            <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                            <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
                         @endif
                     </div>
                     @if($req->status=='aprovado')
@@ -648,7 +648,7 @@
                                     <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
                                 @endif
                                 @if($req->pedido_compra_path)
-                                    <br><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
+                                    <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
                                 @endif
                             </div>
                         @endif
@@ -743,7 +743,7 @@
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
                             @if($req->pedido_compra_path)
-                                <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
                             @endif
                             <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                    style="width:100%; font-size:13px;">
@@ -751,7 +751,7 @@
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
                             @if($req->anexo_path)
-                                <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
                             @endif
                             <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                    style="width:100%; font-size:13px;">

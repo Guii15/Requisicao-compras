@@ -115,7 +115,7 @@
             <div style="margin-top:16px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Anexo <span style="color:#9ca3af; font-weight:400;">(opcional — orçamento, print, cotação... PDF ou imagem)</span></label>
                 @if($purchaseRequest->anexo_path)
-                    <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $purchaseRequest) }}" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $purchaseRequest->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                    <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $purchaseRequest) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $purchaseRequest->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
                 @endif
                 <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
             </div>
