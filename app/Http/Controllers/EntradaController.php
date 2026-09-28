@@ -56,11 +56,12 @@ class EntradaController extends Controller
 
         $request->validate([
             'vendedor_destino'   => 'required|string|max:255',
-            'quantidade_entrada' => 'required|integer|min:0|max:' . $quantidadeMaxima,
+            'quantidade_entrada' => 'required|integer|min:' . $quantidadeMaxima . '|max:' . $quantidadeMaxima,
         ], [
             'vendedor_destino.required'   => 'Informe o vendedor destino.',
             'quantidade_entrada.required' => 'Informe a quantidade que entrou.',
-            'quantidade_entrada.max'      => 'A quantidade não pode ser maior que a recebida na conferência (' . $quantidadeMaxima . ').',
+            'quantidade_entrada.min'      => 'A entrada precisa ser da quantidade cheia recebida na conferência (' . $quantidadeMaxima . '). Se faltou alguma unidade, resolva isso na conferência antes de dar entrada.',
+            'quantidade_entrada.max'      => 'A entrada precisa ser da quantidade cheia recebida na conferência (' . $quantidadeMaxima . '). Se faltou alguma unidade, resolva isso na conferência antes de dar entrada.',
         ]);
 
         $purchaseRequest->update([

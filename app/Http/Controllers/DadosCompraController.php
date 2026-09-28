@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use App\Support\AgrupaRequisicoesPorGrupoId;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class DadosCompraController extends Controller
 {
+    use AgrupaRequisicoesPorGrupoId;
+
     private const DISCO = 'local';
 
     public function index(Request $request)
@@ -48,9 +51,21 @@ class DadosCompraController extends Controller
             $query->where('product_name', 'like', '%' . $request->produto . '%');
         }
 
-        $itens = $query->orderByDesc('updated_at')->paginate(20)->withQueryString();
+        if ($request->filled('vendedor')) {
+            $query->where('requester_name', 'like', '%' . $request->vendedor . '%');
+        }
 
-        return view('admin.compras.feitas', compact('itens'));
+        if ($request->filled('data_inicial')) {
+            $query->whereDate('data_compra', '>=', $request->data_inicial);
+        }
+
+        if ($request->filled('data_final')) {
+            $query->whereDate('data_compra', '<=', $request->data_final);
+        }
+
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], 'updated_at')->withQueryString();
+
+        return view('admin.compras.feitas', compact('requests'));
     }
 
     public function edit(PurchaseRequest $purchaseRequest)
