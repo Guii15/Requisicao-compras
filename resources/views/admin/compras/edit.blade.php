@@ -84,7 +84,7 @@
                     <label style="{{ $labelStyle }}">Pedido de compra (PDF ou imagem, até 10 MB)</label>
                     @if($item->pedido_compra_path)
                         <div style="font-size:13px; margin-bottom:8px;">
-                            Anexado: <a href="{{ route('admin.compras.pedido', $item) }}" style="color:#05018D; font-weight:600;">{{ $item->pedido_compra_nome }}</a>
+                            Anexado: <a href="{{ route('admin.compras.pedido', $item) }}" target="_blank" style="color:#05018D; font-weight:600;">{{ $item->pedido_compra_nome }}</a>
                             <span style="color:#9ca3af;">— enviar outro arquivo substitui este</span>
                         </div>
                     @endif

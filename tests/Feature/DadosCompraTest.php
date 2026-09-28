@@ -117,10 +117,12 @@ class DadosCompraTest extends TestCase
         $this->assertSame('pedido 4512.pdf', $item->pedido_compra_nome);
         Storage::disk('local')->assertExists($item->pedido_compra_path);
 
-        $this->actingAs($this->admin())
+        $response = $this->actingAs($this->admin())
             ->get(route('admin.compras.pedido', $item))
-            ->assertOk()
-            ->assertDownload('pedido 4512.pdf');
+            ->assertOk();
+
+        $this->assertStringContainsString('inline', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('pedido 4512.pdf', $response->headers->get('content-disposition'));
     }
 
     public function test_trocar_o_anexo_apaga_o_arquivo_antigo(): void
@@ -192,10 +194,12 @@ class DadosCompraTest extends TestCase
             'pedido_compra' => UploadedFile::fake()->create('pedido.pdf', 10, 'application/pdf'),
         ]));
 
-        $this->actingAs($vendedor)
+        $response = $this->actingAs($vendedor)
             ->get(route('admin.compras.pedido', $item))
-            ->assertOk()
-            ->assertDownload('pedido.pdf');
+            ->assertOk();
+
+        $this->assertStringContainsString('inline', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('pedido.pdf', $response->headers->get('content-disposition'));
     }
 
     public function test_outro_vendedor_nao_baixa_pedido_de_compra_alheio(): void

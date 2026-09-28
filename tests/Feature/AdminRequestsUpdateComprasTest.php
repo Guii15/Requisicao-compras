@@ -78,10 +78,12 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertSame('pedido 4512.pdf', $item->pedido_compra_nome);
         Storage::disk('local')->assertExists($item->pedido_compra_path);
 
-        $this->actingAs($this->admin())
+        $response = $this->actingAs($this->admin())
             ->get(route('admin.compras.pedido', $item))
-            ->assertOk()
-            ->assertDownload('pedido 4512.pdf');
+            ->assertOk();
+
+        $this->assertStringContainsString('inline', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('pedido 4512.pdf', $response->headers->get('content-disposition'));
     }
 
     public function test_admin_anexa_orcamento_do_vendedor_quando_ele_esqueceu(): void
@@ -98,10 +100,12 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertSame('orcamento.pdf', $item->anexo_nome);
         Storage::disk('local')->assertExists($item->anexo_path);
 
-        $this->actingAs($this->admin())
+        $response = $this->actingAs($this->admin())
             ->get(route('requests.anexo', $item))
-            ->assertOk()
-            ->assertDownload('orcamento.pdf');
+            ->assertOk();
+
+        $this->assertStringContainsString('inline', $response->headers->get('content-disposition'));
+        $this->assertStringContainsString('orcamento.pdf', $response->headers->get('content-disposition'));
     }
 
     public function test_trocar_o_anexo_pelo_modal_apaga_o_arquivo_antigo(): void

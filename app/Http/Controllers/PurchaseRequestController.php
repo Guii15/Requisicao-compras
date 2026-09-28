@@ -191,7 +191,7 @@ class PurchaseRequestController extends Controller
             abort(404, 'Nenhum anexo encontrado.');
         }
 
-        return Storage::disk(self::DISCO_ANEXO)->download($caminho, $purchaseRequest->anexo_nome ?? basename($caminho));
+        return Storage::disk(self::DISCO_ANEXO)->response($caminho, $purchaseRequest->anexo_nome ?? basename($caminho));
     }
 
     public function export(PurchaseRequest $purchaseRequest)
