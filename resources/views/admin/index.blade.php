@@ -66,13 +66,6 @@
             Requisições que ainda precisam de aprovação ou rejeição. Depois de decidido, o item sai daqui. Depois de aprovada, registre os dados da compra em
             <a href="{{ route('admin.compras.index') }}" style="color:#05018D; font-weight:600;">Compras</a>.
         </p>
-        @if($aprovadasSemDadosDaCompra > 0)
-            <p style="margin:8px 0 0; font-size:13px;">
-                <a href="{{ route('admin.compras.index', ['situacao' => 'sem_dados']) }}" style="color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:5px 12px; border-radius:20px; font-weight:600; text-decoration:none; display:inline-block;">
-                    ⚠️ {{ $aprovadasSemDadosDaCompra }} {{ $aprovadasSemDadosDaCompra === 1 ? 'aprovada ainda sem dados da compra' : 'aprovadas ainda sem dados da compra' }}
-                </a>
-            </p>
-        @endif
     </div>
 
     {{-- Mensagem de sucesso --}}
