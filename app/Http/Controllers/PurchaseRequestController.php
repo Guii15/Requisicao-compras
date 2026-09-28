@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Mail\PurchaseRequestCreated;
 use App\Http\Controllers\AdminController;
@@ -14,6 +15,8 @@ use App\Support\AgrupaRequisicoesPorGrupoId;
 class PurchaseRequestController extends Controller
 {
     use AgrupaRequisicoesPorGrupoId;
+
+    private const DISCO_ANEXO = 'local';
 
     public function index(Request $request)
     {
@@ -131,6 +134,7 @@ class PurchaseRequestController extends Controller
             'product_code'   => 'nullable|string|max:100',
             'product_url'    => 'nullable|url|max:2048',
             'quantity'       => 'required|integer|min:1',
+            'anexo'          => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'requester_name.required' => 'O nome do vendedor é obrigatório.',
             'urgency.required'        => 'Selecione a urgência.',
@@ -141,9 +145,11 @@ class PurchaseRequestController extends Controller
             'quantity.required'       => 'A quantidade é obrigatória.',
             'quantity.min'            => 'A quantidade mínima é 1.',
             'justification.required'  => 'O campo Obs é obrigatório.',
+            'anexo.mimes'              => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
+            'anexo.max'                => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
-        $purchaseRequest->update([
+        $atualizacao = [
             'requester_name' => $request->requester_name,
             'supplier'       => $request->supplier,
             'urgency'        => $request->urgency,
@@ -154,9 +160,38 @@ class PurchaseRequestController extends Controller
             'product_code'   => $request->product_code,
             'product_url'    => $request->product_url,
             'quantity'       => $request->quantity,
-        ]);
+        ];
+
+        if ($request->hasFile('anexo')) {
+            $arquivo = $request->file('anexo');
+            $caminhoAntigo = $purchaseRequest->anexo_path;
+
+            $atualizacao['anexo_path'] = $arquivo->store('anexos-requisicao', self::DISCO_ANEXO);
+            $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
+
+            if ($caminhoAntigo) {
+                Storage::disk(self::DISCO_ANEXO)->delete($caminhoAntigo);
+            }
+        }
+
+        $purchaseRequest->update($atualizacao);
 
         return redirect()->route('requests.index')->with('success', 'Requisição atualizada com sucesso!');
+    }
+
+    public function baixarAnexo(PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $caminho = $purchaseRequest->anexo_path;
+
+        if (!$caminho || !Storage::disk(self::DISCO_ANEXO)->exists($caminho)) {
+            abort(404, 'Nenhum anexo encontrado.');
+        }
+
+        return Storage::disk(self::DISCO_ANEXO)->download($caminho, $purchaseRequest->anexo_nome ?? basename($caminho));
     }
 
     public function export(PurchaseRequest $purchaseRequest)
@@ -183,6 +218,7 @@ class PurchaseRequestController extends Controller
             'products.*.product_code' => 'nullable|string|max:100',
             'products.*.product_url'  => 'nullable|string|max:2048',
             'products.*.quantity'     => 'required|integer|min:1',
+            'products.*.anexo'        => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'requester_name.required'          => 'O nome do vendedor é obrigatório.',
             'urgency.required'                 => 'Selecione a urgência.',
@@ -193,14 +229,25 @@ class PurchaseRequestController extends Controller
             'products.*.product_name.required' => 'Preencha o nome do produto em todos os itens.',
             'products.*.quantity.required'     => 'Preencha a quantidade em todos os itens.',
             'products.*.quantity.min'          => 'A quantidade mínima é 1.',
+            'products.*.anexo.mimes'           => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
+            'products.*.anexo.max'             => 'O anexo pode ter no máximo 10 MB.',
             'justification.required'           => 'O campo Obs é obrigatório.',
         ]);
 
         $created = [];
         $grupoId = (string) Str::uuid();
 
-        foreach ($request->products as $product) {
+        foreach ($request->products as $index => $product) {
             if (empty(trim($product['product_name'] ?? ''))) continue;
+
+            $anexoPath = null;
+            $anexoNome = null;
+
+            if ($request->hasFile("products.{$index}.anexo")) {
+                $arquivo = $request->file("products.{$index}.anexo");
+                $anexoPath = $arquivo->store('anexos-requisicao', self::DISCO_ANEXO);
+                $anexoNome = $arquivo->getClientOriginalName();
+            }
 
             $created[] = PurchaseRequest::create([
                 'user_id'        => Auth::id(),
@@ -214,6 +261,8 @@ class PurchaseRequestController extends Controller
                 'product_name'   => $product['product_name'],
                 'product_code'   => $product['product_code'] ?? null,
                 'product_url'    => $product['product_url'] ?? null,
+                'anexo_path'     => $anexoPath,
+                'anexo_nome'     => $anexoNome,
                 'quantity'       => $product['quantity'],
                 'status'         => 'pendente',
             ]);

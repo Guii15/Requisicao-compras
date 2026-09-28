@@ -34,7 +34,7 @@ class EntradaController extends Controller
             });
         }
 
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente', 'fotosConferencia'], $ordenarPor)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente', 'fotosConferencia'], $ordenarPor, null, true)->withQueryString();
 
         return view('entrada.index', compact('requests', 'aba', 'q'));
     }

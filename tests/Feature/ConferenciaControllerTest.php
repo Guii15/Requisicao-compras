@@ -111,7 +111,7 @@ class ConferenciaControllerTest extends TestCase
         $this->assertCount(2, $grupos->first());
     }
 
-    public function test_index_aguardando_shows_already_conferred_item_from_same_group_without_conferir_button(): void
+    public function test_index_aguardando_nao_mostra_item_ja_conferido_do_mesmo_grupo(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
         $grupoId = (string) \Illuminate\Support\Str::uuid();
@@ -123,18 +123,9 @@ class ConferenciaControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
-        $html = $response->getContent();
 
         $response->assertSee('Item Pendente De Conferencia');
-        $response->assertSee('Item Ja Conferido No Mesmo Grupo');
-
-        $posJaConferido = strpos($html, 'Item Ja Conferido No Mesmo Grupo');
-        $posProximoBotaoConferir = strpos($html, 'Conferir', $posJaConferido);
-        $posOkBadge = strpos($html, '>OK<', $posJaConferido);
-        $this->assertNotFalse($posOkBadge);
-        if ($posProximoBotaoConferir !== false) {
-            $this->assertLessThan($posProximoBotaoConferir, $posOkBadge, 'O badge OK do item ja conferido deve aparecer antes de qualquer botao Conferir seguinte.');
-        }
+        $response->assertDontSee('Item Ja Conferido No Mesmo Grupo');
     }
 
     public function test_conferir_with_resultado_ok_persists_conferido_ok_and_photo(): void

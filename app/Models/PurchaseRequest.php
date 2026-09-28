@@ -36,6 +36,8 @@ class PurchaseRequest extends Model
         'product_name',
         'product_code',
         'product_url',
+        'anexo_path',
+        'anexo_nome',
         'supplier',
         'quantity',
         'reason',
@@ -58,13 +60,28 @@ class PurchaseRequest extends Model
         'aba_origem',
         'mes_origem',
         'dados_importacao',
+        'preco_unitario',
+        'codigo_fornecedor',
+        'data_coleta',
+        'pedido_compra_path',
+        'pedido_compra_nome',
     ];
 
     protected $casts = [
         'entrada_concluida_em' => 'datetime',
         'data_compra' => 'date',
+        'data_coleta' => 'date',
+        'preco_unitario' => 'decimal:2',
         'dados_importacao' => 'array',
     ];
+
+    /**
+     * O comprador ja registrou a compra quando tem pelo menos data e preco unitario.
+     */
+    public function temDadosDaCompra(): bool
+    {
+        return $this->data_compra !== null && $this->preco_unitario !== null;
+    }
 
     public function user(): BelongsTo
     {

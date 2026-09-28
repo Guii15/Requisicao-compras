@@ -48,7 +48,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
             <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#6b7280; cursor:pointer;">
-                <input type="checkbox" name="remember" style="width:15px; height:15px; accent-color:#05018D;">
+                <input type="checkbox" name="remember" value="1" @checked(old('remember', true)) style="width:15px; height:15px; accent-color:#05018D;">
                 Lembrar de mim
             </label>
             @if (Route::has('password.request'))

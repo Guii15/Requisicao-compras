@@ -236,6 +236,9 @@
                                 @if($req->product_url)
                                     <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
                                 @endif
+                                @if($req->anexo_path)
+                                    <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                                @endif
                                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                     <div>
                                         @if($req->entrada_concluida_em)
@@ -262,7 +265,26 @@
                                     @endif
                                 </div>
                             </td>
-                            <td style="padding:14px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
+                            <td style="padding:14px 16px; font-size:14px; color:#374151;">
+                                {{ $req->supplier ?? '—' }}
+                                @if($req->temDadosDaCompra())
+                                    <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
+                                        Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
+                                        @if($req->valor)
+                                            <br>Total: <strong style="color:#059669;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
+                                        @endif
+                                        @if($req->data_compra)
+                                            <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
+                                        @endif
+                                        @if($req->data_coleta)
+                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
+                                        @endif
+                                        @if($req->pedido_compra_path)
+                                            <br><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
                             <td style="padding:14px 16px; text-align:center; font-size:14px; color:#374151; font-weight:600;">{{ $req->quantity }}</td>
                             <td style="padding:14px 16px; text-align:center;">
                                 @if($req->urgency=='alta')
@@ -375,6 +397,12 @@
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
                         @endif
+                        @if($req->product_url)
+                            <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
+                        @endif
+                        @if($req->anexo_path)
+                            <a href="{{ route('requests.anexo', $req) }}" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
+                        @endif
                         @if($req->entrada_concluida_em)
                             <span style="display:inline-block; margin-top:4px; background:#dcfce7; color:#16a34a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
                             <span style="display:block; margin-top:2px; font-size:11px; color:#9ca3af;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
@@ -415,6 +443,23 @@
                     <div>
                         <span style="color:#9ca3af;">Fornecedor</span>
                         <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
+                        @if($req->temDadosDaCompra())
+                            <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
+                                Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
+                                @if($req->valor)
+                                    <br>Total: <strong style="color:#059669;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
+                                @endif
+                                @if($req->data_compra)
+                                    <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
+                                @endif
+                                @if($req->data_coleta)
+                                    <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
+                                @endif
+                                @if($req->pedido_compra_path)
+                                    <br><a href="{{ route('admin.compras.pedido', $req) }}" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Quantidade</span>

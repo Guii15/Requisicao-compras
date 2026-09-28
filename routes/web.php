@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DadosCompraController;
 use App\Http\Controllers\ConferenciaController;
 use App\Http\Controllers\PendenciaController;
 use App\Http\Controllers\EntradaController;
@@ -10,6 +11,7 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
 use App\Http\Middleware\EntradaMiddleware;
+use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\VendedorMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +60,11 @@ Route::middleware(['auth', VendedorMiddleware::class])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/requisicoes/{purchaseRequest}/anexo', [PurchaseRequestController::class, 'baixarAnexo'])->name('requests.anexo');
+    Route::get('/admin/compras/{purchaseRequest}/pedido', [DadosCompraController::class, 'baixarPedido'])->name('admin.compras.pedido');
+});
+
+Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:10,1')->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->middleware('throttle:10,1')->name('profile.destroy');
@@ -69,16 +76,22 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::get('/requisicoes/{purchaseRequest}/exportar', [AdminController::class, 'export'])->name('requests.export');
 
     Route::get('/mensal/{year}/{month}', [AdminController::class, 'monthlyRequests'])->name('monthly');
+    Route::get('/compras', [DadosCompraController::class, 'index'])->name('compras.index');
+    Route::get('/compras-feitas', [DadosCompraController::class, 'feitas'])->name('compras.feitas');
+    Route::get('/compras/{purchaseRequest}', [DadosCompraController::class, 'edit'])->name('compras.edit');
+    Route::patch('/compras/{purchaseRequest}', [DadosCompraController::class, 'update'])->middleware('throttle:60,1')->name('compras.update');
     Route::get('/itens-mais-solicitados', [AdminController::class, 'itensMaisSolicitados'])->name('itens-mais-solicitados');
     Route::get('/historico-compras', [AdminController::class, 'historicoCompras'])->name('historico-compras');
     Route::get('/historico-compras/planilha', [AdminController::class, 'downloadPlanilhaOriginal'])->name('historico-compras.planilha.download');
     Route::get('/historico-compras/planilha/{aba}', [AdminController::class, 'downloadAbaPlanilhaOriginal'])->name('historico-compras.planilha.download-aba');
 
-    Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
-    Route::post('/usuarios', [AdminController::class, 'storeUser'])->middleware('throttle:10,1')->name('users.store');
-    Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->middleware('throttle:10,1')->name('users.destroy');
-    Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->middleware('throttle:10,1')->name('users.resetPassword');
-    Route::patch('/usuarios/{user}/perfil', [AdminController::class, 'updateRole'])->middleware('throttle:10,1')->name('users.updateRole');
+    Route::middleware(SuperAdminMiddleware::class)->group(function () {
+        Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
+        Route::post('/usuarios', [AdminController::class, 'storeUser'])->middleware('throttle:10,1')->name('users.store');
+        Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->middleware('throttle:10,1')->name('users.destroy');
+        Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->middleware('throttle:10,1')->name('users.resetPassword');
+        Route::patch('/usuarios/{user}/perfil', [AdminController::class, 'updateRole'])->middleware('throttle:10,1')->name('users.updateRole');
+    });
 });
 
 Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(function () {

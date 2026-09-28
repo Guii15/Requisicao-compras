@@ -12,32 +12,7 @@
         </div>
     </div>
 
-    {{-- Abas --}}
-    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb; flex-wrap:wrap;">
-        <a href="{{ route('admin.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            Requisições
-        </a>
-        <a href="{{ route('admin.users.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            Usuários
-        </a>
-        <a href="{{ route('pendencias.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:transparent; color:#6b7280; border:2px solid transparent; border-bottom:2px solid transparent;"
-           onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'">
-            📋 Pendências
-        </a>
-        <a href="{{ route('admin.historico-compras') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
-                  background:#05018D; color:#fff; border:2px solid #05018D; border-bottom:2px solid #05018D;">
-            🗂️ Histórico de Compras
-        </a>
-    </div>
+    @include('admin._abas')
 
     <div style="margin-bottom:20px;">
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Histórico de Compras</h2>
@@ -305,6 +280,11 @@
                             </div>
                             @if($entradaLabel)
                                 <div style="font-size:11.5px; color:{{ $entradaCor }}; font-weight:600; margin-top:2px;">{{ $entradaLabel }}</div>
+                            @endif
+                            @if($itemHist->tipo_registro === 'requisicao' && $itemHist->status === 'aprovado')
+                                <a href="{{ route('admin.compras.edit', $itemHist->id) }}" style="font-size:12px; color:#05018D; font-weight:600;">
+                                    {{ $itemHist->temDadosDaCompra() ? 'Ver dados da compra' : 'Registrar dados da compra' }}
+                                </a>
                             @endif
                             @if(!empty($dadosItem))
                                 <button type="button" onclick="toggleDadosHistorico('{{ $itemHist->id }}')"

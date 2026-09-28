@@ -70,7 +70,7 @@ class EntradaControllerTest extends TestCase
         $this->assertCount(2, $grupos->first());
     }
 
-    public function test_index_aguardando_shows_item_with_entrada_ja_dada_from_same_group_without_dar_entrada_button(): void
+    public function test_index_aguardando_nao_mostra_item_com_entrada_ja_dada_do_mesmo_grupo(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
         $grupoId = (string) \Illuminate\Support\Str::uuid();
@@ -85,14 +85,9 @@ class EntradaControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($entrada)->get(route('entrada.index'));
-        $html = $response->getContent();
 
         $response->assertSee('Item Aguardando Entrada');
-        $response->assertSee('Item Ja Com Entrada No Mesmo Grupo');
-
-        $posJaComEntrada = strpos($html, 'Item Ja Com Entrada No Mesmo Grupo');
-        $posEntradaEm = strpos($html, 'Entrada em', $posJaComEntrada);
-        $this->assertNotFalse($posEntradaEm);
+        $response->assertDontSee('Item Ja Com Entrada No Mesmo Grupo');
     }
 
     public function test_index_lists_only_conferido_ok_or_avancado_without_entrada(): void
@@ -349,7 +344,7 @@ class EntradaControllerTest extends TestCase
         $response->assertSessionHas('aviso', 'Este item ainda não foi aprovado/conferido — não é possível dar entrada nele ainda.');
     }
 
-    public function test_item_nao_conferido_no_mesmo_grupo_nao_mostra_botao_dar_entrada(): void
+    public function test_item_nao_conferido_no_mesmo_grupo_nao_aparece_na_listagem_de_entrada(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
         $grupoId = (string) \Illuminate\Support\Str::uuid();
@@ -360,8 +355,8 @@ class EntradaControllerTest extends TestCase
 
         $response = $this->actingAs($entrada)->get(route('entrada.index'));
 
-        $response->assertSee('Item Nao Conferido');
-        $response->assertSee('Aguardando conferência', false);
+        $response->assertSee('Item Elegivel');
+        $response->assertDontSee('Item Nao Conferido');
     }
 
     public function test_dar_entrada_rejects_already_concluded_item(): void

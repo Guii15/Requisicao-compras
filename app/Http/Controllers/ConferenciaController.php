@@ -40,7 +40,7 @@ class ConferenciaController extends Controller
             });
         }
 
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente'])->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente'], 'created_at', null, true)->withQueryString();
 
         return view('conferencia.index', compact('requests', 'aba', 'resultado', 'q'));
     }

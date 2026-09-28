@@ -28,6 +28,17 @@ class User extends Authenticatable
         return (bool) $this->is_admin;
     }
 
+    /**
+     * O super admin e' quem cadastra/remove outros usuarios do sistema.
+     * E' um unico e-mail fixo (config/admin.php), nao um papel no banco.
+     */
+    public function isSuperAdmin(): bool
+    {
+        $email = config('admin.super_admin_email');
+
+        return $email !== null && strcasecmp($this->email, $email) === 0;
+    }
+
     public function isConferente(): bool
     {
         return $this->role === 'conferente' || $this->isAdmin();
