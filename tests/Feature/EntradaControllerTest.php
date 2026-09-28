@@ -316,6 +316,20 @@ class EntradaControllerTest extends TestCase
         $this->assertNull($req->fresh()->entrada_concluida_em);
     }
 
+    public function test_dar_entrada_rejeita_quantidade_menor_que_a_recebida(): void
+    {
+        $entrada = User::factory()->create(['role' => 'entrada']);
+        $req = $this->itemLiberadoParaEntrada(['quantity' => 3, 'quantidade_recebida' => 3]);
+
+        $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
+            'vendedor_destino' => 'Vendedor Original',
+            'quantidade_entrada' => 2,
+        ]);
+
+        $response->assertSessionHasErrors('quantidade_entrada');
+        $this->assertNull($req->fresh()->entrada_concluida_em);
+    }
+
     public function test_dar_entrada_aceita_quantidade_igual_a_recebida(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
