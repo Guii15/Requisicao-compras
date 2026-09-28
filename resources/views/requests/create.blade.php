@@ -243,11 +243,6 @@
                                       onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">{{ old('justification') }}</textarea>
                         </div>
 
-                        <div style="grid-column:1/-1;">
-                            <label style="{{ $labelStyle }}">Anexo <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — orçamento, print, cotação... PDF ou imagem)</span></label>
-                            <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
-                        </div>
-
                     </div>
 
                     {{-- Área de adicionar produto --}}
@@ -273,6 +268,10 @@
                             <input type="url" id="inp-url" placeholder="Link do produto (opcional) — ex: https://mercadolivre.com.br/..."
                                    style="{{ $inputStyle }}"
                                    onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+                        <div style="margin-top:8px;">
+                            <label style="{{ $labelStyle }} margin-bottom:3px;">Anexo deste item <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — orçamento, print, cotação... PDF ou imagem)</span></label>
+                            <input type="file" id="inp-anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
                         </div>
                     </div>
 
@@ -304,6 +303,8 @@
                         const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
                         let url = document.getElementById('inp-url').value.trim();
                         if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+                        const anexoInput = document.getElementById('inp-anexo');
+                        const anexoFile = anexoInput.files[0] || null;
 
                         if (!name) {
                             document.getElementById('inp-name').style.borderColor = '#ef4444';
@@ -311,13 +312,14 @@
                             return;
                         }
 
-                        items.push({ code, name, qty, url });
+                        items.push({ code, name, qty, url, anexoFile });
                         renderList();
 
                         document.getElementById('inp-code').value = '';
                         document.getElementById('inp-name').value = '';
                         document.getElementById('inp-qty').value  = '1';
                         document.getElementById('inp-url').value  = '';
+                        anexoInput.value = '';
                         document.getElementById('inp-code').focus();
                     }
 
@@ -332,6 +334,15 @@
                         document.getElementById('inp-name').value = item.name;
                         document.getElementById('inp-qty').value  = item.qty;
                         document.getElementById('inp-url').value  = item.url || '';
+
+                        const anexoInput = document.getElementById('inp-anexo');
+                        anexoInput.value = '';
+                        if (item.anexoFile) {
+                            const dt = new DataTransfer();
+                            dt.items.add(item.anexoFile);
+                            anexoInput.files = dt.files;
+                        }
+
                         items.splice(index, 1);
                         renderList();
                         document.getElementById('inp-name').focus();
@@ -355,19 +366,49 @@
                             row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
                             row.innerHTML = `
                                 <span class="col-code" style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
-                                <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}</span>
+                                <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}${item.anexoFile ? ' <span title="' + item.anexoFile.name + '" style="color:#05018D;">📎</span>' : ''}</span>
                                 <span style="padding:9px 12px; font-size:13px; text-align:center; font-weight:700; color:#374151;">${item.qty}</span>
                                 <button type="button" onclick="editItem(${i})" title="Editar" style="border:none; background:transparent; color:#6b7280; font-size:14px; cursor:pointer; padding:0 8px;">✏️</button>
                                 <button type="button" onclick="removeItem(${i})" title="Remover" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 8px;">×</button>
                             `;
                             body.appendChild(row);
 
-                            hidden.innerHTML += `
-                                <input type="hidden" name="products[${i}][product_code]" value="${item.code}">
-                                <input type="hidden" name="products[${i}][product_name]" value="${item.name}">
-                                <input type="hidden" name="products[${i}][quantity]"     value="${item.qty}">
-                                ${item.url ? `<input type="hidden" name="products[${i}][product_url]" value="${item.url}">` : ''}
-                            `;
+                            const inpCode = document.createElement('input');
+                            inpCode.type = 'hidden';
+                            inpCode.name = `products[${i}][product_code]`;
+                            inpCode.value = item.code;
+                            hidden.appendChild(inpCode);
+
+                            const inpName = document.createElement('input');
+                            inpName.type = 'hidden';
+                            inpName.name = `products[${i}][product_name]`;
+                            inpName.value = item.name;
+                            hidden.appendChild(inpName);
+
+                            const inpQty = document.createElement('input');
+                            inpQty.type = 'hidden';
+                            inpQty.name = `products[${i}][quantity]`;
+                            inpQty.value = item.qty;
+                            hidden.appendChild(inpQty);
+
+                            if (item.url) {
+                                const inpUrl = document.createElement('input');
+                                inpUrl.type = 'hidden';
+                                inpUrl.name = `products[${i}][product_url]`;
+                                inpUrl.value = item.url;
+                                hidden.appendChild(inpUrl);
+                            }
+
+                            if (item.anexoFile) {
+                                const inpAnexo = document.createElement('input');
+                                inpAnexo.type = 'file';
+                                inpAnexo.name = `products[${i}][anexo]`;
+                                inpAnexo.style.display = 'none';
+                                const dt = new DataTransfer();
+                                dt.items.add(item.anexoFile);
+                                inpAnexo.files = dt.files;
+                                hidden.appendChild(inpAnexo);
+                            }
                         });
                     }
 

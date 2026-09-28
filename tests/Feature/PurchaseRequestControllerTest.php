@@ -604,21 +604,26 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertSame($queryCountUm, $queryCountCinco, 'A quantidade de queries não deveria crescer com o número de linhas (foto por linha = N+1).');
     }
 
-    public function test_store_anexa_arquivo_e_aplica_em_todos_os_itens_do_grupo(): void
+    public function test_store_anexa_arquivo_por_item_e_nao_aplica_aos_outros_itens_do_grupo(): void
     {
         Storage::fake('local');
         $user = User::factory()->create();
 
         $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
-            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2, 'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf')],
+                ['product_name' => 'Produto B', 'quantity' => 1],
+            ],
         ]));
 
-        $itens = PurchaseRequest::all();
-        $this->assertCount(2, $itens);
-        foreach ($itens as $item) {
-            $this->assertSame('orcamento.pdf', $item->anexo_nome);
-            Storage::disk('local')->assertExists($item->anexo_path);
-        }
+        $itemA = PurchaseRequest::where('product_name', 'Produto A')->firstOrFail();
+        $itemB = PurchaseRequest::where('product_name', 'Produto B')->firstOrFail();
+
+        $this->assertSame('orcamento.pdf', $itemA->anexo_nome);
+        Storage::disk('local')->assertExists($itemA->anexo_path);
+
+        $this->assertNull($itemB->anexo_nome);
+        $this->assertNull($itemB->anexo_path);
     }
 
     public function test_vendedor_baixa_o_proprio_anexo(): void
@@ -627,7 +632,9 @@ class PurchaseRequestControllerTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
-            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2, 'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf')],
+            ],
         ]));
 
         $item = PurchaseRequest::first();
@@ -645,7 +652,9 @@ class PurchaseRequestControllerTest extends TestCase
         $outro = User::factory()->create();
 
         $this->actingAs($dono)->post(route('requests.store'), $this->validStorePayload([
-            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2, 'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf')],
+            ],
         ]));
 
         $item = PurchaseRequest::first();
@@ -660,7 +669,9 @@ class PurchaseRequestControllerTest extends TestCase
         $admin = User::factory()->create(['is_admin' => true]);
 
         $this->actingAs($dono)->post(route('requests.store'), $this->validStorePayload([
-            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2, 'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf')],
+            ],
         ]));
 
         $item = PurchaseRequest::first();
@@ -694,7 +705,9 @@ class PurchaseRequestControllerTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->post(route('requests.store'), $this->validStorePayload([
-            'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
+            'products' => [
+                ['product_name' => 'Produto A', 'quantity' => 2, 'anexo' => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf')],
+            ],
         ]));
 
         $item = PurchaseRequest::first();
