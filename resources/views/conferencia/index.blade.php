@@ -199,6 +199,17 @@
                             @endif
                         </tr>
 
+                        @if($req->obs)
+                        <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="8" style="padding:12px 16px;">
+                                <div style="padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                                    <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
+                                    <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        @endif
+
                         @if($req->status_conferencia === null && $podeConferir)
                         <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
@@ -393,6 +404,13 @@
 
                 @if($aba === 'conferidos')
                     <div style="font-size:12px; color:#9ca3af; margin-bottom:8px;">Conferido por: <strong style="color:#374151;">{{ $req->conferente->name ?? '—' }}</strong></div>
+                @endif
+
+                @if($req->obs)
+                <div style="margin-bottom:12px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                    <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
+                    <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                </div>
                 @endif
 
                 <div style="display:flex; justify-content:flex-end;">
