@@ -160,7 +160,12 @@
                     @foreach($grupo as $req)
                         <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6;">
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? '—' }}</td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->product_name }}</td>
+                            <td style="padding:12px 16px; font-size:14px; color:#374151;">
+                                {{ $req->product_name }}
+                                @if($req->pedido_compra_path)
+                                    <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 Pedido de compra</a>
+                                @endif
+                            </td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
                             <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
                             <td style="padding:12px 16px; text-align:center;">
@@ -198,7 +203,10 @@
                         <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
-                                <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                                <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                                @if($req->pedido_compra_path)
+                                    <p style="margin:0 0 16px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="font-size:13px; color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a></p>
+                                @endif
 
                                 <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
@@ -345,7 +353,12 @@
             <div class="grupo-item-{{ $chaveConfM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                    <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
+                    <div>
+                        <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
+                        @if($req->pedido_compra_path)
+                            <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 Pedido de compra</a>
+                        @endif
+                    </div>
                     @if($req->tipo_entrega === 'entrega_direta')
                         <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Venda Casada</span>
                     @else
@@ -401,7 +414,10 @@
             <div id="modal-conferir-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
-                    <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                    <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                    @if($req->pedido_compra_path)
+                        <p style="margin:0 0 16px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="font-size:13px; color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a></p>
+                    @endif
 
                     <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf

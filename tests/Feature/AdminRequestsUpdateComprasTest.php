@@ -53,6 +53,41 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertNull($item->refresh()->valor);
     }
 
+    public function test_preco_da_caixa_soma_no_total_junto_com_o_unitario(): void
+    {
+        $item = PurchaseRequest::factory()->create(['quantity' => 3]);
+
+        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
+            'status'         => 'aprovado',
+            'supplier'       => 'kabum',
+            'preco_unitario' => '10,00',
+            'preco_caixa'    => '50,00',
+            'data_compra'    => '2026-09-20',
+        ])->assertSessionDoesntHaveErrors();
+
+        $item->refresh();
+        $this->assertEquals(10.00, (float) $item->preco_unitario);
+        $this->assertEquals(50.00, (float) $item->preco_caixa);
+        $this->assertEquals(80.00, (float) $item->valor); // 3 x 10 + 50
+    }
+
+    public function test_preco_da_caixa_sozinho_tambem_soma_no_total(): void
+    {
+        $item = PurchaseRequest::factory()->create(['quantity' => 5]);
+
+        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
+            'status'      => 'aprovado',
+            'supplier'    => 'kabum',
+            'preco_caixa' => '90,00',
+            'data_compra' => '2026-09-20',
+        ])->assertSessionDoesntHaveErrors();
+
+        $item->refresh();
+        $this->assertNull($item->preco_unitario);
+        $this->assertEquals(90.00, (float) $item->preco_caixa);
+        $this->assertEquals(90.00, (float) $item->valor);
+    }
+
     public function test_coleta_nao_pode_ser_antes_da_compra_no_modal_de_atualizar(): void
     {
         $item = PurchaseRequest::factory()->create();

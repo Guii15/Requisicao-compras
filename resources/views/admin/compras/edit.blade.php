@@ -7,6 +7,7 @@
     $inputStyle = 'width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; box-sizing:border-box;';
     $erroStyle  = 'color:#b91c1c; font-size:12px; margin-top:4px;';
     $precoInicial = old('preco_unitario', $item->preco_unitario !== null ? number_format($item->preco_unitario, 2, ',', '.') : '');
+    $precoCaixaInicial = old('preco_caixa', $item->preco_caixa !== null ? number_format($item->preco_caixa, 2, ',', '.') : '');
 @endphp
 
 <div style="padding: 8px 0;">
@@ -34,12 +35,16 @@
             @endif
 
             <form method="POST" action="{{ route('admin.compras.update', $item) }}" enctype="multipart/form-data"
-                  x-data="{ unitario: @js($precoInicial), qtd: {{ (int) $item->quantity }},
-                            get total() {
-                                let v = String(this.unitario || '').replace(/[R$\s]/g, '');
+                  x-data="{ unitario: @js($precoInicial), caixa: @js($precoCaixaInicial), qtd: {{ (int) $item->quantity }},
+                            parseValor(v) {
+                                v = String(v || '').replace(/[R$\s]/g, '');
                                 if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.');
                                 const n = parseFloat(v);
-                                return isNaN(n) ? '—' : (n * this.qtd).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                                return isNaN(n) ? 0 : n;
+                            },
+                            get total() {
+                                const totalNum = this.parseValor(this.unitario) * this.qtd + this.parseValor(this.caixa);
+                                return totalNum === 0 ? '—' : totalNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                             } }">
                 @csrf
                 @method('PATCH')
@@ -73,7 +78,12 @@
                         @error('preco_unitario') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
                     <div>
-                        <label style="{{ $labelStyle }}">Preço total ({{ $item->quantity }} × unitário)</label>
+                        <label style="{{ $labelStyle }}">Preço da caixa (R$) <span style="color:#9ca3af; font-weight:400;">(opcional, quando comprado fechado)</span></label>
+                        <input type="text" inputmode="decimal" name="preco_caixa" placeholder="0,00" x-model="caixa" style="{{ $inputStyle }}">
+                        @error('preco_caixa') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
+                    </div>
+                    <div>
+                        <label style="{{ $labelStyle }}">Preço total ({{ $item->quantity }} × unitário + caixa)</label>
                         <div style="{{ $inputStyle }} background:#f9fafb; font-weight:700; color:#111827;" x-text="total">
                             {{ $item->valor ? 'R$ ' . number_format($item->valor, 2, ',', '.') : '—' }}
                         </div>

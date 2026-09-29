@@ -687,4 +687,36 @@ class ConferenciaControllerTest extends TestCase
 
         $response->assertSee('Produto Cancelado No Subfiltro');
     }
+
+    public function test_index_mostra_link_do_pedido_de_compra_quando_existe(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $item = PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'status_conferencia' => null,
+            'pedido_compra_path' => 'pedidos-compra/teste.pdf',
+            'pedido_compra_nome' => 'teste.pdf',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('conferencia.index'));
+
+        $response->assertSee(route('admin.compras.pedido', $item), false);
+    }
+
+    public function test_conferente_consegue_abrir_o_pedido_de_compra(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('pedidos-compra/teste.pdf', 'conteudo');
+
+        $conferente = User::factory()->create(['role' => 'conferente']);
+        $item = PurchaseRequest::factory()->create([
+            'status' => 'aprovado',
+            'pedido_compra_path' => 'pedidos-compra/teste.pdf',
+            'pedido_compra_nome' => 'teste.pdf',
+        ]);
+
+        $response = $this->actingAs($conferente)->get(route('admin.compras.pedido', $item));
+
+        $response->assertOk();
+    }
 }

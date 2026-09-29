@@ -62,6 +62,7 @@ class PurchaseRequest extends Model
         'mes_origem',
         'dados_importacao',
         'preco_unitario',
+        'preco_caixa',
         'codigo_fornecedor',
         'data_coleta',
         'pedido_compra_path',
@@ -74,6 +75,7 @@ class PurchaseRequest extends Model
         'data_compra' => 'date',
         'data_coleta' => 'date',
         'preco_unitario' => 'decimal:2',
+        'preco_caixa' => 'decimal:2',
         'dados_importacao' => 'array',
     ];
 
