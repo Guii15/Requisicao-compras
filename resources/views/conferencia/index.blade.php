@@ -34,9 +34,26 @@
            @if($aba !== 'conferidos') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Conferidos
         </a>
+        <a href="{{ route('conferencia.index', ['aba' => 'coleta']) }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+                  background:{{ $aba === 'coleta' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'coleta' ? '#fff' : '#6b7280' }};
+                  border:2px solid {{ $aba === 'coleta' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'coleta' ? '#05018D' : 'transparent' }};"
+           @if($aba !== 'coleta') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
+            Coleta
+        </a>
     </div>
 
-    @if($aba === 'conferidos')
+    @if($aba === 'coleta')
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            @foreach(['aguardando' => 'Aguardando', 'coletados' => 'Coletados'] as $valor => $rotulo)
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}"
+                   style="padding:5px 14px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
+                          background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
+                    {{ $rotulo }}
+                </a>
+            @endforeach
+        </div>
+    @elseif($aba === 'conferidos')
         <div style="display:flex; gap:8px; margin-bottom:20px;">
             @foreach(['todos' => 'Todos', 'ok' => 'OK', 'divergente' => 'Divergente'] as $valor => $rotulo)
                 <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor, 'q' => $q !== '' ? $q : null])) }}"
@@ -528,7 +545,7 @@
             @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
-                <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : 'Nenhuma requisição aguardando conferência' }}</p>
+                <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : ($aba === 'coleta' ? ($resultado === 'coletados' ? 'Nenhuma coleta registrada ainda' : 'Nenhuma coleta aguardando') : 'Nenhuma requisição aguardando conferência') }}</p>
             </div>
         @endforelse
         @if($requests->hasPages())
@@ -537,6 +554,139 @@
             </div>
         @endif
     </div>
+
+    @if($aba === 'coleta')
+        <div class="conf-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
+                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
+                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Vendedor</th>
+                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd</th>
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $resultado === 'coletados' ? 'Coletado por' : 'Ação' }}</th>
+                            @if($resultado === 'coletados')
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data da Coleta</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($requests as $grupo)
+                            @php
+                                $primeiroCol = $grupo->first();
+                                $chaveCol = $primeiroCol->grupo_id;
+                                $statusColUnicos = $grupo->map(fn($r) => $r->data_coleta ? 'coletado' : 'aguardando')->unique();
+                                if ($statusColUnicos->count() === 1) {
+                                    $statusChaveCol = $statusColUnicos->first();
+                                    $rotuloCol = $statusChaveCol === 'coletado' ? 'Coletado' : 'Aguardando';
+                                } else {
+                                    $statusChaveCol = 'parcial';
+                                    $rotuloCol = 'Parcial';
+                                }
+                                $corsGrupoCol = [
+                                    'aguardando' => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
+                                    'coletado'   => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
+                                    'parcial'    => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                                ][$statusChaveCol];
+                                $produtosResumoCol = $grupo->pluck('product_name')->filter()->implode(', ');
+                                if (mb_strlen($produtosResumoCol) > 60) {
+                                    $produtosResumoCol = mb_substr($produtosResumoCol, 0, 60) . '…';
+                                }
+                            @endphp
+                            <tr style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onclick="toggleGrupoColeta('{{ $chaveCol }}')">
+                                <td colspan="6" style="padding:0;">
+                                    <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
+                                        <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoCol['barra'] }};"></div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="font-size:13.5px; line-height:1.4;">
+                                                <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroCol->id }}</span>
+                                                <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroCol->requester_name ?? 'Não informado' }}</span>
+                                            </div>
+                                            <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                                {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoCol }}
+                                            </div>
+                                        </div>
+                                        <span style="background:{{ $corsGrupoCol['bg'] }}; color:{{ $corsGrupoCol['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloCol }}</span>
+                                        <button type="button" onclick="event.stopPropagation(); toggleGrupoColeta('{{ $chaveCol }}')"
+                                                style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                            <span id="seta-grupo-col-{{ $chaveCol }}">Ver itens</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @foreach($grupo as $req)
+                            <tr class="grupo-item-col-{{ $chaveCol }}" style="display:none; border-bottom:1px solid #f3f4f6;">
+                                <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->product_name }}</td>
+                                <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->requester_name ?? '—' }}</td>
+                                <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
+                                <td style="padding:12px 16px; text-align:center; font-size:14px; color:#374151;">{{ $req->quantity }}</td>
+                                @if($req->data_coleta)
+                                <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->coletado_por ?? '—' }}</td>
+                                <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->data_coleta->format('d/m/Y') }}</td>
+                                @else
+                                <td style="padding:12px 16px; text-align:center;">
+                                    @if($podeConferir)
+                                    <button onclick="document.getElementById('modal-coleta-{{ $req->id }}').style.display='flex'"
+                                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
+                                        Registrar Coleta
+                                    </button>
+                                    @else
+                                    <span style="font-size:12px; color:#9ca3af;">Aguardando</span>
+                                    @endif
+                                </td>
+                                @endif
+                            </tr>
+
+                            @if(!$req->data_coleta && $podeConferir)
+                            <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+                                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
+                                    <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Registrar Coleta</h3>
+                                    <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
+
+                                    <form method="POST" action="{{ route('conferencia.coleta', $req) }}" id="form-coleta-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <div style="margin-bottom:16px;">
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Coletado por</label>
+                                            <input type="text" name="coletado_por" required
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        </div>
+
+                                        <div style="margin-bottom:16px;">
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
+                                            <input type="date" name="data_coleta" value="{{ now()->format('Y-m-d') }}" required
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        </div>
+
+                                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                            <button type="button" onclick="document.getElementById('modal-coleta-{{ $req->id }}').style.display='none'"
+                                                    style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                                Cancelar
+                                            </button>
+                                            <button type="submit"
+                                                    style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                                Confirmar
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            @endif
+                            @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="6" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                                    {{ $resultado === 'coletados' ? 'Nenhuma coleta registrada ainda.' : 'Nenhuma coleta aguardando.' }}
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 
 </div>
 
@@ -561,6 +711,17 @@ function protegerEnvioDuplo(form) {
         botao.disabled = true;
     });
     return true;
+}
+
+function toggleGrupoColeta(chave) {
+    var linhas = document.querySelectorAll('.grupo-item-col-' + CSS.escape(chave));
+    var seta = document.getElementById('seta-grupo-col-' + chave);
+    if (!linhas.length) return;
+    var abrindo = linhas[0].style.display === 'none';
+    linhas.forEach(function (linha) {
+        linha.style.display = abrindo ? 'table-row' : 'none';
+    });
+    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 </script>
 

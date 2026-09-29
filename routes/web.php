@@ -101,6 +101,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
 Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(function () {
     Route::get('/', [ConferenciaController::class, 'index'])->middleware(ConferenciaVisualizacaoMiddleware::class)->name('index');
     Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('conferir');
+    Route::patch('/{purchaseRequest}/coleta', [ConferenciaController::class, 'registrarColeta'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('coleta');
 });
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {

@@ -45,12 +45,6 @@
                         <input type="date" name="data_compra" required value="{{ old('data_compra', $item->data_compra?->format('Y-m-d')) }}" style="{{ $inputStyle }}">
                         @error('data_compra') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
-                    <div>
-                        <label style="{{ $labelStyle }}">Data da coleta <span style="color:#9ca3af; font-weight:400;">(preenchido por quem coleta)</span></label>
-                        <div style="{{ $inputStyle }} background:#f9fafb; color:#374151;">
-                            {{ $item->data_coleta?->format('d/m/Y') ?? '—' }}
-                        </div>
-                    </div>
 
                     <div>
                         <label style="{{ $labelStyle }}">Fornecedor <span style="color:#ef4444;">*</span></label>
