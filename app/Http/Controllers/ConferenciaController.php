@@ -58,6 +58,7 @@ class ConferenciaController extends Controller
             'foto'                    => 'required|image|mimes:jpg,jpeg,png,webp|max:15360',
             'resultado'               => 'required|in:ok,divergente',
             'observacao_conferencia'  => 'required_if:resultado,divergente|nullable|string|max:500',
+            'obs'                     => 'nullable|string|max:500',
             'acao'                    => 'required|in:salvar,avancar_mesmo_assim',
         ], [
             'quantidade_recebida.required'       => 'Informe a quantidade recebida.',
@@ -87,6 +88,7 @@ class ConferenciaController extends Controller
             'quantidade_recebida'    => $request->quantidade_recebida,
             'status_conferencia'     => $statusConferencia,
             'observacao_conferencia' => $request->observacao_conferencia,
+            'obs'                    => $request->obs,
             'conferente_id'          => auth()->id(),
         ]);
 

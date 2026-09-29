@@ -51,6 +51,7 @@ class PurchaseRequest extends Model
         'status_conferencia',
         'quantidade_recebida',
         'observacao_conferencia',
+        'obs',
         'conferente_id',
         'vendedor_destino',
         'quantidade_entrada',

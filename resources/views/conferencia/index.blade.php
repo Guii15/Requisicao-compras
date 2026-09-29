@@ -243,6 +243,12 @@
                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
                                     </div>
 
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Obs (geral)</label>
+                                        <textarea name="obs" rows="2"
+                                                  style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
+                                    </div>
+
                                     <input type="hidden" name="acao" id="campo-acao-{{ $req->id }}" value="salvar">
 
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
@@ -451,6 +457,12 @@
                         <div id="campo-observacao-m-{{ $req->id }}" style="display:none; margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação</label>
                             <textarea name="observacao_conferencia" rows="3"
+                                      style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Obs (geral)</label>
+                            <textarea name="obs" rows="2"
                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
                         </div>
 
