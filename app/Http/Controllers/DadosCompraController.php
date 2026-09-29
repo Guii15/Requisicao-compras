@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
 use App\Support\AgrupaRequisicoesPorGrupoId;
+use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class DadosCompraController extends Controller
 {
-    use AgrupaRequisicoesPorGrupoId;
+    use AgrupaRequisicoesPorGrupoId, BuscaCaseInsensitive;
 
     private const DISCO = 'local';
 
@@ -30,7 +31,7 @@ class DadosCompraController extends Controller
         }
 
         if ($request->filled('produto')) {
-            $query->where('product_name', 'like', '%' . $request->produto . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
         }
 
         $itens = $query->orderByDesc('updated_at')->paginate(20)->withQueryString();
@@ -48,11 +49,11 @@ class DadosCompraController extends Controller
             ->whereNotNull('data_compra')->whereNotNull('preco_unitario');
 
         if ($request->filled('produto')) {
-            $query->where('product_name', 'like', '%' . $request->produto . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
         }
 
         if ($request->filled('vendedor')) {
-            $query->where('requester_name', 'like', '%' . $request->vendedor . '%');
+            $this->whereLikeInsensitive($query, 'requester_name', $request->vendedor);
         }
 
         if ($request->filled('data_inicial')) {

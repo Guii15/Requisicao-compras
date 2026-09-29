@@ -8,11 +8,12 @@ use App\Models\PurchaseRequest;
 use App\Models\User;
 use App\Services\PlanilhaOriginalHistorico;
 use App\Support\AgrupaRequisicoesPorGrupoId;
+use App\Support\BuscaCaseInsensitive;
 use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
-    use AgrupaRequisicoesPorGrupoId;
+    use AgrupaRequisicoesPorGrupoId, BuscaCaseInsensitive;
 
     /**
      * Um item "nao finalizado" ainda precisa de acao do ADMIN (aprovar ou rejeitar).
@@ -36,11 +37,11 @@ class AdminController extends Controller
         }
 
         if ($request->filled('requester_name')) {
-            $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
+            $this->whereLikeInsensitive($query, 'requester_name', $request->requester_name);
         }
 
         if ($request->filled('product_name')) {
-            $query->where('product_name', 'like', '%' . $request->product_name . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->product_name);
         }
 
         if ($request->filled('date_from')) {
@@ -148,6 +149,12 @@ class AdminController extends Controller
             'data_coleta'        => $request->data_coleta ?: null,
         ];
 
+        if ($request->status === 'aprovado' && $purchaseRequest->approved_at === null) {
+            $atualizacao['approved_at'] = now();
+        } elseif ($request->status !== 'aprovado') {
+            $atualizacao['approved_at'] = null;
+        }
+
         if ($request->hasFile('pedido_compra')) {
             $arquivo = $request->file('pedido_compra');
             $caminhoAntigo = $purchaseRequest->pedido_compra_path;
@@ -218,11 +225,11 @@ class AdminController extends Controller
         $query = $baseQuery()->with('user');
 
         if ($request->filled('produto')) {
-            $query->where('product_name', 'like', '%' . $request->produto . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
         }
 
         if ($request->filled('vendedor')) {
-            $query->where('requester_name', 'like', '%' . $request->vendedor . '%');
+            $this->whereLikeInsensitive($query, 'requester_name', $request->vendedor);
         }
 
         if ($request->filled('mes')) {

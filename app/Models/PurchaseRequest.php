@@ -44,6 +44,7 @@ class PurchaseRequest extends Model
         'urgency',
         'justification',
         'status',
+        'approved_at',
         'admin_note',
         'valor',
         'tipo_entrega',
@@ -68,6 +69,7 @@ class PurchaseRequest extends Model
     ];
 
     protected $casts = [
+        'approved_at' => 'datetime',
         'entrada_concluida_em' => 'datetime',
         'data_compra' => 'date',
         'data_coleta' => 'date',

@@ -101,7 +101,7 @@
                         <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd Solicitada</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Tipo de Entrega</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
+                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Aprovado em</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'conferidos' ? 'Resultado' : 'Ação' }}</th>
                         @if($aba === 'conferidos')
                         <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Conferido por</th>
@@ -170,7 +170,7 @@
                                     <span style="background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Estoque</span>
                                 @endif
                             </td>
-                            <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
+                            <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->approved_at?->timezone('America/Sao_Paulo')->format('d/m/Y H:i') ?? '—' }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->status_conferencia === 'conferido_ok')
                                     <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
@@ -367,8 +367,8 @@
                         <div style="font-weight:700; font-size:15px; color:#374151;">{{ $req->quantity }}</div>
                     </div>
                     <div>
-                        <span style="color:#9ca3af;">Data</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div>
+                        <span style="color:#9ca3af;">Aprovado em</span>
+                        <div style="font-weight:600; color:#374151;">{{ $req->approved_at?->timezone('America/Sao_Paulo')->format('d/m/Y H:i') ?? '—' }}</div>
                     </div>
                 </div>
 

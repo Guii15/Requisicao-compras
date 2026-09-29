@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
 use App\Support\AgrupaRequisicoesPorGrupoId;
+use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
 
 class EntradaController extends Controller
 {
-    use AgrupaRequisicoesPorGrupoId;
+    use AgrupaRequisicoesPorGrupoId, BuscaCaseInsensitive;
 
     public function index(Request $request)
     {
@@ -28,9 +29,9 @@ class EntradaController extends Controller
 
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
-                $sub->where('product_name', 'like', '%' . $q . '%')
-                    ->orWhere('requester_name', 'like', '%' . $q . '%')
-                    ->orWhere('supplier', 'like', '%' . $q . '%');
+                $this->whereLikeInsensitive($sub, 'product_name', $q);
+                $this->orWhereLikeInsensitive($sub, 'requester_name', $q);
+                $this->orWhereLikeInsensitive($sub, 'supplier', $q);
             });
         }
 
