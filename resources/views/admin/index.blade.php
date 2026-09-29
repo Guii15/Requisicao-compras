@@ -540,6 +540,13 @@
                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
                                     </div>
 
+                                    @if($req->obs)
+                                    <div style="margin-bottom:20px; padding:12px 14px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#15803d; margin-bottom:5px; text-transform:uppercase;">Obs (Conferente)</label>
+                                        <div style="font-size:14px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                                    </div>
+                                    @endif
+
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
                                         <button type="button" onclick="document.getElementById('modal-{{ $req->id }}').style.display='none'"
                                                 style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
@@ -781,6 +788,14 @@
                             <textarea name="admin_note" rows="3" placeholder="Ex: Aprovado, aguardando entrega..."
                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->admin_note }}</textarea>
                         </div>
+
+                        @if($req->obs)
+                        <div style="margin-bottom:16px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#15803d; margin-bottom:5px; text-transform:uppercase;">Obs (Conferente)</label>
+                            <div style="font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                        </div>
+                        @endif
+
                         <div style="display:flex; gap:10px; justify-content:flex-end;">
                             <button type="button" onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">

@@ -303,6 +303,11 @@
                                 @else
                                     <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Pendente</span>
                                 @endif
+                                @if($req->obs)
+                                    <div style="margin-top:5px; padding:5px 8px; background:#f0fdf4; border-left:3px solid #86efac; border-radius:3px; font-size:12px;">
+                                        <span style="color:#15803d; font-weight:600;">Conf:</span> <span style="color:#166534;">{{ $req->obs }}</span>
+                                    </div>
+                                @endif
                                 @if($req->admin_note)
                                     <div style="margin-top:5px;">
                                         <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
