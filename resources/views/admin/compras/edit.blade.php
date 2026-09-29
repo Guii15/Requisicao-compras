@@ -8,6 +8,7 @@
     $erroStyle  = 'color:#b91c1c; font-size:12px; margin-top:4px;';
     $precoInicial = old('preco_unitario', $item->preco_unitario !== null ? number_format($item->preco_unitario, 2, ',', '.') : '');
     $precoCaixaInicial = old('preco_caixa', $item->preco_caixa !== null ? number_format($item->preco_caixa, 2, ',', '.') : '');
+    $valorInicial = old('valor', $item->valor !== null ? number_format($item->valor, 2, ',', '.') : '');
 @endphp
 
 <div style="padding: 8px 0;">
@@ -34,18 +35,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('admin.compras.update', $item) }}" enctype="multipart/form-data"
-                  x-data="{ unitario: @js($precoInicial), caixa: @js($precoCaixaInicial), qtd: {{ (int) $item->quantity }},
-                            parseValor(v) {
-                                v = String(v || '').replace(/[R$\s]/g, '');
-                                if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.');
-                                const n = parseFloat(v);
-                                return isNaN(n) ? 0 : n;
-                            },
-                            get total() {
-                                const totalNum = this.parseValor(this.unitario) * this.qtd + this.parseValor(this.caixa);
-                                return totalNum === 0 ? '—' : totalNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                            } }">
+            <form method="POST" action="{{ route('admin.compras.update', $item) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
 
@@ -75,19 +65,18 @@
 
                     <div>
                         <label style="{{ $labelStyle }}">Preço unitário (R$) <span style="color:#ef4444;">*</span></label>
-                        <input type="text" inputmode="decimal" name="preco_unitario" required placeholder="0,00" x-model="unitario" style="{{ $inputStyle }}">
+                        <input type="text" inputmode="decimal" name="preco_unitario" required placeholder="0,00" value="{{ $precoInicial }}" style="{{ $inputStyle }}">
                         @error('preco_unitario') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
                     <div>
                         <label style="{{ $labelStyle }}">Preço da caixa (R$) <span style="color:#9ca3af; font-weight:400;">(opcional, quando comprado fechado)</span></label>
-                        <input type="text" inputmode="decimal" name="preco_caixa" placeholder="0,00" x-model="caixa" style="{{ $inputStyle }}">
+                        <input type="text" inputmode="decimal" name="preco_caixa" placeholder="0,00" value="{{ $precoCaixaInicial }}" style="{{ $inputStyle }}">
                         @error('preco_caixa') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
                     <div>
-                        <label style="{{ $labelStyle }}">Preço total ({{ $item->quantity }} × unitário + caixa)</label>
-                        <div style="{{ $inputStyle }} background:#f9fafb; font-weight:700; color:#111827;" x-text="total">
-                            {{ $item->valor ? 'R$ ' . number_format($item->valor, 2, ',', '.') : '—' }}
-                        </div>
+                        <label style="{{ $labelStyle }}">Preço total (R$)</label>
+                        <input type="text" inputmode="decimal" name="valor" placeholder="0,00" value="{{ $valorInicial }}" style="{{ $inputStyle }} font-weight:700;">
+                        @error('valor') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
                 </div>
 

@@ -88,10 +88,15 @@ class DadosCompraController extends Controller
             $request->merge(['preco_caixa' => $this->decimalBrasileiro($request->input('preco_caixa'))]);
         }
 
+        if ($request->filled('valor')) {
+            $request->merge(['valor' => $this->decimalBrasileiro($request->input('valor'))]);
+        }
+
         $dados = $request->validate([
             'data_compra'       => 'required|date',
             'preco_unitario'    => 'required|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
+            'valor'             => 'nullable|numeric|min:0',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
@@ -104,7 +109,7 @@ class DadosCompraController extends Controller
             'data_compra'       => $dados['data_compra'],
             'preco_unitario'    => $dados['preco_unitario'],
             'preco_caixa'       => $dados['preco_caixa'] ?? null,
-            'valor'             => round((float) $dados['preco_unitario'] * (int) $purchaseRequest->quantity + (float) ($dados['preco_caixa'] ?? 0), 2),
+            'valor'             => $dados['valor'] ?? null,
             'codigo_fornecedor' => $dados['codigo_fornecedor'] ?? null,
             'supplier'          => mb_convert_case(mb_strtolower(trim($dados['supplier'])), MB_CASE_TITLE, 'UTF-8'),
         ];
