@@ -152,7 +152,16 @@
                                     —
                                 @endif
                             </td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->pedido_compra_nome ?? '—' }}</td>
+                            <td style="padding:12px 16px; font-size:14px; color:#374151;">
+                                @if($req->pedido_compra_nome)
+                                    <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                                        {{ $req->pedido_compra_nome }}
+                                        <span style="font-size:12px;">⬇️</span>
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->fotosConferencia->first())
                                     <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank">
@@ -332,7 +341,16 @@
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Pedido</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->pedido_compra_nome ?? '—' }}</div>
+                        <div style="font-weight:600; color:#374151;">
+                            @if($req->pedido_compra_nome)
+                                <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                                    {{ $req->pedido_compra_nome }}
+                                    <span style="font-size:11px;">⬇️</span>
+                                </a>
+                            @else
+                                —
+                            @endif
+                        </div>
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Foto</span>
