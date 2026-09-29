@@ -174,6 +174,13 @@
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
+                                @if($req->obs)
+                                <div style="margin-bottom:16px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                                    <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
+                                    <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                                </div>
+                                @endif
+
                                 <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
                                     @method('PATCH')
@@ -325,6 +332,13 @@
                 <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
+
+                    @if($req->obs)
+                    <div style="margin-bottom:16px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                        <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
+                        <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                    </div>
+                    @endif
 
                     <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf
