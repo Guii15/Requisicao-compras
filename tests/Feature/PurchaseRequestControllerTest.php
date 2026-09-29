@@ -54,6 +54,17 @@ class PurchaseRequestControllerTest extends TestCase
         $this->assertDatabaseHas('purchase_requests', ['product_name' => 'Produto A', 'tipo_entrega' => 'estoque']);
     }
 
+    public function test_admin_can_create_a_request(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $response = $this->actingAs($admin)->post(route('requests.store'), $this->validStorePayload());
+
+        $response->assertRedirect(route('admin.index'));
+        $this->assertDatabaseCount('purchase_requests', 2);
+        $this->assertDatabaseHas('purchase_requests', ['product_name' => 'Produto A', 'user_id' => $admin->id]);
+    }
+
     public function test_store_rejects_invalid_tipo_entrega(): void
     {
         $user = User::factory()->create();

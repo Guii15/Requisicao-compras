@@ -11,10 +11,11 @@ use Illuminate\Support\Str;
 use App\Mail\PurchaseRequestCreated;
 use App\Http\Controllers\AdminController;
 use App\Support\AgrupaRequisicoesPorGrupoId;
+use App\Support\BuscaCaseInsensitive;
 
 class PurchaseRequestController extends Controller
 {
-    use AgrupaRequisicoesPorGrupoId;
+    use AgrupaRequisicoesPorGrupoId, BuscaCaseInsensitive;
 
     private const DISCO_ANEXO = 'local';
 
@@ -23,11 +24,11 @@ class PurchaseRequestController extends Controller
         $query = PurchaseRequest::where('user_id', auth()->id());
 
         if ($request->filled('requester_name')) {
-            $query->where('requester_name', 'like', '%' . $request->requester_name . '%');
+            $this->whereLikeInsensitive($query, 'requester_name', $request->requester_name);
         }
 
         if ($request->filled('product_name')) {
-            $query->where('product_name', 'like', '%' . $request->product_name . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->product_name);
         }
 
         if ($request->filled('date_from')) {
@@ -87,6 +88,10 @@ class PurchaseRequestController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->isVendedor() && !auth()->user()->isAdmin()) {
+            abort(403, 'Acesso restrito.');
+        }
+
         $userId = auth()->id();
 
         $stats = [
@@ -206,6 +211,10 @@ class PurchaseRequestController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->isVendedor() && !auth()->user()->isAdmin()) {
+            abort(403, 'Acesso restrito.');
+        }
+
         $request->validate([
             'requester_name'          => 'required|string|max:255',
             'supplier'                => 'nullable|string|max:255',
@@ -277,7 +286,9 @@ class PurchaseRequestController extends Controller
         }
 
         $count = count($created);
-        return redirect()->route('requests.index')
+        $destino = auth()->user()->isVendedor() ? route('requests.index') : route('admin.index');
+
+        return redirect($destino)
             ->with('success', $count === 1 ? 'Requisição criada com sucesso!' : "{$count} requisições criadas com sucesso!");
     }
 }
