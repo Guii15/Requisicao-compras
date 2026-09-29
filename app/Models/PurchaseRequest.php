@@ -44,6 +44,7 @@ class PurchaseRequest extends Model
         'urgency',
         'justification',
         'status',
+        'approved_at',
         'admin_note',
         'valor',
         'tipo_entrega',
@@ -61,6 +62,7 @@ class PurchaseRequest extends Model
         'mes_origem',
         'dados_importacao',
         'preco_unitario',
+        'preco_caixa',
         'codigo_fornecedor',
         'data_coleta',
         'pedido_compra_path',
@@ -68,10 +70,12 @@ class PurchaseRequest extends Model
     ];
 
     protected $casts = [
+        'approved_at' => 'datetime',
         'entrada_concluida_em' => 'datetime',
         'data_compra' => 'date',
         'data_coleta' => 'date',
         'preco_unitario' => 'decimal:2',
+        'preco_caixa' => 'decimal:2',
         'dados_importacao' => 'array',
     ];
 

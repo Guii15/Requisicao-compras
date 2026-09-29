@@ -53,12 +53,12 @@ class VendedorMiddlewareTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_admin_is_forbidden_from_creating_request(): void
+    public function test_admin_is_allowed_to_create_request(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
 
         $response = $this->actingAs($admin)->get(route('requests.create'));
 
-        $response->assertForbidden();
+        $response->assertOk();
     }
 }

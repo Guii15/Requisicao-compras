@@ -423,7 +423,7 @@
                     </script>
 
                     <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-                        <a href="{{ route('requests.index') }}"
+                        <a href="{{ auth()->user()->isVendedor() ? route('requests.index') : route('admin.index') }}"
                            style="padding:10px 22px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; text-decoration:none;">
                             Cancelar
                         </a>

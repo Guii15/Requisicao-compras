@@ -104,6 +104,20 @@ class DadosCompraTest extends TestCase
         $this->assertSame('Kabum', $item->supplier);
     }
 
+    public function test_preco_da_caixa_soma_no_total_junto_com_o_unitario(): void
+    {
+        $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 3]);
+
+        $this->actingAs($this->admin())
+            ->patch(route('admin.compras.update', $item), $this->dadosValidos(['preco_caixa' => '20,00']))
+            ->assertRedirect();
+
+        $item->refresh();
+        $this->assertEquals(1250.50, (float) $item->preco_unitario);
+        $this->assertEquals(20.00, (float) $item->preco_caixa);
+        $this->assertEquals(3771.50, (float) $item->valor); // 3 x 1250,50 + 20
+    }
+
     public function test_anexa_pedido_de_compra_em_disco_privado(): void
     {
         Storage::fake('local');

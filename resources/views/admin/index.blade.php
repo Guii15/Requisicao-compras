@@ -56,6 +56,13 @@
             <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Painel Administrativo</h1>
             <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Gerencie todas as requisições de compra</p>
         </div>
+        <a href="{{ route('requests.create') }}"
+           style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(90deg,#1d4ed8,#dc2626); color:#fff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px; height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Nova Requisição
+        </a>
     </div>
 
     @include('admin._abas')
@@ -392,6 +399,9 @@
                                 @if($req->temDadosDaCompra())
                                     <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
                                         Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
+                                        @if($req->preco_caixa)
+                                            <br>Caixa: R$ {{ number_format($req->preco_caixa, 2, ',', '.') }}
+                                        @endif
                                         @if($req->valor)
                                             <br>Total: <strong style="color:#059669;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
                                         @endif
@@ -482,10 +492,16 @@
                                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
-                                            <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
-                                                {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
-                                            </div>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Preço da caixa (R$) <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                                            <input type="text" inputmode="decimal" name="preco_caixa" value="{{ $req->preco_caixa !== null ? number_format($req->preco_caixa, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl preco-caixa-input"
+                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
+                                        <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
+                                            {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
                                         </div>
                                     </div>
 
@@ -638,6 +654,9 @@
                         @if($req->temDadosDaCompra())
                             <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
                                 Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
+                                @if($req->preco_caixa)
+                                    <br>Caixa: R$ {{ number_format($req->preco_caixa, 2, ',', '.') }}
+                                @endif
                                 @if($req->valor)
                                     <br>Total: <strong style="color:#059669;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
                                 @endif
@@ -722,10 +741,15 @@
                                        style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                             </div>
                             <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
-                                <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
-                                    {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
-                                </div>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Preço da caixa (R$) <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
+                                <input type="text" inputmode="decimal" name="preco_caixa" value="{{ $req->preco_caixa !== null ? number_format($req->preco_caixa, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl preco-caixa-input"
+                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
+                            <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
+                                {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
                             </div>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
@@ -825,6 +849,12 @@
         });
     }
 
+    function parseValorBRL(valor) {
+        valor = (valor || '').trim();
+        if (valor === '') return 0;
+        return parseFloat(valor.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
     function atualizarTotalAuto(input) {
         // Os modais ficam dentro do <tbody>, o que e' HTML invalido — o navegador
         // "esvazia" a tag <form> na arvore do DOM (os campos continuam associados a
@@ -833,18 +863,21 @@
         var container = input.closest('[data-quantity]');
         if (!container) return;
         var qtd = parseFloat(container.dataset.quantity || '0');
-        var raw = input.value.replace(/\./g, '').replace(',', '.');
-        var preco = parseFloat(raw) || 0;
+        var unitario = container.querySelector('.preco-unitario-input');
+        var caixa = container.querySelector('.preco-caixa-input');
+        var precoUnitario = unitario ? parseValorBRL(unitario.value) : 0;
+        var precoCaixa = caixa ? parseValorBRL(caixa.value) : 0;
         var totalEl = container.querySelector('.total-auto-display');
         if (!totalEl) return;
-        if (input.value.trim() === '') { totalEl.textContent = '—'; return; }
-        var total = preco * qtd;
+        var totalVazio = (!unitario || unitario.value.trim() === '') && (!caixa || caixa.value.trim() === '');
+        if (totalVazio) { totalEl.textContent = '—'; return; }
+        var total = precoUnitario * qtd + precoCaixa;
         totalEl.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
     document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
-    document.querySelectorAll('.preco-unitario-input').forEach(function (input) {
+    document.querySelectorAll('.preco-unitario-input, .preco-caixa-input').forEach(function (input) {
         input.addEventListener('input', function () { atualizarTotalAuto(input); });
     });
 })();

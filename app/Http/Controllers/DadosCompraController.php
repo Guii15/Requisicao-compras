@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
 use App\Support\AgrupaRequisicoesPorGrupoId;
+use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class DadosCompraController extends Controller
 {
-    use AgrupaRequisicoesPorGrupoId;
+    use AgrupaRequisicoesPorGrupoId, BuscaCaseInsensitive;
 
     private const DISCO = 'local';
 
@@ -30,7 +31,7 @@ class DadosCompraController extends Controller
         }
 
         if ($request->filled('produto')) {
-            $query->where('product_name', 'like', '%' . $request->produto . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
         }
 
         $itens = $query->orderByDesc('updated_at')->paginate(20)->withQueryString();
@@ -48,11 +49,11 @@ class DadosCompraController extends Controller
             ->whereNotNull('data_compra')->whereNotNull('preco_unitario');
 
         if ($request->filled('produto')) {
-            $query->where('product_name', 'like', '%' . $request->produto . '%');
+            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
         }
 
         if ($request->filled('vendedor')) {
-            $query->where('requester_name', 'like', '%' . $request->vendedor . '%');
+            $this->whereLikeInsensitive($query, 'requester_name', $request->vendedor);
         }
 
         if ($request->filled('data_inicial')) {
@@ -83,9 +84,14 @@ class DadosCompraController extends Controller
             $request->merge(['preco_unitario' => $this->decimalBrasileiro($request->input('preco_unitario'))]);
         }
 
+        if ($request->filled('preco_caixa')) {
+            $request->merge(['preco_caixa' => $this->decimalBrasileiro($request->input('preco_caixa'))]);
+        }
+
         $dados = $request->validate([
             'data_compra'       => 'required|date',
             'preco_unitario'    => 'required|numeric|min:0',
+            'preco_caixa'       => 'nullable|numeric|min:0',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
             'data_coleta'       => 'nullable|date|after_or_equal:data_compra',
@@ -99,7 +105,8 @@ class DadosCompraController extends Controller
         $atualizacao = [
             'data_compra'       => $dados['data_compra'],
             'preco_unitario'    => $dados['preco_unitario'],
-            'valor'             => round((float) $dados['preco_unitario'] * (int) $purchaseRequest->quantity, 2),
+            'preco_caixa'       => $dados['preco_caixa'] ?? null,
+            'valor'             => round((float) $dados['preco_unitario'] * (int) $purchaseRequest->quantity + (float) ($dados['preco_caixa'] ?? 0), 2),
             'codigo_fornecedor' => $dados['codigo_fornecedor'] ?? null,
             'supplier'          => mb_convert_case(mb_strtolower(trim($dados['supplier'])), MB_CASE_TITLE, 'UTF-8'),
             'data_coleta'       => $dados['data_coleta'] ?? null,
@@ -125,7 +132,12 @@ class DadosCompraController extends Controller
 
     public function baixarPedido(PurchaseRequest $purchaseRequest)
     {
-        if ($purchaseRequest->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        $user = auth()->user();
+        $podeVer = $purchaseRequest->user_id === $user->id
+            || $user->isAdmin()
+            || in_array($user->role, ['conferente', 'entrada'], true);
+
+        if (!$podeVer) {
             abort(403);
         }
 

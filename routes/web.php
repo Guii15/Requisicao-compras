@@ -52,11 +52,15 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', VendedorMiddleware::class])->group(function () {
     Route::get('/requisicoes', [PurchaseRequestController::class, 'index'])->name('requests.index');
-    Route::get('/requisicoes/nova', [PurchaseRequestController::class, 'create'])->name('requests.create');
-    Route::post('/requisicoes', [PurchaseRequestController::class, 'store'])->middleware('throttle:30,1')->name('requests.store');
     Route::get('/requisicoes/{purchaseRequest}/editar', [PurchaseRequestController::class, 'edit'])->name('requests.edit');
     Route::patch('/requisicoes/{purchaseRequest}', [PurchaseRequestController::class, 'update'])->middleware('throttle:30,1')->name('requests.update');
     Route::get('/requisicoes/{purchaseRequest}/exportar', [PurchaseRequestController::class, 'export'])->name('requests.export');
+});
+
+// Criação de requisição: vendedor cria a própria, e admin também pode criar (em nome de um vendedor).
+Route::middleware('auth')->group(function () {
+    Route::get('/requisicoes/nova', [PurchaseRequestController::class, 'create'])->name('requests.create');
+    Route::post('/requisicoes', [PurchaseRequestController::class, 'store'])->middleware('throttle:30,1')->name('requests.store');
 });
 
 Route::middleware('auth')->group(function () {
