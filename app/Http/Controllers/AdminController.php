@@ -128,11 +128,9 @@ class AdminController extends Controller
             'preco_unitario'    => 'nullable|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
             'data_compra'       => 'nullable|date',
-            'data_coleta'       => 'nullable|date|after_or_equal:data_compra',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
             'anexo'             => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
-            'data_coleta.after_or_equal' => 'A data da coleta não pode ser antes da data da compra.',
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
             'anexo.mimes'                => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
@@ -152,7 +150,6 @@ class AdminController extends Controller
                 ? round((float) $request->preco_unitario * (int) $purchaseRequest->quantity + (float) $request->preco_caixa, 2)
                 : null,
             'data_compra'        => $request->data_compra ?: null,
-            'data_coleta'        => $request->data_coleta ?: null,
         ];
 
         if ($request->status === 'aprovado' && $purchaseRequest->approved_at === null) {

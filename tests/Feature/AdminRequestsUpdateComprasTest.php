@@ -28,7 +28,6 @@ class AdminRequestsUpdateComprasTest extends TestCase
             'codigo_fornecedor' => 'FORN-123',
             'preco_unitario'    => '1.250,50',
             'data_compra'       => '2026-09-20',
-            'data_coleta'       => '2026-09-22',
         ])->assertSessionDoesntHaveErrors();
 
         $item->refresh();
@@ -38,7 +37,19 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertEquals(1250.50, (float) $item->preco_unitario);
         $this->assertEquals(3751.50, (float) $item->valor);
         $this->assertSame('2026-09-20', $item->data_compra->format('Y-m-d'));
-        $this->assertSame('2026-09-22', $item->data_coleta->format('Y-m-d'));
+    }
+
+    public function test_data_coleta_nao_e_mais_editavel_pelo_modal_de_atualizar(): void
+    {
+        $item = PurchaseRequest::factory()->create(['data_coleta' => '2026-09-15']);
+
+        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
+            'status'      => 'aprovado',
+            'supplier'    => 'kabum',
+            'data_coleta' => '2026-09-22',
+        ]);
+
+        $this->assertSame('2026-09-15', $item->refresh()->data_coleta->format('Y-m-d'));
     }
 
     public function test_sem_preco_unitario_o_total_fica_nulo(): void
@@ -86,17 +97,6 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertNull($item->preco_unitario);
         $this->assertEquals(90.00, (float) $item->preco_caixa);
         $this->assertEquals(90.00, (float) $item->valor);
-    }
-
-    public function test_coleta_nao_pode_ser_antes_da_compra_no_modal_de_atualizar(): void
-    {
-        $item = PurchaseRequest::factory()->create();
-
-        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
-            'status'      => 'aprovado',
-            'data_compra' => '2026-09-20',
-            'data_coleta' => '2026-09-01',
-        ])->assertSessionHasErrors('data_coleta');
     }
 
     public function test_anexa_pedido_de_compra_pelo_modal_de_atualizar(): void

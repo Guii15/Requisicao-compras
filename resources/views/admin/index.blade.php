@@ -512,9 +512,8 @@
                                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
-                                            <input type="date" name="data_coleta" value="{{ $req->data_coleta?->format('Y-m-d') }}"
-                                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta <span style="color:#9ca3af; font-weight:400; text-transform:none;">(preenchido por quem coleta)</span></label>
+                                            <div style="padding:9px 10px; font-size:13.5px; color:#374151;">{{ $req->data_coleta?->format('d/m/Y') ?? '—' }}</div>
                                         </div>
                                     </div>
 
@@ -759,9 +758,8 @@
                                        style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
                             </div>
                             <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta</label>
-                                <input type="date" name="data_coleta" value="{{ $req->data_coleta?->format('Y-m-d') }}"
-                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:9px 10px; font-size:13.5px; box-sizing:border-box;">
+                                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Data da coleta <span style="color:#9ca3af; font-weight:400; text-transform:none;">(preenchido por quem coleta)</span></label>
+                                <div style="padding:9px 10px; font-size:13.5px; color:#374151;">{{ $req->data_coleta?->format('d/m/Y') ?? '—' }}</div>
                             </div>
                         </div>
                         <div style="margin-bottom:16px;">
