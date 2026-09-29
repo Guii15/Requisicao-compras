@@ -409,7 +409,7 @@
                                             <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
                                         @endif
                                         @if($req->data_coleta)
-                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
+                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
                                         @endif
                                         @if($req->pedido_compra_path)
                                             <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
@@ -499,10 +499,9 @@
                                     </div>
 
                                     <div style="margin-bottom:16px;">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
-                                        <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
-                                            {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
-                                        </div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (R$)</label>
+                                        <input type="text" inputmode="decimal" name="valor" value="{{ $req->valor !== null ? number_format($req->valor, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl total-auto-display"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; font-weight:700; color:#059669; box-sizing:border-box;">
                                     </div>
 
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
@@ -663,7 +662,7 @@
                                     <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
                                 @endif
                                 @if($req->data_coleta)
-                                    <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
+                                    <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
                                 @endif
                                 @if($req->pedido_compra_path)
                                     <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
@@ -746,10 +745,9 @@
                             </div>
                         </div>
                         <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (auto)</label>
-                            <div class="total-auto-display" style="padding:10px 12px; font-size:14px; font-weight:700; color:#059669;">
-                                {{ $req->valor ? 'R$ ' . number_format($req->valor, 2, ',', '.') : '—' }}
-                            </div>
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Total (R$)</label>
+                            <input type="text" inputmode="decimal" name="valor" value="{{ $req->valor !== null ? number_format($req->valor, 2, ',', '.') : '' }}" placeholder="0,00" class="valor-brl total-auto-display"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; font-weight:700; color:#059669; box-sizing:border-box;">
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
                             <div>
@@ -847,37 +845,8 @@
         });
     }
 
-    function parseValorBRL(valor) {
-        valor = (valor || '').trim();
-        if (valor === '') return 0;
-        return parseFloat(valor.replace(/\./g, '').replace(',', '.')) || 0;
-    }
-
-    function atualizarTotalAuto(input) {
-        // Os modais ficam dentro do <tbody>, o que e' HTML invalido — o navegador
-        // "esvazia" a tag <form> na arvore do DOM (os campos continuam associados a
-        // ela por baixo dos panos pro envio, mas closest('form') nao os encontra).
-        // Por isso usamos o container do modal, e nao o form, pra achar os elementos.
-        var container = input.closest('[data-quantity]');
-        if (!container) return;
-        var qtd = parseFloat(container.dataset.quantity || '0');
-        var unitario = container.querySelector('.preco-unitario-input');
-        var caixa = container.querySelector('.preco-caixa-input');
-        var precoUnitario = unitario ? parseValorBRL(unitario.value) : 0;
-        var precoCaixa = caixa ? parseValorBRL(caixa.value) : 0;
-        var totalEl = container.querySelector('.total-auto-display');
-        if (!totalEl) return;
-        var totalVazio = (!unitario || unitario.value.trim() === '') && (!caixa || caixa.value.trim() === '');
-        if (totalVazio) { totalEl.textContent = '—'; return; }
-        var total = precoUnitario * qtd + precoCaixa;
-        totalEl.textContent = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
     document.querySelectorAll('.valor-brl').forEach(applyBRLMask);
     document.querySelectorAll('form').forEach(convertBRLBeforeSubmit);
-    document.querySelectorAll('.preco-unitario-input, .preco-caixa-input').forEach(function (input) {
-        input.addEventListener('input', function () { atualizarTotalAuto(input); });
-    });
 })();
 
 function openMonthModal(year, month, label) {

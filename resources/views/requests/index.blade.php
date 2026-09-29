@@ -277,7 +277,7 @@
                                             <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
                                         @endif
                                         @if($req->data_coleta)
-                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
+                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
                                         @endif
                                         @if($req->pedido_compra_path)
                                             <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
@@ -453,7 +453,7 @@
                                     <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
                                 @endif
                                 @if($req->data_coleta)
-                                    <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}
+                                    <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
                                 @endif
                                 @if($req->pedido_compra_path)
                                     <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
