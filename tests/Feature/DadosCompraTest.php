@@ -25,7 +25,6 @@ class DadosCompraTest extends TestCase
             'preco_unitario'    => '1.250,50',
             'codigo_fornecedor' => 'FORN-123',
             'supplier'          => 'kabum',
-            'data_coleta'       => '2026-09-22',
         ], $extra);
     }
 
@@ -97,7 +96,6 @@ class DadosCompraTest extends TestCase
 
         $item->refresh();
         $this->assertSame('2026-09-20', $item->data_compra->format('Y-m-d'));
-        $this->assertSame('2026-09-22', $item->data_coleta->format('Y-m-d'));
         $this->assertEquals(1250.50, (float) $item->preco_unitario);
         $this->assertEquals(3751.50, (float) $item->valor);
         $this->assertSame('FORN-123', $item->codigo_fornecedor);
@@ -182,13 +180,14 @@ class DadosCompraTest extends TestCase
         ]))->assertSessionHasErrors('pedido_compra');
     }
 
-    public function test_coleta_nao_pode_ser_antes_da_compra(): void
+    public function test_data_coleta_nao_e_mais_editavel_pela_tela_de_dados_da_compra(): void
     {
-        $item = PurchaseRequest::factory()->aprovado()->create();
+        $item = PurchaseRequest::factory()->aprovado()->create(['data_coleta' => '2026-09-15']);
 
         $this->actingAs($this->admin())
-            ->patch(route('admin.compras.update', $item), $this->dadosValidos(['data_coleta' => '2026-09-01']))
-            ->assertSessionHasErrors('data_coleta');
+            ->patch(route('admin.compras.update', $item), $this->dadosValidos(['data_coleta' => '2026-09-22']));
+
+        $this->assertSame('2026-09-15', $item->refresh()->data_coleta->format('Y-m-d'));
     }
 
     public function test_download_sem_anexo_da_404(): void

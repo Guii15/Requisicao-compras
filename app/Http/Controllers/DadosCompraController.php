@@ -94,10 +94,8 @@ class DadosCompraController extends Controller
             'preco_caixa'       => 'nullable|numeric|min:0',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
-            'data_coleta'       => 'nullable|date|after_or_equal:data_compra',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
-            'data_coleta.after_or_equal' => 'A data da coleta não pode ser antes da data da compra.',
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
         ]);
@@ -109,7 +107,6 @@ class DadosCompraController extends Controller
             'valor'             => round((float) $dados['preco_unitario'] * (int) $purchaseRequest->quantity + (float) ($dados['preco_caixa'] ?? 0), 2),
             'codigo_fornecedor' => $dados['codigo_fornecedor'] ?? null,
             'supplier'          => mb_convert_case(mb_strtolower(trim($dados['supplier'])), MB_CASE_TITLE, 'UTF-8'),
-            'data_coleta'       => $dados['data_coleta'] ?? null,
         ];
 
         if ($request->hasFile('pedido_compra')) {

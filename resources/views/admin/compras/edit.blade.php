@@ -56,9 +56,10 @@
                         @error('data_compra') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
                     <div>
-                        <label style="{{ $labelStyle }}">Data da coleta</label>
-                        <input type="date" name="data_coleta" value="{{ old('data_coleta', $item->data_coleta?->format('Y-m-d')) }}" style="{{ $inputStyle }}">
-                        @error('data_coleta') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
+                        <label style="{{ $labelStyle }}">Data da coleta <span style="color:#9ca3af; font-weight:400;">(preenchido por quem coleta)</span></label>
+                        <div style="{{ $inputStyle }} background:#f9fafb; color:#374151;">
+                            {{ $item->data_coleta?->format('d/m/Y') ?? '—' }}
+                        </div>
                     </div>
 
                     <div>
