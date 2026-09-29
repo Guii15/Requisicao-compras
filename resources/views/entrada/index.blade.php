@@ -113,7 +113,7 @@
                             }
                         @endphp
                         <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
-                            <td colspan="6" style="padding:0;">
+                            <td colspan="9" style="padding:0;">
                                 <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
                                     <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoEntr['barra'] }};"></div>
                                     <div style="flex:1; min-width:0;">
@@ -182,7 +182,7 @@
 
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
-                            <td colspan="6" style="padding:12px 16px;">
+                            <td colspan="9" style="padding:12px 16px;">
                                 <div style="padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
                                     <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                                     <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
@@ -238,7 +238,7 @@
                     @endforeach
                     @empty
                         <tr>
-                            <td colspan="6" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="9" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 {{ $aba === 'concluidas' ? 'Nenhum item com entrada registrada ainda.' : 'Nenhum item liberado aguardando entrada.' }}
                             </td>
                         </tr>
