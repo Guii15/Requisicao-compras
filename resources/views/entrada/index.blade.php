@@ -82,6 +82,9 @@
                         <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</th>
                         <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</th>
+                        <th style="padding:13px 16px; text-align:right; color:#fff; font-size:13px; font-weight:600;">Preço Unit.</th>
+                        <th style="padding:13px 16px; text-align:right; color:#fff; font-size:13px; font-weight:600;">Preço Total</th>
+                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Pedido</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Foto</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'concluidas' ? 'Data da Entrada' : 'Ação' }}</th>
                     </tr>
@@ -141,6 +144,15 @@
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ ($req->entrada_concluida_em ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
                             <td style="padding:12px 16px; text-align:center; font-size:14px; color:#374151;">{{ $req->quantity }} / {{ $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida }}</td>
+                            <td style="padding:12px 16px; text-align:right; font-size:14px; color:#374151;">{{ $req->preco_unitario ? 'R$ ' . number_format($req->preco_unitario, 2, ',', '.') : '—' }}</td>
+                            <td style="padding:12px 16px; text-align:right; font-size:14px; color:#374151; font-weight:600;">
+                                @if($req->preco_unitario)
+                                    R$ {{ number_format($req->preco_unitario * $req->quantity, 2, ',', '.') }}
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->pedido_compra_nome ?? '—' }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->fotosConferencia->first())
                                     <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank">
@@ -303,6 +315,24 @@
                     <div>
                         <span style="color:#9ca3af;">Qtd Solic. / {{ $req->entrada_concluida_em ? 'Entrada' : 'Receb.' }}</span>
                         <div style="font-weight:700; color:#374151;">{{ $req->quantity }} / {{ $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida }}</div>
+                    </div>
+                    <div>
+                        <span style="color:#9ca3af;">Preço Unit.</span>
+                        <div style="font-weight:600; color:#374151;">{{ $req->preco_unitario ? 'R$ ' . number_format($req->preco_unitario, 2, ',', '.') : '—' }}</div>
+                    </div>
+                    <div>
+                        <span style="color:#9ca3af;">Preço Total</span>
+                        <div style="font-weight:700; color:#374151;">
+                            @if($req->preco_unitario)
+                                R$ {{ number_format($req->preco_unitario * $req->quantity, 2, ',', '.') }}
+                            @else
+                                —
+                            @endif
+                        </div>
+                    </div>
+                    <div>
+                        <span style="color:#9ca3af;">Pedido</span>
+                        <div style="font-weight:600; color:#374151;">{{ $req->pedido_compra_nome ?? '—' }}</div>
                     </div>
                     <div>
                         <span style="color:#9ca3af;">Foto</span>
