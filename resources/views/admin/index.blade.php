@@ -331,6 +331,7 @@
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Valor</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
+                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Atraso</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
                     </tr>
                 </thead>
@@ -359,7 +360,7 @@
                             }
                         @endphp
                         <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
-                            <td colspan="9" style="padding:0;">
+                            <td colspan="10" style="padding:0;">
                                 <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
                                     <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoAdm['barra'] }};"></div>
                                     <div style="flex:1; min-width:0;">
@@ -440,6 +441,13 @@
                                 {{ $req->valor ? 'R$ '.number_format($req->valor, 2, ',', '.') : '—' }}
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
+                            <td style="padding:12px 16px; text-align:center;">
+                                @if($req->atraso)
+                                    <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
+                                @else
+                                    <span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Não</span>
+                                @endif
+                            </td>
                             <td style="padding:12px 16px; text-align:center;">
                                 <div style="display:flex; gap:6px; justify-content:center;">
                                     <a href="{{ route('admin.requests.export', $req) }}" target="_blank"

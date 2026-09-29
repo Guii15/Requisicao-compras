@@ -30,13 +30,11 @@ class ConferenciaController extends Controller
                 $query->whereIn('status_conferencia', ['divergente', 'avancado_mesmo_assim', 'cancelado']);
             }
         } elseif ($aba === 'coleta') {
-            $resultado = $request->query('resultado') === 'coletados' ? 'coletados' : 'aguardando';
-            if ($resultado === 'coletados') {
-                $query->whereNotNull('data_coleta');
-                $ordenarPor = 'data_coleta';
+            $resultado = $request->query('resultado') === 'ok' ? 'ok' : 'aguardando';
+            if ($resultado === 'ok') {
+                $query->where('atraso', false);
             } else {
-                $query->whereNull('data_coleta');
-                $ordenarPor = 'created_at';
+                $query->where('atraso', true);
             }
         } else {
             $query->whereNull('status_conferencia');
@@ -50,7 +48,7 @@ class ConferenciaController extends Controller
             });
         }
 
-        $ordenarPor = $ordenarPor ?? ($aba === 'conferidos' ? 'created_at' : 'created_at');
+        $ordenarPor = 'created_at';
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente'], $ordenarPor, null, true)->withQueryString();
 
         return view('conferencia.index', compact('requests', 'aba', 'resultado', 'q'));
@@ -124,9 +122,9 @@ class ConferenciaController extends Controller
 
     public function registrarColeta(Request $request, PurchaseRequest $purchaseRequest)
     {
-        if ($purchaseRequest->data_coleta !== null) {
+        if ($purchaseRequest->atraso === false) {
             return redirect()->route('conferencia.index', ['aba' => 'coleta'])
-                ->with('aviso', 'Este item já teve a coleta registrada (provavelmente um clique duplicado) — nada foi alterado.');
+                ->with('aviso', 'Este item já foi coletado (provavelmente um clique duplicado) — nada foi alterado.');
         }
 
         if ($purchaseRequest->status !== 'aprovado') {
@@ -134,18 +132,7 @@ class ConferenciaController extends Controller
                 ->with('aviso', 'Este item não foi aprovado — não é possível registrar a coleta.');
         }
 
-        $request->validate([
-            'coletado_por' => 'required|string|max:255',
-            'data_coleta'  => 'required|date',
-        ], [
-            'coletado_por.required' => 'Informe quem coletou.',
-            'data_coleta.required'  => 'Informe a data da coleta.',
-        ]);
-
-        $purchaseRequest->update([
-            'coletado_por' => $request->coletado_por,
-            'data_coleta'  => $request->data_coleta,
-        ]);
+        $purchaseRequest->update(['atraso' => false]);
 
         return redirect()->route('conferencia.index', ['aba' => 'coleta'])->with('success', 'Coleta registrada com sucesso!');
     }

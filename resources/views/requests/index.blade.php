@@ -177,6 +177,7 @@
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Urgência</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
+                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Atraso</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
                     </tr>
                 </thead>
@@ -205,7 +206,7 @@
                             }
                         @endphp
                         <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveGrupo }}')">
-                            <td colspan="8" style="padding:0;">
+                            <td colspan="9" style="padding:0;">
                                 <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
                                     <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoV['barra'] }};"></div>
                                     <div style="flex:1; min-width:0;">
@@ -276,9 +277,6 @@
                                         @if($req->data_compra)
                                             <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
                                         @endif
-                                        @if($req->data_coleta)
-                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
-                                        @endif
                                         @if($req->pedido_compra_path)
                                             <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
                                         @endif
@@ -318,6 +316,13 @@
                                 @endif
                             </td>
                             <td style="padding:14px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
+                            <td style="padding:14px 16px; text-align:center;">
+                                @if($req->atraso)
+                                    <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
+                                @else
+                                    <span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Não</span>
+                                @endif
+                            </td>
                             <td style="padding:14px 16px; text-align:center;">
                                 <div style="display:flex; gap:6px; justify-content:center;">
                                     @if($req->status === 'pendente')

@@ -65,8 +65,7 @@ class PurchaseRequest extends Model
         'preco_unitario',
         'preco_caixa',
         'codigo_fornecedor',
-        'data_coleta',
-        'coletado_por',
+        'atraso',
         'pedido_compra_path',
         'pedido_compra_nome',
     ];
@@ -75,9 +74,9 @@ class PurchaseRequest extends Model
         'approved_at' => 'datetime',
         'entrada_concluida_em' => 'datetime',
         'data_compra' => 'date',
-        'data_coleta' => 'date',
         'preco_unitario' => 'decimal:2',
         'preco_caixa' => 'decimal:2',
+        'atraso' => 'boolean',
         'dados_importacao' => 'array',
     ];
 

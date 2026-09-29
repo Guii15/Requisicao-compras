@@ -86,6 +86,7 @@
                         <th style="padding:13px 16px; text-align:right; color:#fff; font-size:13px; font-weight:600;">Preço Total</th>
                         <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Pedido</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Foto</th>
+                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Atraso</th>
                         <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'concluidas' ? 'Data da Entrada' : 'Ação' }}</th>
                     </tr>
                 </thead>
@@ -113,7 +114,7 @@
                             }
                         @endphp
                         <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
-                            <td colspan="9" style="padding:0;">
+                            <td colspan="10" style="padding:0;">
                                 <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
                                     <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoEntr['barra'] }};"></div>
                                     <div style="flex:1; min-width:0;">
@@ -169,6 +170,13 @@
                                     —
                                 @endif
                             </td>
+                            <td style="padding:12px 16px; text-align:center;">
+                                @if($req->atraso)
+                                    <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
+                                @else
+                                    <span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Não</span>
+                                @endif
+                            </td>
                             @php
                                 $elegivelEntradaEntr = $req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
                             @endphp
@@ -188,7 +196,7 @@
 
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
-                            <td colspan="9" style="padding:0;">
+                            <td colspan="10" style="padding:0;">
                                 <div style="padding:14px 16px; background:#f0fdf4; border-bottom:1px solid #e5e7eb; margin:8px 0;">
                                     <span style="font-size:10px; font-weight:700; color:#15803d; text-transform:uppercase; letter-spacing:0.5px;">📝 Obs (Conferente):</span>
                                     <div style="margin-top:6px; font-size:13px; color:#166534; line-height:1.6;">{{ $req->obs }}</div>
@@ -244,7 +252,7 @@
                     @endforeach
                     @empty
                         <tr>
-                            <td colspan="9" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="10" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 {{ $aba === 'concluidas' ? 'Nenhum item com entrada registrada ainda.' : 'Nenhum item liberado aguardando entrada.' }}
                             </td>
                         </tr>
