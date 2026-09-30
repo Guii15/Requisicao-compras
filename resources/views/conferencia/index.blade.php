@@ -746,13 +746,15 @@
 <script>
 function toggleGrupoRequisicao(chave) {
     var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
-    var seta = document.getElementById('seta-grupo-' + chave);
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    // Desktop e mobile têm um rótulo cada com o mesmo id; getElementById só achava o do desktop.
+    document.querySelectorAll('[id="seta-grupo-' + chave + '"]').forEach(function (seta) {
+        seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    });
 }
 
 function protegerEnvioDuplo(form) {
