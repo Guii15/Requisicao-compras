@@ -557,18 +557,15 @@
 
     @if($aba === 'coleta')
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
-            @forelse($requests as $req)
-                @php
-                    $cor = $req->atraso ? ['bg' => '#fef3c7', 'texto' => '#b45309'] : ['bg' => '#dcfce7', 'texto' => '#15803d'];
-                    $status = $req->atraso ? 'Aguardando' : 'Coleta OK';
-                @endphp
+            @forelse($requests as $grupo)
+                @foreach($grupo as $req)
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid #f3f4f6;">
                     <div>
                         <div style="font-weight:700; color:#111827;">Requisição #{{ $req->id }}</div>
                         <div style="font-size:13px; color:#6b7280;">{{ $req->requester_name ?? 'Não informado' }}</div>
                     </div>
-                    <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">{{ $status }}</span>
-                    @if($req->atraso && $podeConferir)
+                    <span style="background:#dcfce7; color:#15803d; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Coleta OK</span>
+                    @if($podeConferir)
                     <form method="POST" action="{{ route('conferencia.coleta', $req) }}" style="display:inline;">
                         @csrf
                         @method('PATCH')
@@ -579,6 +576,7 @@
                     </form>
                     @endif
                 </div>
+                @endforeach
             @empty
                 <div style="text-align:center; color:#9ca3af; padding:32px 0;">
                     {{ $resultado === 'ok' ? 'Nenhuma coleta registrada ainda.' : 'Nenhuma coleta aguardando.' }}
