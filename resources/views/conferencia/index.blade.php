@@ -673,7 +673,8 @@
             </div>
             @endif
             @endforeach
-        @endforelse
+            @empty
+            @endforelse
 
         <script>
         function abrirModalColeta(id) {
