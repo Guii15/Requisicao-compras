@@ -315,7 +315,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 var id = @js(session('modal_aberto'));
-                var modal = document.getElementById((window.innerWidth < 640 ? 'modal-m-' : 'modal-') + id)
+                var modal = document.getElementById((window.innerWidth <= 768 ? 'modal-m-' : 'modal-') + id)
                     || document.getElementById('modal-' + id);
                 if (modal) modal.style.display = 'flex';
             });
@@ -633,7 +633,7 @@
                         <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                             {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoAdmM }}
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdmM }}')"
+                        <button type="button" class="m-botao" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdmM }}')"
                                 style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
                             <span id="seta-grupo-{{ $chaveAdmM }}">Ver itens</span>
                         </button>
@@ -708,7 +708,7 @@
                     </div>
                 </div>
 
-                <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div class="m-coluna" style="display:flex; align-items:center; justify-content:space-between;">
                     @if($req->urgency=='alta')
                         <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
                     @elseif($req->urgency=='media')
@@ -716,7 +716,7 @@
                     @else
                         <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
                     @endif
-                    <div style="display:flex; gap:6px;">
+                    <div class="m-card-acao" style="display:flex; gap:6px;">
                         <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
                            style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:8px 12px; font-size:13px; font-weight:600; text-decoration:none;">
                             Exportar
@@ -732,7 +732,7 @@
 
             {{-- Modal mobile --}}
             <div id="modal-m-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; max-height:90vh; overflow-y:auto;">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; max-height:90vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
                     <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data">
@@ -817,7 +817,7 @@
                         </div>
                         @endif
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end;">
                             <button type="button" onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
