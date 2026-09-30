@@ -16,7 +16,7 @@ class ConferenciaController extends Controller
     public function index(Request $request)
     {
         $aba = $request->query('aba') === 'conferidos' ? 'conferidos' : ($request->query('aba') === 'coleta' ? 'coleta' : 'aguardando');
-        $resultado = in_array($request->query('resultado'), ['ok', 'divergente'], true) ? $request->query('resultado') : 'todos';
+        $resultado = $request->query('resultado');
         $q = trim((string) $request->query('q', ''));
 
         $query = PurchaseRequest::with(['user', 'conferente'])->where('status', 'aprovado');
@@ -30,7 +30,13 @@ class ConferenciaController extends Controller
                 $query->whereIn('status_conferencia', ['divergente', 'avancado_mesmo_assim', 'cancelado']);
             }
         } elseif ($aba === 'coleta') {
-            // Mostra tudo - aguardando e coletados (sem filtro)
+            if ($resultado === 'coletado') {
+                $query->where('status_coleta', 'coletado');
+            } elseif ($resultado === 'atraso') {
+                $query->where('status_coleta', 'atraso');
+            } elseif ($resultado === 'aguardando') {
+                $query->whereNull('status_coleta')->orWhere('status_coleta', 'aguardando');
+            }
         } else {
             $query->whereNull('status_conferencia');
         }

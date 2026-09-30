@@ -559,12 +559,15 @@
     @endif
 
     @if($aba === 'coleta')
-        <div style="display:flex; gap:8px; margin-bottom:20px;">
-            @foreach(['aguardando' => 'Aguardando Coleta', 'coletado' => 'Já Coletados', 'atraso' => 'Atraso'] as $valor => $rotulo)
+        <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+            @foreach(['aguardando' => ['emoji' => '⏳', 'label' => 'Aguardando'], 'coletado' => ['emoji' => '✅', 'label' => 'Coletados'], 'atraso' => ['emoji' => '⚠️', 'label' => 'Atraso']] as $valor => $config)
                 <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}"
-                   style="padding:8px 16px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
-                          background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
-                    {{ $rotulo }}
+                   style="padding:12px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:8px; transition:all 0.2s;
+                          background:{{ $resultado === $valor ? 'linear-gradient(135deg,#05018D,#1d4ed8)' : '#f3f4f6' }};
+                          color:{{ $resultado === $valor ? '#fff' : '#374151' }};
+                          border:{{ $resultado === $valor ? '2px solid #05018D' : '2px solid transparent' }};
+                          box-shadow:{{ $resultado === $valor ? '0 4px 12px rgba(5, 1, 141, 0.2)' : 'none' }};">
+                    {{ $config['emoji'] }} {{ $config['label'] }}
                 </a>
             @endforeach
         </div>
