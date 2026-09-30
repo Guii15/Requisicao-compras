@@ -57,7 +57,22 @@ async function ativar(botao) {
     const inscricao = (await registro.pushManager.getSubscription())
         || (await registro.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64ParaBytes(chavePublica) }));
 
-    await window.axios.post(botao.dataset.subscribeUrl, inscricao.toJSON());
+    try {
+        await window.axios.post(botao.dataset.subscribeUrl, inscricao.toJSON());
+    } catch (erro) {
+        await inscricao.unsubscribe();
+        throw erro;
+    }
+}
+
+// Reenvia a inscrição que o aparelho já tem: conserta quem ativou quando o servidor falhou
+// e passa o aparelho para quem logou por último.
+async function sincronizar() {
+    if (!suportado || Notification.permission !== 'granted') return;
+    const inscricao = await inscricaoAtual();
+    if (inscricao) {
+        window.axios.post(botoes[0].dataset.subscribeUrl, inscricao.toJSON()).catch(() => {});
+    }
 }
 
 async function desativar(botao) {
@@ -85,4 +100,5 @@ if (botoes.length && chavePublica) {
     });
 
     atualizar();
+    sincronizar();
 }
