@@ -22,7 +22,7 @@
 
     <a href="{{ route('admin.compras.index') }}" style="font-size:13px; color:#6b7280; text-decoration:none;">← Voltar para Compras</a>
 
-    <div style="display:grid; grid-template-columns:minmax(0,2fr) minmax(260px,1fr); gap:20px; margin-top:12px; align-items:start;">
+    <div class="m-uma-coluna" style="display:grid; grid-template-columns:minmax(0,2fr) minmax(260px,1fr); gap:20px; margin-top:12px; align-items:start;">
 
         {{-- Formulário --}}
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
@@ -91,7 +91,7 @@
                 </div>
 
                 <div style="margin-top:24px; display:flex; justify-content:flex-end;">
-                    <button type="submit" style="background:#05018D; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                    <button type="submit" class="m-botao" style="background:#05018D; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
                         Salvar dados da compra
                     </button>
                 </div>

@@ -79,6 +79,9 @@
     .m-empilhar button { width: 100% !important; min-width: 0 !important; min-height: 44px; box-sizing: border-box; }
     .m-empilhar a { flex: 1; min-height: 44px; display: inline-flex !important; align-items: center; justify-content: center; box-sizing: border-box; }
 
+    .m-uma-coluna { display: flex !important; flex-direction: column !important; }
+    .m-uma-coluna > * { width: 100%; min-width: 0 !important; box-sizing: border-box; }
+
     .m-coluna { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
     .m-coluna > .m-card-acao { align-self: stretch; width: 100%; margin-top: 0; }
 
