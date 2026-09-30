@@ -545,7 +545,7 @@
             @endforeach
         @empty
             <div style="text-align:center; padding:48px 16px;">
-                <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : ($aba === 'coleta' ? ($resultado === 'coletados' ? 'Nenhuma coleta registrada ainda' : 'Nenhuma coleta aguardando') : 'Nenhuma requisição aguardando conferência') }}</p>
+                <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'conferidos' ? 'Nenhuma requisição conferida ainda' : 'Nenhuma requisição aguardando conferência' }}</p>
             </div>
         @endforelse
         @if($requests->hasPages())
