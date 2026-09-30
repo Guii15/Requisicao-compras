@@ -55,6 +55,8 @@
 
             <div class="hidden sm:flex sm:items-center sm:ms-6" style="gap:12px;">
 
+                <x-push-toggle />
+
                 <button id="darkToggle" onclick="toggleDark()" title="Alternar modo escuro"
                         style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; padding:7px 10px; cursor:pointer; color:#fff; display:flex; align-items:center;"
                         onmouseover="this.style.background='rgba(255,255,255,0.2)'"
@@ -129,6 +131,7 @@
             <div style="color:#fff; font-weight:600; font-size:15px;">{{ Auth::user()->name }}</div>
             <div style="color:rgba(255,255,255,0.55); font-size:13px;">{{ Auth::user()->email }}</div>
             <div class="mt-3">
+                <x-push-toggle variant="mobile" />
                 <a href="{{ route('profile.edit') }}" style="display:block; color:rgba(255,255,255,0.8); padding:8px 0; font-size:14px; text-decoration:none;">Meu Perfil</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

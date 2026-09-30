@@ -7,6 +7,12 @@
 
         <title>{{ config('app.name', 'Requisição de Compras') }}</title>
 
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+        <meta name="theme-color" content="#05018D">
+        @if(config('services.webpush.public_key'))
+            <meta name="vapid-public-key" content="{{ config('services.webpush.public_key') }}">
+        @endif
+
         <!-- Favicon -->
         <link rel="icon" type="image/png" href="{{ asset('imagens/favicon.png') }}">
         <link rel="shortcut icon" type="image/x-icon" href="{{ asset('imagens/favicon.ico') }}">

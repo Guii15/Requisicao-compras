@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'Requisição de Compras') }}</title>
 
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+        <meta name="theme-color" content="#05018D">
+
         <!-- Favicon -->
         <link rel="icon" type="image/png" href="{{ asset('imagens/favicon.png') }}">
         <link rel="shortcut icon" type="image/x-icon" href="{{ asset('imagens/favicon.ico') }}">

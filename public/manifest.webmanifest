@@ -1,0 +1,14 @@
+{
+    "name": "Requisição de Compras",
+    "short_name": "Requisições",
+    "description": "Requisições de compra da Binário Tecnologia",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#05018D",
+    "theme_color": "#05018D",
+    "icons": [
+        { "src": "/imagens/icon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/imagens/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    ]
+}
