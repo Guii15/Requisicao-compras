@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Mail\PurchaseRequestCreated;
 use App\Http\Controllers\AdminController;
+use App\Services\FornecedorResolver;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 
@@ -154,9 +155,13 @@ class PurchaseRequestController extends Controller
             'anexo.max'                => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
+        $fornecedor = app(FornecedorResolver::class)->paraVendedor($request->supplier);
+
         $atualizacao = [
             'requester_name' => $request->requester_name,
-            'supplier'       => $request->supplier,
+            'supplier'       => $fornecedor?->nome ?? $request->supplier,
+            'fornecedor_id'  => $fornecedor?->id,
+            'supplier_original' => $request->supplier ?: null,
             'urgency'        => $request->urgency,
             'reason'         => $request->reason,
             'justification'  => $request->justification,
@@ -245,6 +250,7 @@ class PurchaseRequestController extends Controller
 
         $created = [];
         $grupoId = (string) Str::uuid();
+        $fornecedor = app(FornecedorResolver::class)->paraVendedor($request->supplier);
 
         foreach ($request->products as $index => $product) {
             if (empty(trim($product['product_name'] ?? ''))) continue;
@@ -262,7 +268,9 @@ class PurchaseRequestController extends Controller
                 'user_id'        => Auth::id(),
                 'grupo_id'       => $grupoId,
                 'requester_name' => $request->requester_name,
-                'supplier'       => $request->supplier,
+                'supplier'       => $fornecedor?->nome ?? $request->supplier,
+                'fornecedor_id'  => $fornecedor?->id,
+                'supplier_original' => $request->supplier ?: null,
                 'urgency'        => $request->urgency,
                 'reason'         => $request->reason,
                 'justification'  => $request->justification,

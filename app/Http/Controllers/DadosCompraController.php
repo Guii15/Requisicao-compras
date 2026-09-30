@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use App\Services\FornecedorResolver;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
@@ -76,7 +77,7 @@ class DadosCompraController extends Controller
         return view('admin.compras.edit', ['item' => $purchaseRequest]);
     }
 
-    public function update(Request $request, PurchaseRequest $purchaseRequest)
+    public function update(Request $request, PurchaseRequest $purchaseRequest, FornecedorResolver $fornecedores)
     {
         $this->garantirAprovada($purchaseRequest);
 
@@ -99,11 +100,20 @@ class DadosCompraController extends Controller
             'valor'             => 'nullable|numeric|min:0',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
+            'fornecedor_id'     => 'nullable|integer|exists:fornecedores,id',
+            'confirmar_novo_fornecedor' => 'nullable|boolean',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
         ]);
+
+        $fornecedor = $fornecedores->paraAdmin(
+            $dados['supplier'],
+            $dados['fornecedor_id'] ?? null,
+            $request->boolean('confirmar_novo_fornecedor'),
+            $request->user()
+        );
 
         $atualizacao = [
             'data_compra'       => $dados['data_compra'],
@@ -111,7 +121,9 @@ class DadosCompraController extends Controller
             'preco_caixa'       => $dados['preco_caixa'] ?? null,
             'valor'             => $dados['valor'] ?? null,
             'codigo_fornecedor' => $dados['codigo_fornecedor'] ?? null,
-            'supplier'          => mb_convert_case(mb_strtolower(trim($dados['supplier'])), MB_CASE_TITLE, 'UTF-8'),
+            'supplier'          => $fornecedor?->nome,
+            'fornecedor_id'     => $fornecedor?->id,
+            'supplier_original' => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: $dados['supplier']),
         ];
 
         if ($request->hasFile('pedido_compra')) {

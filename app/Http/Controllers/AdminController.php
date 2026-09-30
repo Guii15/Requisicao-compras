@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ItemMaisSolicitado;
 use App\Models\PurchaseRequest;
 use App\Models\User;
+use App\Services\FornecedorResolver;
 use App\Services\PushNotifier;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
@@ -99,18 +100,12 @@ class AdminController extends Controller
             ];
         });
 
-        $supplierList = PurchaseRequest::whereNotNull('supplier')
-            ->where('supplier', '!=', '')
-            ->distinct()
-            ->orderBy('supplier')
-            ->pluck('supplier');
-
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending'));
     }
 
     private const DISCO_PEDIDO_COMPRA = 'local';
 
-    public function update(Request $request, PurchaseRequest $purchaseRequest)
+    public function update(Request $request, PurchaseRequest $purchaseRequest, FornecedorResolver $fornecedores)
     {
         if ($request->filled('preco_unitario')) {
             $request->merge(['preco_unitario' => $this->decimalBrasileiro($request->input('preco_unitario'))]);
@@ -124,10 +119,15 @@ class AdminController extends Controller
             $request->merge(['valor' => $this->decimalBrasileiro($request->input('valor'))]);
         }
 
+        // Se algo falhar, a tela reabre o modal deste item para mostrar o erro.
+        session()->flash('modal_aberto', $purchaseRequest->id);
+
         $request->validate([
             'status'            => 'required|in:pendente,aprovado,rejeitado',
             'admin_note'        => 'nullable|string|max:2000',
             'supplier'          => 'nullable|string|max:255',
+            'fornecedor_id'     => 'nullable|integer|exists:fornecedores,id',
+            'confirmar_novo_fornecedor' => 'nullable|boolean',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'preco_unitario'    => 'nullable|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
@@ -142,12 +142,21 @@ class AdminController extends Controller
             'anexo.max'                  => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
-        $supplier = $request->supplier ? mb_convert_case(mb_strtolower(trim($request->supplier)), MB_CASE_TITLE, 'UTF-8') : null;
+        $fornecedor = $fornecedores->paraAdmin(
+            $request->supplier,
+            $request->input('fornecedor_id'),
+            $request->boolean('confirmar_novo_fornecedor'),
+            $request->user()
+        );
+
+        session()->forget('modal_aberto');
 
         $atualizacao = [
             'status'             => $request->status,
             'admin_note'         => $request->admin_note,
-            'supplier'           => $supplier,
+            'supplier'           => $fornecedor?->nome,
+            'fornecedor_id'      => $fornecedor?->id,
+            'supplier_original'  => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: ($request->supplier ?: null)),
             'codigo_fornecedor'  => $request->codigo_fornecedor ?: null,
             'preco_unitario'     => $request->preco_unitario ?: null,
             'preco_caixa'        => $request->preco_caixa ?: null,

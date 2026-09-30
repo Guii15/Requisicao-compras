@@ -8,6 +8,7 @@ use App\Http\Controllers\ConferenciaController;
 use App\Http\Controllers\PendenciaController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\EntradaController;
+use App\Http\Controllers\FornecedorController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
@@ -92,6 +93,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::patch('/compras/{purchaseRequest}', [DadosCompraController::class, 'update'])->middleware('throttle:60,1')->name('compras.update');
     Route::get('/itens-mais-solicitados', [AdminController::class, 'itensMaisSolicitados'])->name('itens-mais-solicitados');
     Route::get('/historico-compras', [AdminController::class, 'historicoCompras'])->name('historico-compras');
+    Route::get('/fornecedores/buscar', [FornecedorController::class, 'buscar'])->name('fornecedores.buscar');
 
     Route::middleware(SuperAdminMiddleware::class)->group(function () {
         Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');

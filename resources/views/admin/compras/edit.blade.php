@@ -48,8 +48,12 @@
 
                     <div>
                         <label style="{{ $labelStyle }}">Fornecedor <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="supplier" required value="{{ old('supplier', $item->supplier) }}" style="{{ $inputStyle }}">
-                        @error('supplier') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
+                        <x-fornecedor-input obrigatorio
+                            :valor="old('supplier', $item->supplier)"
+                            :fornecedor-id="old('fornecedor_id', $item->fornecedor_id)"
+                            :erro="$errors->first('supplier')"
+                            :sugestoes="session('fornecedor_sugestoes', [])"
+                            :estilo="$inputStyle" />
                     </div>
                     <div>
                         <label style="{{ $labelStyle }}">Código do produto no fornecedor</label>
