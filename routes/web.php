@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DadosCompraController;
 use App\Http\Controllers\ConferenciaController;
 use App\Http\Controllers\PendenciaController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
@@ -66,6 +67,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/requisicoes/{purchaseRequest}/anexo', [PurchaseRequestController::class, 'baixarAnexo'])->name('requests.anexo');
     Route::get('/admin/compras/{purchaseRequest}/pedido', [DadosCompraController::class, 'baixarPedido'])->name('admin.compras.pedido');
+});
+
+Route::middleware('auth')->prefix('push')->name('push.')->group(function () {
+    Route::post('/subscribe', [PushSubscriptionController::class, 'store'])->middleware('throttle:30,1')->name('subscribe');
+    Route::delete('/subscribe', [PushSubscriptionController::class, 'destroy'])->middleware('throttle:30,1')->name('unsubscribe');
 });
 
 Route::middleware('auth')->group(function () {
