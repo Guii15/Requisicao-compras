@@ -108,6 +108,7 @@
         </div>
     @endif
 
+    @if($aba !== 'coleta')
     <div class="conf-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
@@ -555,34 +556,141 @@
         @endif
     </div>
 
+    @endif
+
     @if($aba === 'coleta')
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px;">
-            @forelse($requests as $grupo)
-                @foreach($grupo as $req)
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid #f3f4f6;">
-                    <div>
-                        <div style="font-weight:700; color:#111827;">Requisição #{{ $req->id }}</div>
-                        <div style="font-size:13px; color:#6b7280;">{{ $req->requester_name ?? 'Não informado' }}</div>
-                    </div>
-                    <span style="background:#dcfce7; color:#15803d; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Coleta OK</span>
-                    @if($podeConferir)
-                    <form method="POST" action="{{ route('conferencia.coleta', $req) }}" style="display:inline;">
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            @foreach(['aguardando' => 'Aguardando Coleta', 'coletado' => 'Já Coletados', 'atraso' => 'Atraso'] as $valor => $rotulo)
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}"
+                   style="padding:8px 16px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
+                          background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
+                    {{ $rotulo }}
+                </a>
+            @endforeach
+        </div>
+
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
+                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Vendedor</th>
+                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd</th>
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data Coleta</th>
+                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($requests as $grupo)
+                            @foreach($grupo as $req)
+                            <tr style="border-bottom:1px solid #f3f4f6;">
+                                <td style="padding:12px 16px; font-size:14px; color:#111827;">{{ $req->requester_name ?? '—' }}</td>
+                                <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->product_name }}</td>
+                                <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
+                                <td style="padding:12px 16px; text-align:center;">
+                                    @if($req->status_coleta === 'coletado')
+                                        <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Coletado</span>
+                                    @elseif($req->status_coleta === 'atraso')
+                                        <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Atraso</span>
+                                    @else
+                                        <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Aguardando</span>
+                                    @endif
+                                </td>
+                                <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">
+                                    {{ $req->data_coleta?->format('d/m/Y H:i') ?? '—' }}
+                                </td>
+                                <td style="padding:12px 16px; text-align:center;">
+                                    @if($req->status_coleta === 'coletado')
+                                        <span style="color:#999; font-size:12px;">✓ Concluído</span>
+                                    @elseif($podeConferir)
+                                        <button type="button" onclick="abrirModalColeta({{ $req->id }})"
+                                                style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                            Coletar Agora
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="6" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                                    {{ $resultado === 'coletado' ? 'Nenhuma coleta registrada.' : 'Nenhuma requisição aguardando coleta.' }}
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @forelse($requests as $grupo)
+            @foreach($grupo as $req)
+            @if($podeConferir && $req->status_coleta !== 'coletado')
+            <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:480px; margin:16px; box-shadow:0 20px 25px rgba(0,0,0,0.15);">
+                    <h3 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#05018D;">Registrar Coleta</h3>
+                    <p style="margin:0 0 20px; font-size:14px; color:#6b7280;">Requisição #{{ $req->id }} - {{ $req->product_name }}</p>
+
+                    <form method="POST" action="{{ route('conferencia.coleta', $req) }}" id="form-coleta-{{ $req->id }}" onsubmit="return validarColeta({{ $req->id }})">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" onclick="return confirm('Marcar como coletado?')"
-                                style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">
-                            Marcar Coletado
-                        </button>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:6px; text-transform:uppercase;">Data da Coleta *</label>
+                            <input type="datetime-local" name="data_coleta" id="data-coleta-{{ $req->id }}" required
+                                   value="{{ now()->format('Y-m-d\TH:i') }}"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:20px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:6px; text-transform:uppercase;">Marcar como *</label>
+                            <div style="display:flex; gap:8px;">
+                                <label style="flex:1;">
+                                    <input type="radio" name="status_coleta" value="coletado" checked style="margin-right:6px;">
+                                    <span style="font-size:14px; color:#374151;">✓ Coletado</span>
+                                </label>
+                                <label style="flex:1;">
+                                    <input type="radio" name="status_coleta" value="atraso" style="margin-right:6px;">
+                                    <span style="font-size:14px; color:#dc2626;">⚠️ Atraso</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                            <button type="button" onclick="fecharModalColeta({{ $req->id }})"
+                                    style="padding:10px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#1d4ed8); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                Confirmar Coleta
+                            </button>
+                        </div>
                     </form>
-                    @endif
                 </div>
-                @endforeach
-            @empty
-                <div style="text-align:center; color:#9ca3af; padding:32px 0;">
-                    {{ $resultado === 'ok' ? 'Nenhuma coleta registrada ainda.' : 'Nenhuma coleta aguardando.' }}
-                </div>
-            @endforelse
-        </div>
+            </div>
+            @endif
+            @endforeach
+        @endforelse
+
+        <script>
+        function abrirModalColeta(id) {
+            document.getElementById('modal-coleta-' + id).style.display = 'flex';
+        }
+        function fecharModalColeta(id) {
+            document.getElementById('modal-coleta-' + id).style.display = 'none';
+        }
+        function validarColeta(id) {
+            var dataInput = document.getElementById('data-coleta-' + id);
+            if (!dataInput.value) {
+                alert('Por favor, selecione a data da coleta!');
+                return false;
+            }
+            return confirm('Tem certeza que deseja registrar esta coleta?\n\nEsta ação não pode ser desfeita facilmente.');
+        }
+        </script>
     @endif
 
 </div>

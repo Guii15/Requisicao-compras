@@ -68,6 +68,9 @@ class PurchaseRequest extends Model
         'atraso',
         'pedido_compra_path',
         'pedido_compra_nome',
+        'status_coleta',
+        'data_coleta',
+        'coletado_por',
     ];
 
     protected $casts = [
@@ -78,6 +81,7 @@ class PurchaseRequest extends Model
         'preco_caixa' => 'decimal:2',
         'atraso' => 'boolean',
         'dados_importacao' => 'array',
+        'data_coleta' => 'datetime',
     ];
 
     /**
