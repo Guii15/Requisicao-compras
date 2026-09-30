@@ -83,6 +83,13 @@ class ColetaTest extends TestCase
         $this->assertSame(1, substr_count($response->getContent(), 'resultado=coletado"'));
     }
 
+    public function test_subtitulo_da_aba_coleta_fala_de_coleta(): void
+    {
+        $this->actingAs($this->conferente())
+            ->get(route('conferencia.index', ['aba' => 'coleta']))
+            ->assertSee('Requisições aprovadas aguardando coleta');
+    }
+
     public function test_registrar_coleta_nao_abre_pop_up_de_confirmacao(): void
     {
         $this->item(['status_coleta' => 'aguardando']);

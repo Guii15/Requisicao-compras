@@ -16,7 +16,7 @@
 
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Conferência</h1>
-        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'conferidos' ? 'Requisições já conferidas' : 'Requisições aprovadas aguardando conferência' }}</p>
+        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'conferidos' ? 'Requisições já conferidas' : ($aba === 'coleta' ? 'Requisições aprovadas aguardando coleta' : 'Requisições aprovadas aguardando conferência') }}</p>
     </div>
 
     <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
