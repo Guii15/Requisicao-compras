@@ -44,15 +44,15 @@
         align-items: center;
         min-height: 40px;
         padding: 0 16px !important;
-        border: 0 !important;
+        border: 1px solid #e5e7eb !important;
         border-radius: 20px !important;
         box-shadow: none !important;
         font-size: 13px !important;
         font-weight: 600 !important;
-        background: #f3f4f6 !important;
-        color: #6b7280 !important;
+        background: #fff !important;
+        color: #4b5563 !important;
     }
-    .m-pilulas > .ativo { background: #05018D !important; color: #fff !important; }
+    .m-pilulas > .ativo { background: #05018D !important; border-color: #05018D !important; color: #fff !important; }
 
     .m-busca { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
     .m-busca input[type="text"],
@@ -110,6 +110,8 @@
     .m-modal-caixa input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),
     .m-modal-caixa select,
     .m-modal-caixa textarea { min-height: 44px; font-size: 16px !important; box-sizing: border-box; }
+    .m-modal-caixa label:has(> input[type="radio"]),
+    .m-modal-caixa label:has(> input[type="checkbox"]) { min-height: 44px; display: flex; align-items: center; }
     .m-modal-acoes { display: flex !important; flex-direction: column-reverse !important; align-items: stretch !important; gap: 8px !important; }
     .m-modal-acoes > * { width: 100% !important; min-height: 44px; margin: 0 !important; justify-content: center; }
 
