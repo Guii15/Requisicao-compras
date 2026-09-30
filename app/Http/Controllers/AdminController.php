@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\ItemMaisSolicitado;
 use App\Models\PurchaseRequest;
 use App\Models\User;
-use App\Services\PlanilhaOriginalHistorico;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Support\Facades\Storage;
@@ -284,45 +283,10 @@ class AdminController extends Controller
                 ];
             });
 
-        $planilhaOriginal = new PlanilhaOriginalHistorico();
-        $planilhaOriginalAtualizadaEm = $planilhaOriginal->atualizadaEm();
-        $planilhaOriginalAbas = $planilhaOriginal->nomesDasAbas();
-
-        $planilhaOriginalAbaSelecionada = $request->query('planilha_aba');
-        $planilhaOriginalLinhas = null;
-        if ($planilhaOriginalAbaSelecionada && in_array($planilhaOriginalAbaSelecionada, $planilhaOriginalAbas, true)) {
-            $planilhaOriginalLinhas = $planilhaOriginal->lerLinhasDaAba($planilhaOriginalAbaSelecionada);
-        }
-
         return view('admin.historico-compras', compact(
             'requests', 'totaisPorAba', 'totalGeral', 'valorTotal', 'totalPlanilha', 'totalFluxoAtivo',
-            'abasDisponiveis', 'mesesDisponiveis', 'planilhaOriginalAtualizadaEm', 'planilhaOriginalAbas',
-            'planilhaOriginalAbaSelecionada', 'planilhaOriginalLinhas'
+            'abasDisponiveis', 'mesesDisponiveis'
         ));
-    }
-
-    public function downloadPlanilhaOriginal(PlanilhaOriginalHistorico $planilhaOriginal)
-    {
-        if (!$planilhaOriginal->existe()) {
-            abort(404, 'Nenhuma planilha original foi enviada ainda.');
-        }
-
-        return response()->download($planilhaOriginal->caminhoCompleto(), 'Requisicao_de_Compras_Historico.xlsx');
-    }
-
-    public function downloadAbaPlanilhaOriginal(string $aba, PlanilhaOriginalHistorico $planilhaOriginal)
-    {
-        if (!$planilhaOriginal->existe()) {
-            abort(404, 'Nenhuma planilha original foi enviada ainda.');
-        }
-
-        try {
-            $caminhoTemp = $planilhaOriginal->extrairAba($aba);
-        } catch (\RuntimeException $e) {
-            abort(404, $e->getMessage());
-        }
-
-        return response()->download($caminhoTemp, $aba . '.xlsx')->deleteFileAfterSend(true);
     }
 
     public function users()

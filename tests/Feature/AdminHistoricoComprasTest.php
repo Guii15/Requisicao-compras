@@ -29,6 +29,19 @@ class AdminHistoricoComprasTest extends TestCase
         ], $sobrescreve));
     }
 
+    public function test_nao_oferece_mais_visualizar_nem_baixar_planilha_original(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get(route('admin.historico-compras'))
+            ->assertOk()
+            ->assertDontSee('Planilha Original', false)
+            ->assertDontSee('Baixar arquivo completo', false);
+
+        $this->actingAs($admin)->get('/admin/historico-compras/planilha')->assertNotFound();
+        $this->actingAs($admin)->get('/admin/historico-compras/planilha/JAN')->assertNotFound();
+    }
+
     public function test_guest_is_redirected_to_login(): void
     {
         $this->get(route('admin.historico-compras'))->assertRedirect(route('login'));

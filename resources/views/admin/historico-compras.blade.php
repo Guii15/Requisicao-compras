@@ -27,51 +27,6 @@
         </div>
     @endif
 
-    {{-- Planilha Original --}}
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <p style="margin:0 0 14px; font-size:13px; font-weight:600; color:#374151; text-transform:uppercase; letter-spacing:0.5px;">Planilha Original</p>
-
-        @if($planilhaOriginalAtualizadaEm)
-            <p style="margin:0 0 14px; font-size:13px; color:#6b7280;">
-                Última atualização: {{ $planilhaOriginalAtualizadaEm->format('d/m/Y H:i') }}
-            </p>
-
-            <form method="GET" action="{{ route('admin.historico-compras') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
-                <input type="hidden" name="produto" value="{{ request('produto') }}">
-                <input type="hidden" name="vendedor" value="{{ request('vendedor') }}">
-                <input type="hidden" name="mes" value="{{ request('mes') }}">
-                <input type="hidden" name="aba_origem" value="{{ request('aba_origem') }}">
-                <label style="font-size:13px; color:#374151; font-weight:600;">Ver mês:</label>
-                <select name="planilha_aba" onchange="this.form.submit()" style="padding:7px 10px; border:1px solid #d1d5db; border-radius:7px; font-size:13px; min-width:140px;">
-                    <option value="">Selecione...</option>
-                    @foreach($planilhaOriginalAbas as $abaOriginal)
-                        <option value="{{ $abaOriginal }}" @selected($planilhaOriginalAbaSelecionada === $abaOriginal)>{{ $abaOriginal }}</option>
-                    @endforeach
-                </select>
-                @if($planilhaOriginalAbaSelecionada)
-                    <a href="{{ route('admin.historico-compras.planilha.download-aba', $planilhaOriginalAbaSelecionada) }}" style="font-size:12.5px; color:#05018D; text-decoration:underline;">Baixar esta aba</a>
-                @endif
-                <a href="{{ route('admin.historico-compras.planilha.download') }}" style="font-size:12.5px; color:#6b7280; text-decoration:underline;">Baixar arquivo completo</a>
-            </form>
-
-            @if($planilhaOriginalLinhas)
-                <div style="overflow:auto; max-height:420px; border:1px solid #e5e7eb; border-radius:8px;">
-                    <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
-                        @foreach($planilhaOriginalLinhas as $indiceLinha => $linha)
-                            <tr style="border-bottom:1px solid #f3f4f6; {{ $indiceLinha === 0 ? 'background:#f3f4f6; font-weight:700; position:sticky; top:0;' : '' }}">
-                                @foreach($linha as $celula)
-                                    <td style="padding:7px 12px; white-space:nowrap; color:#374151;">{{ $celula }}</td>
-                                @endforeach
-                            </tr>
-                        @endforeach
-                    </table>
-                </div>
-            @endif
-        @else
-            <p style="margin:0; font-size:13px; color:#9ca3af;">Nenhuma planilha original enviada ainda.</p>
-        @endif
-    </div>
-
     {{-- Totais --}}
     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; min-width:180px;">

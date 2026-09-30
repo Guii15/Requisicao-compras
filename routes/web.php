@@ -86,8 +86,6 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::patch('/compras/{purchaseRequest}', [DadosCompraController::class, 'update'])->middleware('throttle:60,1')->name('compras.update');
     Route::get('/itens-mais-solicitados', [AdminController::class, 'itensMaisSolicitados'])->name('itens-mais-solicitados');
     Route::get('/historico-compras', [AdminController::class, 'historicoCompras'])->name('historico-compras');
-    Route::get('/historico-compras/planilha', [AdminController::class, 'downloadPlanilhaOriginal'])->name('historico-compras.planilha.download');
-    Route::get('/historico-compras/planilha/{aba}', [AdminController::class, 'downloadAbaPlanilhaOriginal'])->name('historico-compras.planilha.download-aba');
 
     Route::middleware(SuperAdminMiddleware::class)->group(function () {
         Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
