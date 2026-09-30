@@ -49,7 +49,10 @@ class PlanilhaOriginalHistorico
             return [];
         }
 
-        return IOFactory::load($this->caminhoCompleto())->getSheetNames();
+        // listWorksheetNames le so' o indice das abas; IOFactory::load carregava a planilha inteira (com imagens) a cada acesso.
+        $caminho = $this->caminhoCompleto();
+
+        return IOFactory::createReaderForFile($caminho)->listWorksheetNames($caminho);
     }
 
     /**
