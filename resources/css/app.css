@@ -82,6 +82,12 @@
     .m-coluna { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
     .m-coluna > .m-card-acao { align-self: stretch; width: 100%; margin-top: 0; }
 
+    /* Cabeçalho de grupo em linha (Histórico): título em cima, selo + botão largo embaixo */
+    .m-grupo-cab { flex-wrap: wrap !important; row-gap: 8px !important; padding-right: 16px !important; }
+    .m-grupo-cab > :nth-child(2) { flex: 1 1 calc(100% - 40px) !important; }
+    .m-grupo-cab > span { margin-left: 16px; }
+    .m-grupo-cab > button { flex: 1 1 auto; min-height: 44px; margin-right: 0 !important; }
+
     .m-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
     .m-card-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
     .m-card-titulo { font-size: 15px; font-weight: 700; color: #111827; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }

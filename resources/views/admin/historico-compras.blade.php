@@ -28,7 +28,7 @@
     @endif
 
     {{-- Totais --}}
-    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+    <div class="m-empilhar" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; min-width:180px;">
             <div style="font-size:12px; color:#6b7280; font-weight:600;">Total no histórico</div>
             <div style="font-size:22px; font-weight:700; color:#111827; margin-top:2px;">{{ $totalGeral }}</div>
@@ -51,7 +51,7 @@
     </div>
 
     {{-- Filtros --}}
-    <form method="GET" action="{{ route('admin.historico-compras') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:16px;">
+    <form method="GET" action="{{ route('admin.historico-compras') }}" class="m-empilhar" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:16px;">
         <div>
             <label style="display:block; font-size:12px; color:#6b7280; font-weight:600; margin-bottom:4px;">Produto</label>
             <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Buscar por produto..."
@@ -151,7 +151,7 @@
                     ?? ($primeiroHist->tipo_registro === 'requisicao' ? $primeiroHist->created_at->format('d/m/Y') : 'Sem data');
             @endphp
             <div style="border-bottom:0.5px solid #e5e7eb;">
-                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0; cursor:pointer;"
+                <div class="m-grupo-cab" style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0; cursor:pointer;"
                      onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'"
                      onclick="toggleGrupoHistorico('{{ $chaveHist }}')">
                     <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoHist['barra'] }}; margin-left:16px;"></div>
