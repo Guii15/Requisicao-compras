@@ -30,7 +30,12 @@ class ConferenciaController extends Controller
                 $query->whereIn('status_conferencia', ['divergente', 'avancado_mesmo_assim', 'cancelado']);
             }
         } elseif ($aba === 'coleta') {
-            // Mostra tudo - aguardando e coletados
+            $resultado = $request->query('resultado') === 'ok' ? 'ok' : 'aguardando';
+            if ($resultado === 'ok') {
+                $query->where('atraso', false);
+            } else {
+                $query->where('atraso', true);
+            }
         } else {
             $query->whereNull('status_conferencia');
         }

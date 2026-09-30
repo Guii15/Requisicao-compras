@@ -43,7 +43,17 @@
         </a>
     </div>
 
-    @if($aba === 'conferidos')
+    @if($aba === 'coleta')
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            @foreach(['aguardando' => 'Aguardando', 'coletados' => 'Coletados'] as $valor => $rotulo)
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}"
+                   style="padding:5px 14px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
+                          background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
+                    {{ $rotulo }}
+                </a>
+            @endforeach
+        </div>
+    @elseif($aba === 'conferidos')
         <div style="display:flex; gap:8px; margin-bottom:20px;">
             @foreach(['todos' => 'Todos', 'ok' => 'OK', 'divergente' => 'Divergente'] as $valor => $rotulo)
                 <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor, 'q' => $q !== '' ? $q : null])) }}"
