@@ -39,6 +39,8 @@ class PurchaseRequest extends Model
         'anexo_path',
         'anexo_nome',
         'supplier',
+        'fornecedor_id',
+        'supplier_original',
         'quantity',
         'reason',
         'urgency',
@@ -95,6 +97,11 @@ class PurchaseRequest extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function fornecedor(): BelongsTo
+    {
+        return $this->belongsTo(Fornecedor::class);
     }
 
     public function conferente(): BelongsTo
