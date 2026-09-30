@@ -19,7 +19,7 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'conferidos' ? 'Requisições já conferidas' : ($aba === 'coleta' ? 'Requisições aprovadas aguardando coleta' : 'Requisições aprovadas aguardando conferência') }}</p>
     </div>
 
-    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+    <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
         <a href="{{ route('conferencia.index') }}"
            style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
                   background:{{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }};
@@ -44,9 +44,9 @@
     </div>
 
     @if($aba === 'conferidos')
-        <div style="display:flex; gap:8px; margin-bottom:20px;">
+        <div class="m-rolagem m-pilulas" style="display:flex; gap:8px; margin-bottom:20px;">
             @foreach(['todos' => 'Todos', 'ok' => 'OK', 'divergente' => 'Divergente'] as $valor => $rotulo)
-                <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor, 'q' => $q !== '' ? $q : null])) }}"
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'conferidos', 'resultado' => $valor === 'todos' ? null : $valor, 'q' => $q !== '' ? $q : null])) }}" @class(['ativo' => $resultado === $valor])
                    style="padding:5px 14px; font-size:13px; font-weight:600; text-decoration:none; border-radius:20px;
                           background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }}; color:{{ $resultado === $valor ? '#fff' : '#6b7280' }};">
                     {{ $rotulo }}
@@ -56,12 +56,12 @@
     @endif
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <form method="GET" action="{{ route('conferencia.index') }}" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <form method="GET" action="{{ route('conferencia.index') }}" class="m-busca" style="display:flex; gap:8px; flex-wrap:wrap;">
             <input type="hidden" name="aba" value="{{ $aba }}">
             @if($aba === 'conferidos' && $resultado !== 'todos')
                 <input type="hidden" name="resultado" value="{{ $resultado }}">
             @endif
-            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..."
+            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..." data-placeholder-mobile="Produto, vendedor ou fornecedor"
                    style="flex:1; min-width:200px; border:1px solid #d1d5db; border-radius:7px; padding:9px 14px; font-size:14px; box-sizing:border-box;">
             <button type="submit" style="background:#05018D; color:#fff; padding:9px 20px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;">
                 Buscar
@@ -378,7 +378,7 @@
                         <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                             {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoConfM }}
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveConfM }}')"
+                        <button type="button" class="m-botao" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveConfM }}')"
                                 style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
                             <span id="seta-grupo-{{ $chaveConfM }}">Ver itens</span>
                         </button>
@@ -449,7 +449,7 @@
                     @elseif($req->status_conferencia === 'cancelado')
                         <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                     @elseif($podeConferir)
-                        <button onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
+                        <button class="m-botao" onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
                                 style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                             Conferir
                         </button>
@@ -462,7 +462,7 @@
 
             @if($req->status_conferencia === null && $podeConferir)
             <div id="modal-conferir-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                     <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
                     @if($req->pedido_compra_path)
@@ -512,7 +512,7 @@
 
                         <input type="hidden" name="acao" id="campo-acao-m-{{ $req->id }}" value="salvar">
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                             <button type="button" onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
@@ -567,9 +567,9 @@
     @endif
 
     @if($aba === 'coleta')
-        <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <div class="m-rolagem m-pilulas" style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
             @foreach(['aguardando' => ['emoji' => '⏳', 'label' => 'Aguardando'], 'coletado' => ['emoji' => '✅', 'label' => 'Coletados'], 'atraso' => ['emoji' => '⚠️', 'label' => 'Atraso']] as $valor => $config)
-                <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}"
+                <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}" @class(['ativo' => $resultado === $valor])
                    style="padding:12px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:8px; transition:all 0.2s;
                           background:{{ $resultado === $valor ? 'linear-gradient(135deg,#05018D,#1d4ed8)' : '#f3f4f6' }};
                           color:{{ $resultado === $valor ? '#fff' : '#374151' }};
@@ -580,7 +580,7 @@
             @endforeach
         </div>
 
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+        <div class="m-desktop" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
             <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
@@ -636,11 +636,47 @@
             </div>
         </div>
 
+        <div class="m-cards">
+            @forelse($requests as $grupo)
+                @foreach($grupo as $req)
+                    <x-mobile-card :titulo="$req->product_name" :campos="[
+                        'Requisição' => '#' . $req->id,
+                        'Vendedor' => $req->requester_name,
+                        'Fornecedor' => $req->supplier,
+                        'Quantidade' => $req->quantity,
+                        'Data da coleta' => $req->data_coleta?->format('d/m/Y H:i'),
+                    ]">
+                        <x-slot:badge>
+                            @if($req->status_coleta === 'coletado')
+                                <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Coletado</span>
+                            @elseif($req->status_coleta === 'atraso')
+                                <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Atraso</span>
+                            @else
+                                <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Aguardando</span>
+                            @endif
+                        </x-slot:badge>
+                        @if($req->status_coleta !== 'coletado' && $podeConferir)
+                            <x-slot:acao>
+                                <button type="button" onclick="abrirModalColeta({{ $req->id }})"
+                                        style="background:#05018D; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                                    Coletar Agora
+                                </button>
+                            </x-slot:acao>
+                        @endif
+                    </x-mobile-card>
+                @endforeach
+            @empty
+                <div style="text-align:center; padding:48px 16px; color:#9ca3af; font-size:15px;">
+                    {{ $resultado === 'coletado' ? 'Nenhuma coleta registrada.' : 'Nenhuma requisição aguardando coleta.' }}
+                </div>
+            @endforelse
+        </div>
+
         @forelse($requests as $grupo)
             @foreach($grupo as $req)
             @if($podeConferir && $req->status_coleta !== 'coletado')
             <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:480px; margin:16px; box-shadow:0 20px 25px rgba(0,0,0,0.15);">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:480px; margin:16px; box-shadow:0 20px 25px rgba(0,0,0,0.15);">
                     <h3 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#05018D;">Registrar Coleta</h3>
                     <p style="margin:0 0 20px; font-size:14px; color:#6b7280;">Requisição #{{ $req->id }} - {{ $req->product_name }}</p>
 
@@ -669,7 +705,7 @@
                             </div>
                         </div>
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end;">
+                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end;">
                             <button type="button" onclick="fecharModalColeta({{ $req->id }})"
                                     style="padding:10px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
