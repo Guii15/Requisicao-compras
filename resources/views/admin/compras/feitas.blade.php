@@ -20,7 +20,7 @@
     </div>
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <form method="GET" action="{{ route('admin.compras.feitas') }}" style="display:grid; grid-template-columns:1fr 1fr 160px 160px auto; gap:8px; align-items:end;">
+        <form method="GET" action="{{ route('admin.compras.feitas') }}" class="m-empilhar" style="display:grid; grid-template-columns:1fr 1fr 160px 160px auto; gap:8px; align-items:end;">
             <div>
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Produto</label>
                 <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Buscar produto..."
@@ -50,7 +50,7 @@
         </form>
     </div>
 
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow-x:auto; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div class="m-desktop" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow-x:auto; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <table style="width:100%; border-collapse:collapse; font-size:13px;">
             <thead>
                 <tr style="background:#f9fafb; color:#6b7280; text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px;">
@@ -93,7 +93,7 @@
                                 @endunless
                                 <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeita }}')"
                                         style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
-                                    <span id="seta-grupo-compra-{{ $chaveFeita }}">Ver itens</span>
+                                    <span id="seta-grupo-compra-{{ $chaveFeita }}" data-seta-compra="{{ $chaveFeita }}">Ver itens</span>
                                 </button>
                             </div>
                         </td>
@@ -148,19 +148,50 @@
         </table>
     </div>
 
+    <div class="m-cards">
+        @forelse($requests as $grupo)
+            @php
+                $primeiroFeitaM = $grupo->first();
+                $chaveFeitaM = $primeiroFeitaM->grupo_id;
+                $todosComDadosM = $grupo->every(fn ($r) => $r->temDadosDaCompra());
+            @endphp
+            <div class="m-card" style="cursor:pointer;" onclick="toggleGrupoCompraFeita('{{ $chaveFeitaM }}')">
+                <div class="m-card-topo">
+                    <div class="m-card-titulo">Requisição #{{ $primeiroFeitaM->id }}</div>
+                    @unless($todosComDadosM)
+                        <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Parcial</span>
+                    @endunless
+                </div>
+                <div style="font-size:13px; color:#6b7280;">{{ $primeiroFeitaM->requester_name ?? 'Não informado' }} · {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
+                <div class="m-card-acao">
+                    <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeitaM }}')"
+                            style="border:1px solid #d1d5db; background:#fff; color:#374151; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                        <span data-seta-compra="{{ $chaveFeitaM }}">Ver itens</span>
+                    </button>
+                </div>
+            </div>
+            @foreach($grupo as $item)
+                @include('admin.compras._card-mobile', ['item' => $item, 'classe' => 'grupo-item-compra-' . $chaveFeitaM, 'estilo' => 'display:none; margin-left:12px;'])
+            @endforeach
+        @empty
+            <div style="padding:40px 16px; text-align:center; color:#6b7280;">Nenhuma compra registrada ainda.</div>
+        @endforelse
+    </div>
+
     <div style="margin-top:16px;">{{ $requests->links() }}</div>
 </div>
 
 <script>
 function toggleGrupoCompraFeita(chave) {
     var linhas = document.querySelectorAll('.grupo-item-compra-' + CSS.escape(chave));
-    var seta = document.getElementById('seta-grupo-compra-' + chave);
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
-        linha.style.display = abrindo ? 'table-row' : 'none';
+        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    document.querySelectorAll('[data-seta-compra="' + chave + '"]').forEach(function (seta) {
+        seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    });
 }
 </script>
 
