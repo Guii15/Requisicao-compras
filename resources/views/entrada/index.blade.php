@@ -17,7 +17,7 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'concluidas' ? 'Itens que já tiveram entrada registrada' : 'Itens liberados pela conferência aguardando entrada' }}</p>
     </div>
 
-    <div style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+    <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
         <a href="{{ route('entrada.index') }}"
            style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
                   background:{{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }};
@@ -35,9 +35,9 @@
     </div>
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <form method="GET" action="{{ route('entrada.index') }}" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <form method="GET" action="{{ route('entrada.index') }}" class="m-busca" style="display:flex; gap:8px; flex-wrap:wrap;">
             <input type="hidden" name="aba" value="{{ $aba }}">
-            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..."
+            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..." data-placeholder-mobile="Produto, vendedor ou fornecedor"
                    style="flex:1; min-width:200px; border:1px solid #d1d5db; border-radius:7px; padding:9px 14px; font-size:14px; box-sizing:border-box;">
             <button type="submit" style="background:#05018D; color:#fff; padding:9px 20px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;">
                 Buscar
@@ -303,7 +303,7 @@
                         <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                             {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoEntrM }}
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntrM }}')"
+                        <button type="button" class="m-botao" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntrM }}')"
                                 style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
                             <span id="seta-grupo-{{ $chaveEntrM }}">Ver itens</span>
                         </button>
@@ -385,7 +385,7 @@
                 </div>
                 @elseif($elegivelEntradaEntrM)
                 <div style="display:flex; justify-content:flex-end;">
-                    <button onclick="document.getElementById('modal-entrada-m-{{ $req->id }}').style.display='flex'"
+                    <button class="m-botao" onclick="document.getElementById('modal-entrada-m-{{ $req->id }}').style.display='flex'"
                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                         Dar Entrada
                     </button>
@@ -397,7 +397,7 @@
 
             @if(!$req->entrada_concluida_em && $elegivelEntradaEntrM)
             <div id="modal-entrada-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
@@ -425,7 +425,7 @@
                             <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Entrada precisa ser da quantidade cheia recebida na conferência ({{ $req->quantidade_recebida ?? $req->quantity }}). Se faltou unidade, resolva na conferência.</div>
                         </div>
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                             <button type="button" onclick="document.getElementById('modal-entrada-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
@@ -457,13 +457,15 @@
 <script>
 function toggleGrupoRequisicao(chave) {
     var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
-    var seta = document.getElementById('seta-grupo-' + chave);
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    // Desktop e mobile têm um rótulo cada com o mesmo id; getElementById só achava o do desktop.
+    document.querySelectorAll('[id="seta-grupo-' + chave + '"]').forEach(function (seta) {
+        seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    });
 }
 
 function protegerEnvioDuplo(form) {
