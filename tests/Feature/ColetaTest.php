@@ -83,6 +83,17 @@ class ColetaTest extends TestCase
         $this->assertSame(1, substr_count($response->getContent(), 'resultado=coletado"'));
     }
 
+    public function test_registrar_coleta_nao_abre_pop_up_de_confirmacao(): void
+    {
+        $this->item(['status_coleta' => 'aguardando']);
+
+        $response = $this->actingAs($this->conferente())
+            ->get(route('conferencia.index', ['aba' => 'coleta']));
+
+        $response->assertDontSee('Tem certeza que deseja registrar esta coleta', false);
+        $response->assertDontSee('confirm(', false);
+    }
+
     public function test_registrar_coleta_marca_como_coletado(): void
     {
         $item = $this->item(['status_coleta' => 'aguardando']);

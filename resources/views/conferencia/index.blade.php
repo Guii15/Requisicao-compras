@@ -682,7 +682,7 @@
                 alert('Por favor, selecione a data da coleta!');
                 return false;
             }
-            return confirm('Tem certeza que deseja registrar esta coleta?\n\nEsta ação não pode ser desfeita facilmente.');
+            return true;
         }
         </script>
     @endif
