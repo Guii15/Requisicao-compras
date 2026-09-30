@@ -93,7 +93,9 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::patch('/compras/{purchaseRequest}', [DadosCompraController::class, 'update'])->middleware('throttle:60,1')->name('compras.update');
     Route::get('/itens-mais-solicitados', [AdminController::class, 'itensMaisSolicitados'])->name('itens-mais-solicitados');
     Route::get('/historico-compras', [AdminController::class, 'historicoCompras'])->name('historico-compras');
+    Route::get('/fornecedores', [FornecedorController::class, 'index'])->name('fornecedores.index');
     Route::get('/fornecedores/buscar', [FornecedorController::class, 'buscar'])->name('fornecedores.buscar');
+    Route::post('/fornecedores/mesclar', [FornecedorController::class, 'mesclar'])->middleware('throttle:30,1')->name('fornecedores.mesclar');
 
     Route::middleware(SuperAdminMiddleware::class)->group(function () {
         Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
