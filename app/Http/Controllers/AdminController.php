@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ItemMaisSolicitado;
 use App\Models\PurchaseRequest;
 use App\Models\User;
+use App\Services\PushNotifier;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Support\Facades\Storage;
@@ -181,7 +182,13 @@ class AdminController extends Controller
             }
         }
 
+        $jaEstavaAprovado = $purchaseRequest->status === 'aprovado';
+
         $purchaseRequest->update($atualizacao);
+
+        if ($request->status === 'aprovado' && !$jaEstavaAprovado) {
+            defer(fn () => app(PushNotifier::class)->aprovada($purchaseRequest));
+        }
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\PurchaseRequestApproved;
 use App\Models\PurchaseRequest;
+use App\Services\PushNotifier;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
@@ -113,6 +114,8 @@ class ConferenciaController extends Controller
                 }
             }
         }
+
+        defer(fn () => app(PushNotifier::class)->conferida($purchaseRequest));
 
         return redirect()->route('conferencia.index')->with('success', 'Conferência registrada com sucesso!');
     }

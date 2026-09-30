@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseRequest;
+use App\Services\PushNotifier;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
@@ -70,6 +71,8 @@ class EntradaController extends Controller
             'quantidade_entrada'   => $request->quantidade_entrada,
             'entrada_concluida_em' => now(),
         ]);
+
+        defer(fn () => app(PushNotifier::class)->entradaConcluida($purchaseRequest));
 
         return redirect()->route('entrada.index')->with('success', 'Entrada registrada com sucesso!');
     }
