@@ -55,16 +55,16 @@
     .m-pilulas > .ativo { background: #05018D !important; border-color: #05018D !important; color: #fff !important; }
 
     .m-busca { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
-    .m-busca input[type="text"],
-    .m-busca input[type="search"] {
+    .m-busca > input[type="text"],
+    .m-busca > input[type="search"] {
         flex: 1 1 100% !important;
         width: 100% !important;
         min-width: 0 !important;
         min-height: 44px;
         font-size: 16px !important; /* 16px evita o zoom automático do iPhone */
     }
-    .m-busca button,
-    .m-busca a {
+    .m-busca > button,
+    .m-busca > a {
         flex: 1 1 auto !important;
         min-height: 44px;
         display: inline-flex !important;
@@ -77,6 +77,7 @@
     .m-empilhar input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
     .m-empilhar select,
     .m-empilhar button { width: 100% !important; min-width: 0 !important; min-height: 44px; box-sizing: border-box; }
+    .m-empilhar a { flex: 1; min-height: 44px; display: inline-flex !important; align-items: center; justify-content: center; box-sizing: border-box; }
 
     .m-coluna { display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
     .m-coluna > .m-card-acao { align-self: stretch; width: 100%; margin-top: 0; }
