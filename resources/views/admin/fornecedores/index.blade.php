@@ -34,7 +34,7 @@
     <div style="{{ $card }}">
         <p style="margin:0 0 12px; font-size:13px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.5px;">Mesclar dois fornecedores</p>
         <form method="POST" action="{{ route('admin.fornecedores.mesclar') }}"
-              style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end;"
+              class="m-empilhar" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end;"
               onsubmit="return this.querySelector('[name=confirmar]').checked">
             @csrf
             <div>
@@ -70,7 +70,7 @@
 
     {{-- Busca --}}
     <div style="{{ $card }}">
-        <form method="GET" action="{{ route('admin.fornecedores.index') }}" style="display:flex; gap:8px;">
+        <form method="GET" action="{{ route('admin.fornecedores.index') }}" class="m-busca" style="display:flex; gap:8px;">
             <input type="text" name="q" value="{{ $q }}" placeholder="Buscar fornecedor…" style="{{ $campo }} flex:1;">
             <button type="submit" style="background:#05018D; color:#fff; padding:8px 20px; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Buscar</button>
             @if($q !== '')
@@ -80,7 +80,23 @@
     </div>
 
     {{-- Lista --}}
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:16px;">
+    <div class="m-cards">
+        @forelse($fornecedores as $f)
+            <x-mobile-card :titulo="$f->nome" :campos="[
+                'Compras' => $f->compras_count . ' compra(s)',
+                'Como foi digitado' => ($grafias[$f->id] ?? collect())->map(fn ($g) => '“' . $g . '”')->implode(', ') ?: null,
+            ]" />
+        @empty
+            <div style="padding:40px 16px; text-align:center; color:#9ca3af; font-size:14px;">
+                {{ $q !== '' ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado ainda.' }}
+            </div>
+        @endforelse
+        @if($fornecedores->hasPages())
+            <div style="padding:12px 0;">{{ $fornecedores->links() }}</div>
+        @endif
+    </div>
+
+    <div class="m-desktop" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:16px;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
