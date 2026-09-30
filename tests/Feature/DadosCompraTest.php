@@ -86,25 +86,25 @@ class DadosCompraTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_salva_dados_e_calcula_total_pela_quantidade(): void
+    public function test_salva_dados_e_o_total_digitado_manualmente(): void
     {
         $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 3]);
 
         $this->actingAs($this->admin())
-            ->patch(route('admin.compras.update', $item), $this->dadosValidos())
+            ->patch(route('admin.compras.update', $item), $this->dadosValidos(['valor' => '3.700,00']))
             ->assertRedirect();
 
         $item->refresh();
         $this->assertSame('2026-09-20', $item->data_compra->format('Y-m-d'));
         $this->assertEquals(1250.50, (float) $item->preco_unitario);
-        $this->assertEquals(3751.50, (float) $item->valor);
+        $this->assertEquals(3700.00, (float) $item->valor);
         $this->assertSame('FORN-123', $item->codigo_fornecedor);
         $this->assertSame('Kabum', $item->supplier);
     }
 
-    public function test_preco_da_caixa_soma_no_total_junto_com_o_unitario(): void
+    public function test_total_nao_e_calculado_automaticamente_pelo_unitario_e_caixa(): void
     {
-        $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 3]);
+        $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 3, 'valor' => null]);
 
         $this->actingAs($this->admin())
             ->patch(route('admin.compras.update', $item), $this->dadosValidos(['preco_caixa' => '20,00']))
@@ -113,7 +113,7 @@ class DadosCompraTest extends TestCase
         $item->refresh();
         $this->assertEquals(1250.50, (float) $item->preco_unitario);
         $this->assertEquals(20.00, (float) $item->preco_caixa);
-        $this->assertEquals(3771.50, (float) $item->valor); // 3 x 1250,50 + 20
+        $this->assertNull($item->valor);
     }
 
     public function test_anexa_pedido_de_compra_em_disco_privado(): void

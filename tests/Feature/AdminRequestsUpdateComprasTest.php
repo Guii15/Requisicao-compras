@@ -18,7 +18,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
         return User::factory()->create(['is_admin' => true]);
     }
 
-    public function test_salva_dados_da_compra_junto_com_a_aprovacao_e_calcula_o_total(): void
+    public function test_salva_dados_da_compra_junto_com_a_aprovacao_e_o_total_digitado(): void
     {
         $item = PurchaseRequest::factory()->create(['quantity' => 3]);
 
@@ -27,6 +27,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
             'supplier'          => 'kabum',
             'codigo_fornecedor' => 'FORN-123',
             'preco_unitario'    => '1.250,50',
+            'valor'             => '3.700,00',
             'data_compra'       => '2026-09-20',
         ])->assertSessionDoesntHaveErrors();
 
@@ -35,7 +36,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertSame('Kabum', $item->supplier);
         $this->assertSame('FORN-123', $item->codigo_fornecedor);
         $this->assertEquals(1250.50, (float) $item->preco_unitario);
-        $this->assertEquals(3751.50, (float) $item->valor);
+        $this->assertEquals(3700.00, (float) $item->valor);
         $this->assertSame('2026-09-20', $item->data_compra->format('Y-m-d'));
     }
 
@@ -52,9 +53,9 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertSame('2026-09-15', $item->refresh()->data_coleta->format('Y-m-d'));
     }
 
-    public function test_sem_preco_unitario_o_total_fica_nulo(): void
+    public function test_sem_total_digitado_o_total_fica_nulo(): void
     {
-        $item = PurchaseRequest::factory()->create();
+        $item = PurchaseRequest::factory()->create(['valor' => null]);
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'   => 'aprovado',
@@ -64,9 +65,9 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $this->assertNull($item->refresh()->valor);
     }
 
-    public function test_preco_da_caixa_soma_no_total_junto_com_o_unitario(): void
+    public function test_total_nao_e_calculado_pelo_unitario_nem_pela_caixa(): void
     {
-        $item = PurchaseRequest::factory()->create(['quantity' => 3]);
+        $item = PurchaseRequest::factory()->create(['quantity' => 3, 'valor' => null]);
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'         => 'aprovado',
@@ -79,24 +80,18 @@ class AdminRequestsUpdateComprasTest extends TestCase
         $item->refresh();
         $this->assertEquals(10.00, (float) $item->preco_unitario);
         $this->assertEquals(50.00, (float) $item->preco_caixa);
-        $this->assertEquals(80.00, (float) $item->valor); // 3 x 10 + 50
+        $this->assertNull($item->valor);
     }
 
-    public function test_preco_da_caixa_sozinho_tambem_soma_no_total(): void
+    public function test_rejeita_total_invalido(): void
     {
-        $item = PurchaseRequest::factory()->create(['quantity' => 5]);
+        $item = PurchaseRequest::factory()->create();
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
-            'status'      => 'aprovado',
-            'supplier'    => 'kabum',
-            'preco_caixa' => '90,00',
-            'data_compra' => '2026-09-20',
-        ])->assertSessionDoesntHaveErrors();
-
-        $item->refresh();
-        $this->assertNull($item->preco_unitario);
-        $this->assertEquals(90.00, (float) $item->preco_caixa);
-        $this->assertEquals(90.00, (float) $item->valor);
+            'status'   => 'aprovado',
+            'supplier' => 'kabum',
+            'valor'    => 'abc',
+        ])->assertSessionHasErrors('valor');
     }
 
     public function test_anexa_pedido_de_compra_pelo_modal_de_atualizar(): void

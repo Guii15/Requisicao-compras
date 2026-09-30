@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Dados da compra que o comprador (Admin) registra DEPOIS de aprovar a requisicao:
- * data da compra, preco unitario (o total e' calculado: quantidade x unitario),
+ * data da compra, preco unitario, total (digitado a mao pelo admin, nao e' calculado),
  * codigo do produto no fornecedor, fornecedor, data da coleta e o pedido de compra anexado.
  */
 class DadosCompraController extends Controller

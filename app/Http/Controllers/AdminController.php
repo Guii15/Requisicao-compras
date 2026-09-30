@@ -120,6 +120,10 @@ class AdminController extends Controller
             $request->merge(['preco_caixa' => $this->decimalBrasileiro($request->input('preco_caixa'))]);
         }
 
+        if ($request->filled('valor')) {
+            $request->merge(['valor' => $this->decimalBrasileiro($request->input('valor'))]);
+        }
+
         $request->validate([
             'status'            => 'required|in:pendente,aprovado,rejeitado',
             'admin_note'        => 'nullable|string|max:2000',
@@ -127,6 +131,7 @@ class AdminController extends Controller
             'codigo_fornecedor' => 'nullable|string|max:255',
             'preco_unitario'    => 'nullable|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
+            'valor'             => 'nullable|numeric|min:0',
             'data_compra'       => 'nullable|date',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
             'anexo'             => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
@@ -146,9 +151,7 @@ class AdminController extends Controller
             'codigo_fornecedor'  => $request->codigo_fornecedor ?: null,
             'preco_unitario'     => $request->preco_unitario ?: null,
             'preco_caixa'        => $request->preco_caixa ?: null,
-            'valor'              => ($request->filled('preco_unitario') || $request->filled('preco_caixa'))
-                ? round((float) $request->preco_unitario * (int) $purchaseRequest->quantity + (float) $request->preco_caixa, 2)
-                : null,
+            'valor'              => $request->valor ?: null,
             'data_compra'        => $request->data_compra ?: null,
         ];
 
