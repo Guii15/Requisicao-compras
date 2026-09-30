@@ -442,7 +442,7 @@
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
                             <td style="padding:12px 16px; text-align:center;">
-                                @if($req->atraso)
+                                @if($req->status_coleta === 'atraso')
                                     <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
                                 @else
                                     <span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Não</span>
