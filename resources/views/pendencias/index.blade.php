@@ -156,7 +156,10 @@
     <div class="pend-mobile-cards">
         @forelse($requests as $req)
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                <div style="font-size:15px; font-weight:700; color:#05018D; margin-bottom:10px;">{{ $req->product_name }}</div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px;">
+                    <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
+                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Divergente</span>
+                </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:10px;">
                     <div>
@@ -192,7 +195,7 @@
                 </div>
 
                 <div style="display:flex; justify-content:flex-end;">
-                    <button onclick="document.getElementById('modal-resolver-m-{{ $req->id }}').style.display='flex'"
+                    <button class="m-botao" onclick="document.getElementById('modal-resolver-m-{{ $req->id }}').style.display='flex'"
                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                         Resolver
                     </button>
@@ -200,7 +203,7 @@
             </div>
 
             <div id="modal-resolver-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Resolver Pendência</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
 
@@ -223,7 +226,7 @@
                                       style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
                         </div>
 
-                        <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                             <button type="button" onclick="document.getElementById('modal-resolver-m-{{ $req->id }}').style.display='none'"
                                     style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
                                 Cancelar
