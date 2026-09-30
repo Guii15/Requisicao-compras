@@ -390,7 +390,7 @@
                         <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                             {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoVM }}
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupoM }}')"
+                        <button type="button" class="m-botao" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupoM }}')"
                                 style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
                             <span id="seta-grupo-{{ $chaveGrupoM }}">Ver itens</span>
                         </button>
@@ -482,7 +482,7 @@
                 </div>
 
                 {{-- Rodapé do card: urgência + exportar --}}
-                <div style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                <div class="m-coluna" style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="font-size:12px; color:#9ca3af;">Urgência:</span>
                         @if($req->urgency=='alta')
@@ -499,7 +499,7 @@
                             </button>
                         @endif
                     </div>
-                    <div style="display:flex; gap:6px;">
+                    <div class="m-card-acao" style="display:flex; gap:6px;">
                         @if($req->status === 'pendente')
                         <a href="{{ route('requests.edit', $req) }}"
                            style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
@@ -537,13 +537,13 @@
     @foreach($grupo as $req)
         @if($req->admin_note)
             <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
                     <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
                     <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
                     <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px; white-space:pre-line;">
                         {{ $req->admin_note }}
                     </div>
-                    <div style="text-align:right;">
+                    <div class="m-modal-acoes" style="text-align:right;">
                         <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
                                 style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
                             Fechar
@@ -560,12 +560,12 @@
     @foreach($grupo as $req)
         @if($req->fotosConferencia->isNotEmpty())
             <div id="foto-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
                     <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Foto da Conferência</h3>
                     <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
                     <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
                          style="width:100%; border-radius:8px; margin-bottom:20px; display:block;">
-                    <div style="text-align:right;">
+                    <div class="m-modal-acoes" style="text-align:right;">
                         <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='none'"
                                 style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
                             Fechar
@@ -580,13 +580,15 @@
 <script>
 function toggleGrupoRequisicao(chave) {
     var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
-    var seta = document.getElementById('seta-grupo-' + chave);
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
         linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
     });
-    if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    // Desktop e mobile têm um rótulo cada com o mesmo id; getElementById só achava o do desktop.
+    document.querySelectorAll('[id="seta-grupo-' + chave + '"]').forEach(function (seta) {
+        seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+    });
 }
 </script>
 
