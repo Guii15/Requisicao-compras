@@ -56,21 +56,25 @@ class ConferenciaControllerTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_entrada_role_cannot_conferir(): void
+    public function test_entrada_role_can_conferir(): void
     {
+        Storage::fake('public');
         $entrada = User::factory()->create(['role' => 'entrada']);
-        $purchaseRequest = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
+        $purchaseRequest = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'tipo_entrega' => 'estoque', 'quantity' => 1]);
 
         $response = $this->actingAs($entrada)->patch(route('conferencia.conferir', $purchaseRequest), [
             'quantidade_recebida' => 1,
+            'foto' => UploadedFile::fake()->image('produto.jpg'),
             'resultado' => 'ok',
             'acao' => 'salvar',
         ]);
 
-        $response->assertForbidden();
+        $response->assertRedirect();
+        $this->assertSame('conferido_ok', $purchaseRequest->fresh()->status_conferencia);
+        $this->assertSame($entrada->id, $purchaseRequest->fresh()->conferente_id);
     }
 
-    public function test_entrada_role_does_not_see_conferir_button(): void
+    public function test_entrada_role_sees_conferir_button(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
         PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Item Visivel Para Entrada']);
@@ -78,8 +82,14 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($entrada)->get(route('conferencia.index'));
 
         $response->assertSee('Item Visivel Para Entrada');
-        $response->assertDontSee('Conferir Item');
-        $response->assertSee('Aguardando conferência');
+        $response->assertSee('Conferir Item');
+    }
+
+    public function test_conferente_role_still_cannot_dar_entrada(): void
+    {
+        $conferente = User::factory()->create(['role' => 'conferente']);
+
+        $this->actingAs($conferente)->get(route('entrada.index'))->assertForbidden();
     }
 
     public function test_index_lists_only_approved_requests_without_status_conferencia(): void

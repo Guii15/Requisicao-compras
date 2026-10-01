@@ -185,11 +185,11 @@ class RecebimentoParcialTest extends TestCase
         $this->assertNull($item->fresh()->quantidade_original);
     }
 
-    public function test_so_conferente_pode_aguardar_restante(): void
+    public function test_so_quem_confere_pode_aguardar_restante(): void
     {
         $item = $this->item();
 
-        $this->actingAs($this->entrada)->patch(route('conferencia.conferir', $item), [
+        $this->actingAs(User::factory()->create(['role' => null]))->patch(route('conferencia.conferir', $item), [
             'quantidade_recebida' => 50, 'foto' => UploadedFile::fake()->image('a.jpg'), 'resultado' => 'divergente', 'acao' => 'aguardar_restante',
         ])->assertForbidden();
 

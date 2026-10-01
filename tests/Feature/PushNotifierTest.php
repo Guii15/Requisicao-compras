@@ -111,7 +111,7 @@ class PushNotifierTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_aprovada_avisa_so_a_conferencia(): void
+    public function test_aprovada_avisa_a_conferencia_e_a_entrada_que_tambem_confere(): void
     {
         $this->usuarioComAparelho('conferente1', 'conferente');
         $this->usuarioComAparelho('entrada1', 'entrada');
@@ -121,7 +121,7 @@ class PushNotifierTest extends TestCase
 
         $this->notifier()->aprovada($item);
 
-        $this->assertSame(['https://push.exemplo/conferente1'], $this->endpointsEnviados());
+        $this->assertEqualsCanonicalizing(['https://push.exemplo/conferente1', 'https://push.exemplo/entrada1'], $this->endpointsEnviados());
         $payload = $this->enviados[0]['payload'];
         $this->assertSame('Nova requisição aprovada', $payload['title']);
         $this->assertStringContainsString('Amortecedor', $payload['body']);

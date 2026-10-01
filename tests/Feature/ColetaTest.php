@@ -182,7 +182,7 @@ class ColetaTest extends TestCase
         $this->assertSame('aguardando', $item->fresh()->status_coleta);
     }
 
-    public function test_entrada_nao_pode_registrar_coleta(): void
+    public function test_entrada_tambem_pode_registrar_coleta(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
         $item = $this->item(['status_coleta' => 'aguardando']);
@@ -192,7 +192,20 @@ class ColetaTest extends TestCase
             'data_coleta' => '2026-09-30T10:30',
         ]);
 
-        $response->assertForbidden();
+        $response->assertSessionHasNoErrors();
+        $this->assertSame('coletado', $item->fresh()->status_coleta);
+    }
+
+    public function test_vendedor_nao_pode_registrar_coleta(): void
+    {
+        $vendedor = User::factory()->create(['role' => null]);
+        $item = $this->item(['status_coleta' => 'aguardando']);
+
+        $this->actingAs($vendedor)->patch(route('conferencia.coleta', $item), [
+            'status_coleta' => 'coletado',
+            'data_coleta' => '2026-09-30T10:30',
+        ])->assertForbidden();
+
         $this->assertSame('aguardando', $item->fresh()->status_coleta);
     }
 }

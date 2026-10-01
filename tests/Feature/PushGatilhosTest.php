@@ -79,13 +79,13 @@ class PushGatilhosTest extends TestCase
         return $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => $status]);
     }
 
-    public function test_aprovar_avisa_so_a_conferencia(): void
+    public function test_aprovar_avisa_a_conferencia_e_a_entrada_que_tambem_confere(): void
     {
         $item = $this->item();
 
         $this->adminMuda($item, 'aprovado')->assertSessionHasNoErrors();
 
-        $this->assertSame(['conferente'], $this->recebidos());
+        $this->assertSame(['conferente', 'entrada'], $this->recebidos());
     }
 
     public function test_salvar_de_novo_um_item_ja_aprovado_nao_reenvia(): void

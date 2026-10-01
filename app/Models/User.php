@@ -39,9 +39,10 @@ class User extends Authenticatable
         return $email !== null && strcasecmp($this->email, $email) === 0;
     }
 
+    /** Quem é da Entrada também tem o perfil de Conferência (confere e dá entrada). */
     public function isConferente(): bool
     {
-        return $this->role === 'conferente' || $this->isAdmin();
+        return in_array($this->role, ['conferente', 'entrada'], true) || $this->isAdmin();
     }
 
     public function isEntrada(): bool

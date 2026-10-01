@@ -45,6 +45,7 @@ Route::get('/dashboard', function () {
 
     return match (true) {
         $user->isAdmin()      => redirect()->route('admin.index'),
+        $user->role === 'entrada' => redirect()->route('entrada.index'),
         $user->isConferente() => redirect()->route('conferencia.index'),
         $user->isEntrada()    => redirect()->route('entrada.index'),
         default                => redirect()->route('requests.index'),

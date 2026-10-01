@@ -114,7 +114,7 @@ class PushNotifier
     /** @return Collection<int, User> */
     private function conferentes(): Collection
     {
-        return User::where('role', 'conferente')->get();
+        return User::whereIn('role', ['conferente', 'entrada'])->get();
     }
 
     /** @return Collection<int, User> */
