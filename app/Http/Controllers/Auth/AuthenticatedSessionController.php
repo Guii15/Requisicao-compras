@@ -7,6 +7,7 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use App\Http\Middleware\EntradaMiddleware;
+use App\Http\Middleware\FinanceiroMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\VendedorMiddleware;
 use App\Http\Requests\Auth\LoginRequest;
@@ -23,6 +24,7 @@ class AuthenticatedSessionController extends Controller
         'vendedor'    => 'Vendedor',
         'conferencia' => 'Conferência',
         'entrada'     => 'Entrada',
+        'financeiro'  => 'Financeiro',
         'admin'       => 'Admin',
     ];
 
@@ -89,6 +91,7 @@ class AuthenticatedSessionController extends Controller
             ConferenciaVisualizacaoMiddleware::class => fn () => $user->isConferente() || $user->isEntrada(),
             ConferenteMiddleware::class              => fn () => $user->isConferente(),
             EntradaMiddleware::class                 => fn () => $user->isEntrada(),
+            FinanceiroMiddleware::class              => fn () => $user->podeVerFinanceiro(),
             VendedorMiddleware::class                => fn () => $user->isVendedor(),
         ];
 
@@ -108,6 +111,7 @@ class AuthenticatedSessionController extends Controller
             'admin'       => $user->isAdmin(),
             'conferencia' => $user->isConferente(),
             'entrada'     => $user->isEntrada(),
+            'financeiro'  => $user->isFinanceiro(),
             'vendedor'    => $user->isVendedor(),
             default       => false,
         };

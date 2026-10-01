@@ -50,6 +50,16 @@
                         📦 Entrada
                     </a>
                     @endif
+                    @if(Auth::user()->podeVerFinanceiro())
+                    <a href="{{ route('financeiro.index') }}"
+                       style="color: {{ request()->routeIs('financeiro.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
+                              background: {{ request()->routeIs('financeiro.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
+                              padding:6px 14px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; margin-left:4px;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'"
+                       onmouseout="this.style.background='{{ request()->routeIs('financeiro.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('financeiro.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
+                        💰 Financeiro
+                    </a>
+                    @endif
                 </div>
             </div>
 
@@ -125,6 +135,9 @@
             @endif
             @if(Auth::user()->role === 'entrada')
             <a href="{{ route('entrada.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📦 Entrada</a>
+            @endif
+            @if(Auth::user()->podeVerFinanceiro())
+            <a href="{{ route('financeiro.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">💰 Financeiro</a>
             @endif
         </div>
         <div style="padding:12px 16px; border-top:1px solid rgba(255,255,255,0.1);">

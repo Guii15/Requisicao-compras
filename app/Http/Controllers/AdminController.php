@@ -320,7 +320,7 @@ class AdminController extends Controller
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users,email',
             'password'              => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Za-zÀ-ÿ]/', 'regex:/[0-9]/'],
-            'perfil'                => 'required|in:vendedor,conferente,entrada,admin',
+            'perfil'                => 'required|in:vendedor,conferente,entrada,financeiro,admin',
         ], [
             'name.required'         => 'O nome é obrigatório.',
             'email.required'        => 'O e-mail é obrigatório.',
@@ -338,7 +338,7 @@ class AdminController extends Controller
             'email'    => $request->email,
             'password' => $request->password,
             'is_admin' => $request->perfil === 'admin',
-            'role'     => in_array($request->perfil, ['conferente', 'entrada'], true) ? $request->perfil : null,
+            'role'     => in_array($request->perfil, ['conferente', 'entrada', 'financeiro'], true) ? $request->perfil : null,
         ]);
 
         return back()->with('success', 'Usuário criado com sucesso!');
@@ -367,7 +367,7 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'perfil' => 'required|in:vendedor,conferente,entrada,admin',
+            'perfil' => 'required|in:vendedor,conferente,entrada,financeiro,admin',
         ], [
             'perfil.required' => 'Selecione um perfil.',
             'perfil.in'        => 'Perfil inválido.',
@@ -375,7 +375,7 @@ class AdminController extends Controller
 
         $user->update([
             'is_admin' => $request->perfil === 'admin',
-            'role'     => in_array($request->perfil, ['conferente', 'entrada'], true) ? $request->perfil : null,
+            'role'     => in_array($request->perfil, ['conferente', 'entrada', 'financeiro'], true) ? $request->perfil : null,
         ]);
 
         return back()->with('success', 'Perfil atualizado com sucesso!');

@@ -15,7 +15,7 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::get('login/{perfil}', [AuthenticatedSessionController::class, 'create'])
-        ->whereIn('perfil', ['vendedor', 'conferencia', 'entrada', 'admin'])
+        ->whereIn('perfil', ['vendedor', 'conferencia', 'entrada', 'financeiro', 'admin'])
         ->name('login.perfil');
 
     // O LoginRequest já limita por e-mail+IP, mas essa chave inclui o e-mail:
@@ -24,7 +24,7 @@ Route::middleware('guest')->group(function () {
     // (password spraying), servindo como segunda camada independente.
     Route::post('login/{perfil}', [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:10,1')
-        ->whereIn('perfil', ['vendedor', 'conferencia', 'entrada', 'admin'])
+        ->whereIn('perfil', ['vendedor', 'conferencia', 'entrada', 'financeiro', 'admin'])
         ->name('login.perfil.store');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])

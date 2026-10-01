@@ -12,6 +12,8 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ConferenteMiddleware;
 use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
 use App\Http\Middleware\EntradaMiddleware;
+use App\Http\Middleware\FinanceiroMiddleware;
+use App\Http\Controllers\FinanceiroController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\VendedorMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +47,7 @@ Route::get('/dashboard', function () {
 
     return match (true) {
         $user->isAdmin()      => redirect()->route('admin.index'),
+        $user->isFinanceiro() => redirect()->route('financeiro.index'),
         $user->role === 'entrada' => redirect()->route('entrada.index'),
         $user->isConferente() => redirect()->route('conferencia.index'),
         $user->isEntrada()    => redirect()->route('entrada.index'),
@@ -108,6 +111,13 @@ Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(
     Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('conferir');
     Route::patch('/{purchaseRequest}/parcial', [ConferenciaController::class, 'editarParcial'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('editarParcial');
     Route::patch('/{purchaseRequest}/coleta', [ConferenciaController::class, 'registrarColeta'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('coleta');
+});
+
+Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->name('financeiro.')->group(function () {
+    Route::get('/', [FinanceiroController::class, 'index'])->name('index');
+    Route::get('/fornecedor/{chave}', [FinanceiroController::class, 'fornecedor'])->name('fornecedor');
+    Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
+    Route::delete('/pagamentos/{pagamento}', [FinanceiroController::class, 'desfazer'])->middleware('throttle:60,1')->name('desfazer');
 });
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {

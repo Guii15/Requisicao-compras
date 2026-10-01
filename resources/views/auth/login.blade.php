@@ -7,6 +7,7 @@
         'vendedor'    => ['Bem-vindo, Vendedor!', 'Faça login para criar sua requisição'],
         'conferencia' => ['Bem-vindo, Conferente!', 'Faça login para acessar a conferência'],
         'entrada'     => ['Bem-vindo à Entrada!', 'Faça login para registrar entradas'],
+        'financeiro'  => ['Bem-vindo ao Financeiro!', 'Faça login para acompanhar as contas a pagar'],
         'admin'       => ['Bem-vindo, Administrador!', 'Faça login para acessar o painel administrativo'],
     ];
     [$titulo, $subtitulo] = $textos[$perfil] ?? ['Bem-vindo!', 'Faça login para acessar o sistema'];

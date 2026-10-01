@@ -143,7 +143,7 @@ class DadosCompraController extends Controller
         $user = auth()->user();
         $podeVer = $purchaseRequest->user_id === $user->id
             || $user->isAdmin()
-            || in_array($user->role, ['conferente', 'entrada'], true);
+            || in_array($user->role, ['conferente', 'entrada', 'financeiro'], true);
 
         if (!$podeVer) {
             abort(403);

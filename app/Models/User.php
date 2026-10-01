@@ -57,6 +57,18 @@ class User extends Authenticatable
         return $this->role === 'entrada' || $this->isAdmin();
     }
 
+    /** Setor Financeiro: só enxerga a aba Financeiro (contas a pagar por fornecedor). */
+    public function isFinanceiro(): bool
+    {
+        return $this->role === 'financeiro';
+    }
+
+    /** Quem entra na aba Financeiro: o setor e o super admin (que cria e acompanha os usuários). */
+    public function podeVerFinanceiro(): bool
+    {
+        return $this->isFinanceiro() || $this->isSuperAdmin();
+    }
+
     public function isVendedor(): bool
     {
         return !$this->isAdmin() && $this->role === null;

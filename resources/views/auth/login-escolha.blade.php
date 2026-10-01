@@ -4,6 +4,7 @@
         'vendedor'    => ['label' => 'Vendedor',    'desc' => 'Criar e acompanhar requisições'],
         'conferencia' => ['label' => 'Conferência', 'desc' => 'Conferir itens recebidos'],
         'entrada'     => ['label' => 'Entrada',     'desc' => 'Registrar entrada de mercadoria'],
+        'financeiro'  => ['label' => 'Financeiro',  'desc' => 'Contas a pagar por fornecedor'],
         'admin'       => ['label' => 'Admin',       'desc' => 'Painel administrativo'],
     ];
     @endphp

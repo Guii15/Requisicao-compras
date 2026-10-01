@@ -70,6 +70,8 @@
                                     <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Conferente</span>
                                 @elseif($u->role === 'entrada')
                                     <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
+                                @elseif($u->role === 'financeiro')
+                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Financeiro</span>
                                 @else
                                     <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
                                 @endif
@@ -158,6 +160,7 @@
                                             <option value="vendedor" {{ $perfilAtual === 'vendedor' ? 'selected' : '' }}>Vendedor</option>
                                             <option value="conferente" {{ $perfilAtual === 'conferente' ? 'selected' : '' }}>Conferente</option>
                                             <option value="entrada" {{ $perfilAtual === 'entrada' ? 'selected' : '' }}>Entrada</option>
+                                            <option value="financeiro" {{ $perfilAtual === 'financeiro' ? 'selected' : '' }}>Financeiro</option>
                                             <option value="admin" {{ $perfilAtual === 'admin' ? 'selected' : '' }}>Admin</option>
                                         </select>
                                     </div>
@@ -195,6 +198,8 @@
                                 <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Conferente</span>
                             @elseif($u->role === 'entrada')
                                 <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
+                            @elseif($u->role === 'financeiro')
+                                <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Financeiro</span>
                             @else
                                 <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
                             @endif
@@ -273,6 +278,7 @@
                         <option value="vendedor" {{ old('perfil', 'vendedor') === 'vendedor' ? 'selected' : '' }}>Vendedor</option>
                         <option value="conferente" {{ old('perfil') === 'conferente' ? 'selected' : '' }}>Conferente</option>
                         <option value="entrada" {{ old('perfil') === 'entrada' ? 'selected' : '' }}>Entrada</option>
+                        <option value="financeiro" {{ old('perfil') === 'financeiro' ? 'selected' : '' }}>Financeiro</option>
                         <option value="admin" {{ old('perfil') === 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
                 </div>

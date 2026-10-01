@@ -135,6 +135,11 @@ class PurchaseRequest extends Model
         return $this->belongsTo(User::class, 'conferente_id')->withTrashed();
     }
 
+    public function pagamentos(): HasMany
+    {
+        return $this->hasMany(PagamentoCompra::class);
+    }
+
     public function fotosConferencia(): HasMany
     {
         return $this->hasMany(ConferenciaFoto::class);
