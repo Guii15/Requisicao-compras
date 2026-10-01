@@ -115,6 +115,9 @@ Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(
 
 Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->name('financeiro.')->group(function () {
     Route::get('/', [FinanceiroController::class, 'index'])->name('index');
+    Route::get('/aguardando', [FinanceiroController::class, 'aguardando'])->name('aguardando');
+    Route::get('/pagos', [FinanceiroController::class, 'pagos'])->name('pagos');
+    Route::get('/fornecedores', [FinanceiroController::class, 'fornecedores'])->name('fornecedores');
     Route::get('/fornecedor/{chave}', [FinanceiroController::class, 'fornecedor'])->name('fornecedor');
     Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
     Route::delete('/pagamentos/{pagamento}', [FinanceiroController::class, 'desfazer'])->middleware('throttle:60,1')->name('desfazer');

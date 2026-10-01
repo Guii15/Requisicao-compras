@@ -196,7 +196,7 @@ class FinanceiroSaldoTest extends TestCase
         $c = $this->compra('Joyce', 50000);
         PagamentoCompra::create(['purchase_request_id' => $c->id, 'valor' => 50000, 'forma' => 'a_vista', 'data_pagamento' => '2026-09-25', 'user_id' => $this->fin->id]);
 
-        $this->actingAs($this->fin)->get(route('financeiro.index'))
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedores'))
             ->assertOk()
             ->assertSeeInOrder(['Joyce', 'R$ 1.000.000,00', 'Kabum'])
             ->assertSee('R$ 1.000.500,00');
@@ -229,7 +229,7 @@ class FinanceiroSaldoTest extends TestCase
         $this->compra('Joyce', 10);
 
         $this->actingAs($this->fin)->get(route('financeiro.fornecedor', 'JOYCE'))->assertSee('>Joyce</h1>', false);
-        $this->actingAs($this->fin)->get(route('financeiro.index'))->assertSee('>Joyce</td>', false);
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedores'))->assertSee('>Joyce</td>', false);
     }
 
     public function test_nome_usa_a_grafia_mais_frequente(): void

@@ -4,15 +4,46 @@ namespace App\Http\Controllers;
 
 use App\Models\PagamentoCompra;
 use App\Models\PurchaseRequest;
+use App\Services\PainelFinanceiro;
 use App\Services\SaldoFornecedores;
 use App\Support\Dinheiro;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-/** Contas a pagar por fornecedor: saldo devedor, compras em aberto e baixa por pagamento. */
+/** Contas a pagar por fornecedor: painel, compras aguardando/pagas, saldo por fornecedor e baixa por pagamento. */
 class FinanceiroController extends Controller
 {
-    public function index(Request $request, SaldoFornecedores $saldos)
+    private const POR_PAGINA = 25;
+
+    public function index(PainelFinanceiro $painel)
+    {
+        return view('financeiro.index', ['d' => $painel->dados()]);
+    }
+
+    public function aguardando(Request $request, SaldoFornecedores $saldos)
+    {
+        $linhas = $saldos->linhas()
+            ->where('aberto', '>', 0)
+            ->sortBy(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+            ->values();
+
+        return $this->lista($request, $linhas, 'aguardando');
+    }
+
+    public function pagos(Request $request, SaldoFornecedores $saldos)
+    {
+        $linhas = $saldos->linhas()
+            ->where('aberto', '<=', 0)
+            ->sortByDesc(fn ($l) => ($l['ultimo_pagamento']?->format('Ymd') ?? '0') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+            ->values();
+
+        return $this->lista($request, $linhas, 'pagos');
+    }
+
+    public function fornecedores(Request $request, SaldoFornecedores $saldos)
     {
         $fornecedores = $saldos->resumo();
 
@@ -24,13 +55,12 @@ class FinanceiroController extends Controller
 
         $q = trim((string) $request->query('q', ''));
         if ($q !== '') {
-            $chaveBusca = $saldos->chave($q);
             $fornecedores = $fornecedores
-                ->filter(fn ($f) => str_contains($f['chave'], $chaveBusca) || stripos($f['nome'], $q) !== false)
+                ->filter(fn ($f) => $this->contem($f['nome'], $q) || str_contains($f['chave'], $saldos->chave($q)))
                 ->values();
         }
 
-        return view('financeiro.index', compact('fornecedores', 'totais', 'q'));
+        return view('financeiro.fornecedores', compact('fornecedores', 'totais', 'q'));
     }
 
     public function fornecedor(string $chave, SaldoFornecedores $saldos)
@@ -39,7 +69,7 @@ class FinanceiroController extends Controller
 
         abort_if($compras->isEmpty(), 404);
 
-        $nome = $saldos->nome($chave, $compras->pluck('compra'));
+        $nome = $compras->first()['fornecedor'];
         $totais = [
             'comprado' => round($compras->sum('custo'), 2),
             'pago' => round($compras->sum('pago'), 2),
@@ -51,7 +81,8 @@ class FinanceiroController extends Controller
 
     public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos)
     {
-        $volta = redirect()->route('financeiro.fornecedor', $saldos->chave($purchaseRequest->supplier));
+        // Volta para a tela de onde o pagamento foi feito (lista ou fornecedor).
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($purchaseRequest->supplier))));
 
         if (!$saldos->conta($purchaseRequest)) {
             return redirect()->route('financeiro.index')->with('aviso', 'Esta compra não entra no financeiro — nada foi alterado.');
@@ -105,12 +136,45 @@ class FinanceiroController extends Controller
 
     public function desfazer(PagamentoCompra $pagamento, SaldoFornecedores $saldos)
     {
-        $chave = $saldos->chave($pagamento->compra?->supplier);
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($pagamento->compra?->supplier))));
         $valor = $pagamento->valor;
 
         $pagamento->delete();
 
-        return redirect()->route('financeiro.fornecedor', $chave)
-            ->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' desfeito; o valor voltou para o saldo.');
+        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' desfeito; o valor voltou para o saldo.');
+    }
+
+    /** Lista paginada de compras (abas Aguardando e Pagos), com busca por fornecedor, produto, comprador ou nº da requisição. */
+    private function lista(Request $request, Collection $linhas, string $modo)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        if ($q !== '') {
+            $linhas = $linhas->filter(fn ($l) => $this->contem($l['fornecedor'], $q)
+                || $this->contem((string) $l['compra']->product_name, $q)
+                || $this->contem((string) $l['compra']->requester_name, $q)
+                || ltrim($q, '#') === (string) $l['compra']->id)->values();
+        }
+
+        $total = round($linhas->sum($modo === 'aguardando' ? 'aberto' : 'pago'), 2);
+
+        $pagina = max(1, (int) $request->query('page', 1));
+        $itens = new LengthAwarePaginator(
+            $linhas->forPage($pagina, self::POR_PAGINA)->values(),
+            $linhas->count(),
+            self::POR_PAGINA,
+            $pagina,
+            ['path' => $request->url(), 'query' => $request->query()],
+        );
+
+        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total'));
+    }
+
+    /** Busca sem diferenciar maiúsculas, acentos ou espaços nas pontas. */
+    private function contem(string $texto, string $busca): bool
+    {
+        $normalizar = fn (string $s) => mb_strtolower(Str::ascii(trim($s)));
+
+        return str_contains($normalizar($texto), $normalizar($busca));
     }
 }

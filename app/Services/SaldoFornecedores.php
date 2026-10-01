@@ -68,27 +68,57 @@ class SaldoFornecedores
             ->get();
     }
 
+    /** Quantas compras ainda têm algo a pagar (número da aba Aguardando). */
+    public function quantidadeAguardando(): int
+    {
+        return $this->linhas()->where('aberto', '>', 0)->count();
+    }
+
+    /**
+     * Todas as compras que contam no financeiro, cada uma com o fornecedor, o custo, o que já foi pago
+     * e o que falta.
+     *
+     * @return Collection<int, array{compra: PurchaseRequest, chave: string, fornecedor: string, custo: float, pago: float, aberto: float, situacao: string, ultimo_pagamento: mixed}>
+     */
+    public function linhas(): Collection
+    {
+        $compras = $this->compras();
+
+        $nomes = $compras
+            ->groupBy(fn (PurchaseRequest $c) => (string) $this->chave($c->supplier))
+            ->map(fn (Collection $grupo, $chave) => $this->nome((string) $chave, $grupo));
+
+        return $compras->map(function (PurchaseRequest $c) use ($nomes) {
+            $chave = $this->chave($c->supplier);
+
+            return [
+                'compra' => $c,
+                'chave' => $chave,
+                'fornecedor' => $nomes[$chave],
+            ] + $this->situacao($c) + [
+                'ultimo_pagamento' => $c->pagamentos->max('data_pagamento'),
+            ];
+        })->values();
+    }
+
     /**
      * Uma linha por fornecedor, do maior saldo devedor para o menor.
      *
+     * @param  Collection|null  $linhas  resultado de linhas() (para não consultar o banco de novo)
      * @return Collection<int, array{chave: string, nome: string, compras: int, comprado: float, pago: float, saldo: float}>
      */
-    public function resumo(): Collection
+    public function resumo(?Collection $linhas = null): Collection
     {
-        return $this->compras()
-            ->groupBy(fn (PurchaseRequest $c) => $this->chave($c->supplier))
-            ->map(function (Collection $grupo, $chave) {
-                $linhas = $grupo->map(fn (PurchaseRequest $c) => $this->situacao($c));
-
-                return [
-                    'chave' => (string) $chave,
-                    'nome' => $this->nome((string) $chave, $grupo),
-                    'compras' => $grupo->count(),
-                    'comprado' => round($linhas->sum('custo'), 2),
-                    'pago' => round($linhas->sum('pago'), 2),
-                    'saldo' => round($linhas->sum('aberto'), 2),
-                ];
-            })
+        return ($linhas ?? $this->linhas())
+            ->groupBy('chave')
+            ->map(fn (Collection $grupo, $chave) => [
+                'chave' => (string) $chave,
+                'nome' => $grupo->first()['fornecedor'],
+                'compras' => $grupo->count(),
+                'comprado' => round($grupo->sum('custo'), 2),
+                'pago' => round($grupo->sum('pago'), 2),
+                'saldo' => round($grupo->sum('aberto'), 2),
+            ])
             ->sortBy([['saldo', 'desc'], ['nome', 'asc']])
             ->values();
     }
@@ -100,10 +130,9 @@ class SaldoFornecedores
      */
     public function comprasDoFornecedor(string $chave): Collection
     {
-        return $this->compras()
-            ->filter(fn (PurchaseRequest $c) => $this->chave($c->supplier) === $chave)
-            ->sortByDesc(fn (PurchaseRequest $c) => $c->data_compra?->format('Ymd') . str_pad((string) $c->id, 10, '0', STR_PAD_LEFT))
-            ->map(fn (PurchaseRequest $c) => ['compra' => $c] + $this->situacao($c))
+        return $this->linhas()
+            ->where('chave', $chave)
+            ->sortByDesc(fn (array $l) => $l['compra']->data_compra?->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
             ->values();
     }
 

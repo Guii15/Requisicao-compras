@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Services\PushNotifier;
+use App\Services\SaldoFornecedores;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Minishlink\WebPush\WebPush;
 
@@ -33,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Número da aba "Aguardando" do Financeiro, em todas as telas que mostram as abas.
+        View::composer('financeiro._abas', fn ($view) => $view->with('qtdAguardando', app(SaldoFornecedores::class)->quantidadeAguardando()));
     }
 }
