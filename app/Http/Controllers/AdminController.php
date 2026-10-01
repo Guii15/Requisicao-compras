@@ -350,8 +350,14 @@ class AdminController extends Controller
             return back()->with('error', 'Você não pode excluir sua própria conta.');
         }
 
+        if ($user->trashed()) {
+            return back()->with('success', 'Este usuário já tinha sido removido.');
+        }
+
+        // Só tira o acesso: as requisições dele continuam no sistema (apagar o usuário apagaria o histórico).
         $user->delete();
-        return back()->with('success', 'Usuário removido com sucesso!');
+
+        return back()->with('success', 'Usuário removido com sucesso! As requisições dele foram mantidas.');
     }
 
     public function updateRole(Request $request, User $user)

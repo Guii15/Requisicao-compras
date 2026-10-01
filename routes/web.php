@@ -97,7 +97,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::middleware(SuperAdminMiddleware::class)->group(function () {
         Route::get('/usuarios', [AdminController::class, 'users'])->name('users.index');
         Route::post('/usuarios', [AdminController::class, 'storeUser'])->middleware('throttle:10,1')->name('users.store');
-        Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->middleware('throttle:10,1')->name('users.destroy');
+        Route::delete('/usuarios/{user}', [AdminController::class, 'destroyUser'])->withTrashed()->middleware('throttle:10,1')->name('users.destroy');
         Route::patch('/usuarios/{user}/senha', [AdminController::class, 'resetPassword'])->middleware('throttle:10,1')->name('users.resetPassword');
         Route::patch('/usuarios/{user}/perfil', [AdminController::class, 'updateRole'])->middleware('throttle:10,1')->name('users.updateRole');
     });

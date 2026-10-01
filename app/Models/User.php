@@ -4,13 +4,20 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        // Como o usuário é só "desativado" (SoftDeletes), o cascade do banco não limpa os avisos push dele.
+        static::deleting(fn (User $user) => $user->pushSubscriptions()->delete());
+    }
 
     /**
      * The attributes that are mass assignable.

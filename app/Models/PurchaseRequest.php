@@ -100,7 +100,7 @@ class PurchaseRequest extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     public function fornecedor(): BelongsTo
@@ -132,7 +132,7 @@ class PurchaseRequest extends Model
 
     public function conferente(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'conferente_id');
+        return $this->belongsTo(User::class, 'conferente_id')->withTrashed();
     }
 
     public function fotosConferencia(): HasMany
