@@ -27,6 +27,8 @@
         </div>
     @endif
 
+    <x-obs-entrada :item="$item" margem="0" />
+
     <x-slot:acao>
         <a href="{{ route('admin.compras.edit', $item) }}"
            style="border-radius:8px; font-size:14px; font-weight:600; text-decoration:none;

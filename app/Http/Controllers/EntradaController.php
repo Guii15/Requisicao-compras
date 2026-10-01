@@ -59,7 +59,9 @@ class EntradaController extends Controller
         $request->validate([
             'vendedor_destino'   => 'required|string|max:255',
             'quantidade_entrada' => 'required|integer|min:' . $quantidadeMaxima . '|max:' . $quantidadeMaxima,
+            'obs_entrada'        => 'nullable|string|max:500',
         ], [
+            'obs_entrada.max'             => 'A observação da entrada pode ter no máximo 500 caracteres.',
             'vendedor_destino.required'   => 'Informe o vendedor destino.',
             'quantidade_entrada.required' => 'Informe a quantidade que entrou.',
             'quantidade_entrada.min'      => 'A entrada precisa ser da quantidade cheia recebida na conferência (' . $quantidadeMaxima . '). Se faltou alguma unidade, resolva isso na conferência antes de dar entrada.',
@@ -69,6 +71,7 @@ class EntradaController extends Controller
         $purchaseRequest->update([
             'vendedor_destino'     => $request->vendedor_destino,
             'quantidade_entrada'   => $request->quantidade_entrada,
+            'obs_entrada'          => trim((string) $request->obs_entrada) ?: null,
             'entrada_concluida_em' => now(),
         ]);
 

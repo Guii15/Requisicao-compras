@@ -194,6 +194,12 @@
                             @endif
                         </tr>
 
+                        @if($req->obs_entrada)
+                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="10" style="padding:8px 16px;"><x-obs-entrada :item="$req" margem="0" /></td>
+                        </tr>
+                        @endif
+
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="10" style="padding:0;">
@@ -233,6 +239,12 @@
                                         <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" readonly
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; background:#f3f4f6; color:#6b7280;">
                                         <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Entrada precisa ser da quantidade cheia recebida na conferência ({{ $req->quantidade_recebida ?? $req->quantity }}). Se faltou unidade, resolva na conferência.</div>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — o admin e o vendedor veem)</span></label>
+                                        <textarea name="obs_entrada" rows="3" maxlength="500" placeholder="Ex: caixa amassada, veio sem manual..."
+                                                  style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
                                     </div>
 
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
@@ -376,8 +388,10 @@
                 </div>
                 @endif
 
+                <x-obs-entrada :item="$req" />
+
                 @php
-                    $elegivelEntradaEntrM = $req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
+                    $elegivelEntradaEntrM =$req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
                 @endphp
                 @if($req->entrada_concluida_em)
                 <div style="text-align:right; font-size:12px; color:#6b7280;">
@@ -423,6 +437,12 @@
                             <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" readonly
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; background:#f3f4f6; color:#6b7280;">
                             <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Entrada precisa ser da quantidade cheia recebida na conferência ({{ $req->quantidade_recebida ?? $req->quantity }}). Se faltou unidade, resolva na conferência.</div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — o admin e o vendedor veem)</span></label>
+                            <textarea name="obs_entrada" rows="3" maxlength="500" placeholder="Ex: caixa amassada, veio sem manual..."
+                                      style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
                         </div>
 
                         <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">

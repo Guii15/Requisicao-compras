@@ -306,6 +306,11 @@
                                         <span style="color:#15803d; font-weight:600;">Conf:</span> <span style="color:#166534;">{{ $req->obs }}</span>
                                     </div>
                                 @endif
+                                @if($req->obs_entrada)
+                                    <div style="margin-top:5px; padding:5px 8px; background:#fff7ed; border-left:3px solid #fdba74; border-radius:3px; font-size:12px; text-align:left;">
+                                        <span style="color:#c2410c; font-weight:600;">Obs (Entrada):</span> <span style="color:#9a3412;">{{ $req->obs_entrada }}</span>
+                                    </div>
+                                @endif
                                 @if($req->admin_note)
                                     <div style="margin-top:5px;">
                                         <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
@@ -480,6 +485,8 @@
                         <div style="font-weight:600; color:#374151;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div>
                     </div>
                 </div>
+
+                <x-obs-entrada :item="$req" margem="10px" />
 
                 {{-- Rodapé do card: urgência + exportar --}}
                 <div class="m-coluna" style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">

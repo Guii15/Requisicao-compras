@@ -138,6 +138,11 @@
                         </td>
                     </tr>
                     @endif
+                    @if($item->obs_entrada)
+                    <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6; background:#f9fafb;">
+                        <td colspan="11" style="padding:12px 14px;"><x-obs-entrada :item="$item" margem="0" /></td>
+                    </tr>
+                    @endif
                     @endforeach
                 @empty
                     <tr>

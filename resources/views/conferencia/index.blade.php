@@ -218,6 +218,12 @@
                         </tr>
                         @endif
 
+                        @if($req->obs_entrada)
+                        <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="8" style="padding:12px 16px;"><x-obs-entrada :item="$req" margem="0" /></td>
+                        </tr>
+                        @endif
+
                         @if($req->admin_note)
                         <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="8" style="padding:12px 16px;">
@@ -431,6 +437,8 @@
                     <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                 </div>
                 @endif
+
+                <x-obs-entrada :item="$req" />
 
                 @if($req->admin_note)
                 <div style="margin-bottom:12px; padding:10px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;">

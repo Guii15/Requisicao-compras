@@ -567,6 +567,8 @@
                                     </div>
                                     @endif
 
+                                    <x-obs-entrada :item="$req" margem="20px" />
+
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
                                         <button type="button" onclick="document.getElementById('modal-{{ $req->id }}').style.display='none'"
                                                 style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
@@ -815,6 +817,8 @@
                             <div style="font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                         </div>
                         @endif
+
+                        <x-obs-entrada :item="$req" margem="16px" />
 
                         <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end;">
                             <button type="button" onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='none'"

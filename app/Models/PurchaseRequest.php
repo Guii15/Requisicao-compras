@@ -57,6 +57,7 @@ class PurchaseRequest extends Model
         'conferente_id',
         'vendedor_destino',
         'quantidade_entrada',
+        'obs_entrada',
         'entrada_concluida_em',
         'tipo_registro',
         'data_compra',
