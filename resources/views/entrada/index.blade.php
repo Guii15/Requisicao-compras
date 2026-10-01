@@ -195,6 +195,12 @@
                             @endif
                         </tr>
 
+                        @if($req->admin_note)
+                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="10" style="padding:8px 16px;"><x-obs-admin :item="$req" margem="0" /></td>
+                        </tr>
+                        @endif
+
                         @if($req->obs_entrada)
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="10" style="padding:8px 16px;"><x-obs-entrada :item="$req" margem="0" /></td>
@@ -390,6 +396,7 @@
                 </div>
                 @endif
 
+                <x-obs-admin :item="$req" margem="12px" />
                 <x-obs-entrada :item="$req" />
 
                 @php

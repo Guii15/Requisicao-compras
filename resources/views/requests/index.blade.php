@@ -313,11 +313,8 @@
                                     </div>
                                 @endif
                                 @if($req->admin_note)
-                                    <div style="margin-top:5px;">
-                                        <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
-                                                style="background:none; border:none; color:#6b7280; font-size:11px; cursor:pointer; text-decoration:underline; padding:0;">
-                                            Ver obs.
-                                        </button>
+                                    <div style="margin-top:5px; padding:5px 8px; background:#eff6ff; border-left:3px solid #93c5fd; border-radius:3px; font-size:12px; text-align:left;">
+                                        <span style="color:#1d4ed8; font-weight:600;">Obs (Admin):</span> <span style="color:#1e3a8a; white-space:pre-line;">{{ $req->admin_note }}</span>
                                     </div>
                                 @endif
                             </td>
@@ -488,6 +485,7 @@
                     </div>
                 </div>
 
+                <x-obs-admin :item="$req" margem="10px" />
                 <x-obs-entrada :item="$req" margem="10px" />
 
                 {{-- Rodapé do card: urgência + exportar --}}
@@ -500,12 +498,6 @@
                             <span style="background:#fef3c7; color:#d97706; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
                         @else
                             <span style="background:#dcfce7; color:#16a34a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
-                        @endif
-                        @if($req->admin_note)
-                            <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='flex'"
-                                    style="background:none; border:none; color:#6b7280; font-size:12px; cursor:pointer; text-decoration:underline; padding:0; font-style:italic;">
-                                Ver obs.
-                            </button>
                         @endif
                     </div>
                     <div class="m-card-acao" style="display:flex; gap:6px;">
