@@ -100,10 +100,20 @@ class DadosCompraController extends Controller
             'valor'             => 'nullable|numeric|min:0',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
+            'condicao_pagamento' => 'required|in:a_vista,parcelado',
+            'parcelas'          => 'required_if:condicao_pagamento,parcelado|nullable|integer|min:2|max:36',
+            'primeiro_vencimento' => 'nullable|date',
             'pedido_compra'     =>'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
+            'condicao_pagamento.required' => 'Informe a condição de pagamento negociada (à vista ou parcelado).',
+            'condicao_pagamento.in'      => 'Condição de pagamento inválida.',
+            'parcelas.required_if'       => 'Informe em quantas parcelas.',
+            'parcelas.integer'           => 'O número de parcelas precisa ser um número inteiro.',
+            'parcelas.min'               => 'Parcelado precisa ter pelo menos 2 parcelas.',
+            'parcelas.max'               => 'O máximo é 36 parcelas.',
+            'primeiro_vencimento.date'   => 'Data de vencimento inválida.',
         ]);
 
         $digitado = trim($dados['supplier']);
@@ -115,6 +125,9 @@ class DadosCompraController extends Controller
             'preco_caixa'       => $dados['preco_caixa'] ?? null,
             'valor'             => $dados['valor'] ?? null,
             'codigo_fornecedor' => $dados['codigo_fornecedor'] ?? null,
+            'condicao_pagamento' => $dados['condicao_pagamento'],
+            'parcelas'          => $dados['condicao_pagamento'] === 'parcelado' ? (int) $dados['parcelas'] : null,
+            'primeiro_vencimento' => $dados['primeiro_vencimento'] ?? null,
             'supplier'          => $fornecedor?->nome ?? mb_convert_case(mb_strtolower($digitado), MB_CASE_TITLE, 'UTF-8'),
             'fornecedor_id'     => $fornecedor?->id,
             'supplier_original' => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: $digitado),

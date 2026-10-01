@@ -66,12 +66,11 @@
                 <tr style="background:#f9fafb; color:#6b7280; text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px;">
                     <th style="padding:10px 9px;">Compra</th>
                     <th style="padding:10px 9px;">Fornecedor</th>
-                    <th style="padding:10px 9px;">Requisição</th>
                     <th style="padding:10px 9px;">Produto</th>
                     <th style="padding:10px 9px;">Comprador</th>
                     <th style="padding:10px 9px; text-align:right;">Valor</th>
                     <th style="padding:10px 9px; text-align:right;">{{ $aguardando ? 'Em aberto' : 'Pago' }}</th>
-                    <th style="padding:10px 9px; text-align:center;">{{ $aguardando ? 'Idade' : 'Pago em' }}</th>
+                    <th style="padding:10px 9px; text-align:center;">{{ $aguardando ? 'Vencimento' : 'Pago em' }}</th>
                     <th style="padding:10px 9px; text-align:center;">Situação</th>
                     <th style="padding:10px 9px; text-align:center;"></th>
                 </tr>
@@ -80,16 +79,27 @@
                 @forelse($itens as $linha)
                     @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
                     <tr style="border-top:1px solid #f3f4f6;">
-                        <td style="padding:12px 9px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}</td>
+                        <td style="padding:12px 9px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}@if($aguardando)<div style="font-size:11.5px; color:#9ca3af;">há {{ $dias($c) }} {{ $dias($c) === 1 ? 'dia' : 'dias' }}</div>@endif</td>
                         <td style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', $linha['chave']) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a></td>
-                        <td style="padding:12px 9px;">#{{ $c->id }}</td>
-                        <td style="padding:12px 9px; color:#111827;">{{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span></td>
+                        <td style="padding:12px 9px; color:#111827;">
+                            {{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span>
+                            <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
+                        </td>
                         <td style="padding:12px 9px;">{{ $c->requester_name ?? '—' }}</td>
                         <td style="padding:12px 9px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}</td>
                         <td style="padding:12px 9px; text-align:right; white-space:nowrap; font-weight:700; color:{{ $aguardando ? '#111827' : '#16a34a' }};">{{ Dinheiro::brl($aguardando ? $linha['aberto'] : $linha['pago']) }}</td>
                         <td style="padding:12px 9px; text-align:center; white-space:nowrap; color:#6b7280;">
                             @if($aguardando)
-                                {{ $dias($c) }} {{ $dias($c) === 1 ? 'dia' : 'dias' }}
+                                @if($linha['proximo_vencimento'])
+                                <div style="font-weight:600; color:#111827;">{{ $linha['proximo_vencimento']->format('d/m/Y') }}</div>
+                                @if($linha['vencida'])
+                                    <span style="background:#fee2e2; color:#dc2626; padding:1px 8px; border-radius:20px; font-size:11.5px; font-weight:700;">Vencida · {{ Dinheiro::brl($linha['vencido']) }}</span>
+                                @else
+                                    <div style="font-size:11.5px; color:#9ca3af;">{{ $linha['dias_ate_vencimento'] === 0 ? 'vence hoje' : 'em ' . $linha['dias_ate_vencimento'] . ' ' . ($linha['dias_ate_vencimento'] === 1 ? 'dia' : 'dias') }}</div>
+                                @endif
+                            @else
+                                —
+                            @endif
                             @else
                                 {{ $linha['ultimo_pagamento']?->format('d/m/Y') ?? '—' }}
                             @endif
@@ -107,7 +117,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="10" style="padding:40px 16px; text-align:center; color:#9ca3af;">
+                    <tr><td colspan="9" style="padding:40px 16px; text-align:center; color:#9ca3af;">
                         {{ $q !== '' ? 'Nenhuma compra encontrada para essa busca.' : ($aguardando ? '✓ Nada aguardando pagamento.' : 'Nenhuma compra quitada ainda.') }}
                     </td></tr>
                 @endforelse
@@ -120,7 +130,7 @@
         @forelse($itens as $linha)
             @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
             <x-mobile-card :titulo="$linha['fornecedor']"
-                           :campos="['Produto' => $c->product_name . ' × ' . $c->quantity, 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Compra' => $c->data_compra->format('d/m/Y'), 'Valor' => Dinheiro::brl($linha['custo']), ($aguardando ? 'Em aberto' : 'Pago') => Dinheiro::brl($aguardando ? $linha['aberto'] : $linha['pago']), ($aguardando ? 'Idade' : 'Pago em') => $aguardando ? $dias($c) . ' dias' : $linha['ultimo_pagamento']?->format('d/m/Y')]">
+                           :campos="['Produto' => $c->product_name . ' × ' . $c->quantity, 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Compra' => $c->data_compra->format('d/m/Y'), 'Condição' => $linha['condicao'], 'Vencimento' => $aguardando ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), ($aguardando ? 'Em aberto' : 'Pago') => Dinheiro::brl($aguardando ? $linha['aberto'] : $linha['pago']), ($aguardando ? 'Idade' : 'Pago em') => $aguardando ? $dias($c) . ' dias' : $linha['ultimo_pagamento']?->format('d/m/Y')]">
                 <x-slot:badge>
                     <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $linha['situacao'] }}</span>
                 </x-slot:badge>

@@ -61,6 +61,7 @@
                     <th style="padding:10px 14px; text-align:right;">Valor</th>
                     <th style="padding:10px 14px; text-align:right;">Pago</th>
                     <th style="padding:10px 14px; text-align:right;">Em aberto</th>
+                    <th style="padding:10px 14px; text-align:center;">Vencimento</th>
                     <th style="padding:10px 14px; text-align:center;">Situação</th>
                     <th style="padding:10px 14px; text-align:center;"></th>
                 </tr>
@@ -73,6 +74,7 @@
                         <td style="padding:12px 14px;">#{{ $c->id }}</td>
                         <td style="padding:12px 14px; font-weight:600; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af; font-weight:400;">× {{ $c->quantity }}</span>
+                            @if($linha['condicao'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">{{ $linha['condicao'] }}</div>@endif
                             @if($c->pedido_compra_path)
                                 <a href="{{ route('admin.compras.pedido', $c) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; font-weight:400;">📎 Pedido de compra</a>
                             @endif
@@ -81,6 +83,22 @@
                         <td style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}</td>
                         <td style="padding:12px 14px; text-align:right; white-space:nowrap; color:#16a34a;">{{ Dinheiro::brl($linha['pago']) }}</td>
                         <td style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700;">{{ Dinheiro::brl($linha['aberto']) }}</td>
+                        <td style="padding:12px 14px; text-align:center; white-space:nowrap;">
+                            @if($linha['aberto'] > 0)
+                                @if($linha['proximo_vencimento'])
+                                <div style="font-weight:600; color:#111827;">{{ $linha['proximo_vencimento']->format('d/m/Y') }}</div>
+                                @if($linha['vencida'])
+                                    <span style="background:#fee2e2; color:#dc2626; padding:1px 8px; border-radius:20px; font-size:11.5px; font-weight:700;">Vencida · {{ Dinheiro::brl($linha['vencido']) }}</span>
+                                @else
+                                    <div style="font-size:11.5px; color:#9ca3af;">{{ $linha['dias_ate_vencimento'] === 0 ? 'vence hoje' : 'em ' . $linha['dias_ate_vencimento'] . ' ' . ($linha['dias_ate_vencimento'] === 1 ? 'dia' : 'dias') }}</div>
+                                @endif
+                            @else
+                                —
+                            @endif
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td style="padding:12px 14px; text-align:center;">
                             <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">{{ $linha['situacao'] }}</span>
                         </td>
@@ -93,7 +111,7 @@
                     </tr>
                     @if($c->pagamentos->isNotEmpty())
                         <tr style="background:#f9fafb;">
-                            <td colspan="9" style="padding:8px 14px 10px 40px;">@include('financeiro._pagamentos', ['compra' => $c])</td>
+                            <td colspan="10" style="padding:8px 14px 10px 40px;">@include('financeiro._pagamentos', ['compra' => $c])</td>
                         </tr>
                     @endif
                 @endforeach
@@ -106,7 +124,7 @@
         @foreach($compras as $linha)
             @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
             <x-mobile-card :titulo="$c->product_name . ' × ' . $c->quantity"
-                           :campos="['Compra' => $c->data_compra->format('d/m/Y'), 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Valor' => Dinheiro::brl($linha['custo']), 'Pago' => Dinheiro::brl($linha['pago']), 'Em aberto' => Dinheiro::brl($linha['aberto'])]">
+                           :campos="['Compra' => $c->data_compra->format('d/m/Y'), 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Condição' => $linha['condicao'], 'Vencimento' => $linha['aberto'] > 0 ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), 'Pago' => Dinheiro::brl($linha['pago']), 'Em aberto' => Dinheiro::brl($linha['aberto'])]">
                 <x-slot:badge>
                     <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $linha['situacao'] }}</span>
                 </x-slot:badge>

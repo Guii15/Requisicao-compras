@@ -24,7 +24,7 @@ class PainelFinanceiro
     public function dados(?CarbonImmutable $hoje = null): array
     {
         $hoje ??= CarbonImmutable::now('America/Sao_Paulo');
-        $linhas = $this->saldos->linhas();
+        $linhas = $this->saldos->linhas($hoje);
         $abertas = $linhas->where('aberto', '>', 0);
         $mesAtual = $hoje->format('Y-m');
 
@@ -42,6 +42,10 @@ class PainelFinanceiro
             'aguardando' => [
                 'compras' => $abertas->count(),
                 'fornecedores' => $abertas->pluck('chave')->unique()->count(),
+            ],
+            'vencido' => [
+                'compras' => $linhas->where('vencida', true)->count(),
+                'valor' => round($linhas->sum('vencido'), 2),
             ],
             'pagas' => $linhas->where('aberto', '<=', 0)->count(),
             'meses' => $this->meses($hoje, $linhas, $pagamentos),
@@ -105,6 +109,8 @@ class PainelFinanceiro
                 'requisicao' => $x['linha']['compra']->id,
                 'valor' => (float) $x['pg']->valor,
                 'forma' => $x['pg']->forma,
+                'meio' => $x['pg']->meioRotulo(),
+                'banco' => $x['pg']->banco,
                 'data' => $x['pg']->data_pagamento,
             ])
             ->values()

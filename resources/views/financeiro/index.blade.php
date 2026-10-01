@@ -43,6 +43,9 @@
             <div class="fin-rotulo">Saldo devedor</div>
             <div class="fin-hero">{{ Dinheiro::brl($d['saldo']) }}</div>
             <div class="fin-nota">em {{ $d['aguardando']['compras'] }} {{ $d['aguardando']['compras'] === 1 ? 'compra' : 'compras' }} de {{ $d['aguardando']['fornecedores'] }} {{ $d['aguardando']['fornecedores'] === 1 ? 'fornecedor' : 'fornecedores' }}</div>
+            @if($d['vencido']['compras'] > 0)
+                <div style="margin-top:8px;"><span style="background:#fee2e2; color:#dc2626; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:700;">{{ Dinheiro::brl($d['vencido']['valor']) }} vencido</span> <span class="fin-nota">em {{ $d['vencido']['compras'] }} {{ $d['vencido']['compras'] === 1 ? 'compra' : 'compras' }}</span></div>
+            @endif
             <div class="fin-medidor" role="img" aria-label="{{ number_format($d['percentual_pago'], 1, ',', '.') }}% do total comprado já foi pago"><div style="width:{{ min(100, $d['percentual_pago']) }}%;"></div></div>
             <div class="fin-nota">{{ number_format($d['percentual_pago'], 1, ',', '.') }}% do total comprado já foi pago</div>
         </div>
@@ -119,7 +122,7 @@
                     </div>
                     <div style="text-align:right; white-space:nowrap;">
                         <div class="fin-valor" style="color:#16a34a;">{{ Dinheiro::brl($u['valor']) }}</div>
-                        <div class="fin-nota" style="margin-top:1px;">{{ $u['data']->format('d/m/Y') }} · {{ $u['forma'] === 'a_vista' ? 'À vista' : 'Parcelado' }}</div>
+                        <div class="fin-nota" style="margin-top:1px;">{{ $u['data']->format('d/m/Y') }} · {{ $u['meio'] ?? ($u['forma'] === 'a_vista' ? 'À vista' : 'Parcelado') }}@if($u['banco']) · {{ $u['banco'] }}@endif</div>
                     </div>
                 </div>
             @empty

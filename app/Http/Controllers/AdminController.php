@@ -137,11 +137,18 @@ class AdminController extends Controller
             'preco_caixa'       => 'nullable|numeric|min:0',
             'valor'             => 'nullable|numeric|min:0',
             'data_compra'       => 'nullable|date',
+            'condicao_pagamento' => 'nullable|in:a_vista,parcelado',
+            'parcelas'          => 'required_if:condicao_pagamento,parcelado|nullable|integer|min:2|max:36',
+            'primeiro_vencimento' => 'nullable|date',
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
             'anexo'             => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
+            'parcelas.required_if'       => 'Informe em quantas parcelas.',
+            'parcelas.integer'           => 'O número de parcelas precisa ser um número inteiro.',
+            'parcelas.min'               => 'Parcelado precisa ter pelo menos 2 parcelas.',
+            'parcelas.max'               => 'O máximo é 36 parcelas.',
             'anexo.mimes'                => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'anexo.max'                  => 'O anexo pode ter no máximo 10 MB.',
         ]);
@@ -162,6 +169,9 @@ class AdminController extends Controller
             'preco_caixa'        => $request->preco_caixa ?: null,
             'valor'              => $request->valor ?: null,
             'data_compra'        => $request->data_compra ?: null,
+            'condicao_pagamento' => $request->condicao_pagamento ?: null,
+            'parcelas'           => $request->condicao_pagamento === 'parcelado' ? (int) $request->parcelas : null,
+            'primeiro_vencimento' => $request->primeiro_vencimento ?: null,
         ];
 
         if ($request->status === 'aprovado' && $purchaseRequest->approved_at === null) {

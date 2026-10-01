@@ -74,6 +74,8 @@
                     </div>
                 </div>
 
+                @include('admin._condicao-pagamento', ['item' => $item, 'sufixo' => 'edit', 'modo' => 'pagina', 'obrigatorio' => true])
+
                 <div style="margin-top:16px;">
                     <label style="{{ $labelStyle }}">Pedido de compra (PDF ou imagem, até 10 MB)</label>
                     @if($item->pedido_compra_path)

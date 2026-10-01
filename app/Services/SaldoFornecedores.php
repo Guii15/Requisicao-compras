@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Fornecedor;
 use App\Models\PurchaseRequest;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
 /**
@@ -43,18 +44,67 @@ class SaldoFornecedores
         return round((float) $compra->preco_unitario * (int) $compra->quantity, 2);
     }
 
-    /** @return array{custo: float, pago: float, aberto: float, situacao: string} */
-    public function situacao(PurchaseRequest $compra): array
+    /**
+     * Custo, pago e em aberto da compra, a condição negociada e os vencimentos.
+     *
+     * Parcelado em N vezes: as parcelas vencem de mês em mês a partir do 1º vencimento. O que já foi pago
+     * quita as parcelas na ordem (um pagamento maior que uma parcela adianta as seguintes). "Vencido" é o
+     * que já deveria ter sido pago até hoje e ainda não foi.
+     *
+     * @return array{custo: float, pago: float, aberto: float, situacao: string, condicao: ?string, condicao_codigo: ?string, parcelas: int, valor_parcela: float, proximo_vencimento: ?CarbonImmutable, dias_ate_vencimento: ?int, vencido: float, vencida: bool, parcela_sugerida: float}
+     */
+    public function situacao(PurchaseRequest $compra, ?CarbonImmutable $hoje = null): array
     {
+        $hoje = ($hoje ?? CarbonImmutable::now('America/Sao_Paulo'))->startOfDay();
+
         $custo = $this->custo($compra);
         $pago = round((float) $compra->pagamentos->sum('valor'), 2);
         $aberto = round(max(0, $custo - $pago), 2);
+
+        $parcelado = $compra->condicao_pagamento === 'parcelado' && (int) $compra->parcelas >= 2;
+        $n = $parcelado ? (int) $compra->parcelas : 1;
+        $valorParcela = round($custo / $n, 2);
+
+        $primeiro = $compra->primeiro_vencimento
+            ? CarbonImmutable::parse($compra->primeiro_vencimento->format('Y-m-d'), 'America/Sao_Paulo')
+            : null;
+
+        $proximo = null;
+        $vencido = 0.0;
+
+        if ($primeiro && $aberto > 0) {
+            $cobertas = $valorParcela > 0 ? min($n - 1, (int) floor(($pago + 0.004) / $valorParcela)) : 0;
+            $proximo = $primeiro->addMonthsNoOverflow($cobertas);
+
+            $venceram = 0;
+            for ($k = 0; $k < $n; $k++) {
+                if ($primeiro->addMonthsNoOverflow($k) < $hoje) {
+                    $venceram++;
+                }
+            }
+
+            $devido = $venceram >= $n ? $custo : round($venceram * $valorParcela, 2);
+            $vencido = round(max(0, min($aberto, $devido - $pago)), 2);
+        }
 
         return [
             'custo' => $custo,
             'pago' => $pago,
             'aberto' => $aberto,
             'situacao' => $aberto <= 0 ? 'Pago' : ($pago > 0 ? 'Parcial' : 'Em aberto'),
+            'condicao' => match ($compra->condicao_pagamento) {
+                'a_vista' => 'À vista',
+                'parcelado' => $parcelado ? "Parcelado em {$n}x" : 'Parcelado',
+                default => null,
+            },
+            'condicao_codigo' => $compra->condicao_pagamento,
+            'parcelas' => $n,
+            'valor_parcela' => $valorParcela,
+            'proximo_vencimento' => $proximo,
+            'dias_ate_vencimento' => $proximo ? (int) $hoje->diffInDays($proximo, false) : null,
+            'vencido' => $vencido,
+            'vencida' => $vencido > 0,
+            'parcela_sugerida' => $aberto > 0 ? round(min($valorParcela, $aberto), 2) : 0.0,
         ];
     }
 
@@ -80,7 +130,7 @@ class SaldoFornecedores
      *
      * @return Collection<int, array{compra: PurchaseRequest, chave: string, fornecedor: string, custo: float, pago: float, aberto: float, situacao: string, ultimo_pagamento: mixed}>
      */
-    public function linhas(): Collection
+    public function linhas(?CarbonImmutable $hoje = null): Collection
     {
         $compras = $this->compras();
 
@@ -88,14 +138,14 @@ class SaldoFornecedores
             ->groupBy(fn (PurchaseRequest $c) => (string) $this->chave($c->supplier))
             ->map(fn (Collection $grupo, $chave) => $this->nome((string) $chave, $grupo));
 
-        return $compras->map(function (PurchaseRequest $c) use ($nomes) {
+        return $compras->map(function (PurchaseRequest $c) use ($nomes, $hoje) {
             $chave = $this->chave($c->supplier);
 
             return [
                 'compra' => $c,
                 'chave' => $chave,
                 'fornecedor' => $nomes[$chave],
-            ] + $this->situacao($c) + [
+            ] + $this->situacao($c, $hoje) + [
                 'ultimo_pagamento' => $c->pagamentos->max('data_pagamento'),
             ];
         })->values();

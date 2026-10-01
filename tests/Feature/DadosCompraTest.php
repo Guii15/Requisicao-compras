@@ -25,6 +25,7 @@ class DadosCompraTest extends TestCase
             'preco_unitario'    => '1.250,50',
             'codigo_fornecedor' => 'FORN-123',
             'supplier'          => 'kabum',
+            'condicao_pagamento' => 'a_vista',
         ], $extra);
     }
 

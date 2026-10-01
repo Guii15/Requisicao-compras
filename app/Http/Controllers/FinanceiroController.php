@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /** Contas a pagar por fornecedor: painel, compras aguardando/pagas, saldo por fornecedor e baixa por pagamento. */
@@ -101,6 +102,8 @@ class FinanceiroController extends Controller
         $dados = $request->validate([
             'forma' => 'required|in:a_vista,parcelado',
             'valor' => 'required_if:forma,parcelado|nullable|numeric|min:0.01',
+            'meio' => ['required', Rule::in(array_keys(PagamentoCompra::MEIOS))],
+            'banco' => 'required_unless:meio,dinheiro|nullable|string|max:100',
             'data_pagamento' => 'required|date',
             'obs' => 'nullable|string|max:500',
         ], [
@@ -109,6 +112,10 @@ class FinanceiroController extends Controller
             'valor.required_if' => 'Informe o valor pago.',
             'valor.numeric' => 'O valor precisa ser um número.',
             'valor.min' => 'O valor precisa ser maior que zero.',
+            'meio.required' => 'Informe a forma de pagamento (PIX, boleto, transferência...).',
+            'meio.in' => 'Forma de pagamento inválida.',
+            'banco.required_unless' => 'Informe de qual banco saiu o pagamento.',
+            'banco.max' => 'O nome do banco pode ter no máximo 100 caracteres.',
             'data_pagamento.required' => 'Informe a data do pagamento.',
             'data_pagamento.date' => 'Data do pagamento inválida.',
         ]);
@@ -126,6 +133,8 @@ class FinanceiroController extends Controller
             'purchase_request_id' => $purchaseRequest->id,
             'valor' => $valor,
             'forma' => $dados['forma'],
+            'meio' => $dados['meio'],
+            'banco' => $dados['meio'] === 'dinheiro' ? null : (trim((string) ($dados['banco'] ?? '')) ?: null),
             'data_pagamento' => $dados['data_pagamento'],
             'obs' => $dados['obs'] ?? null,
             'user_id' => auth()->id(),

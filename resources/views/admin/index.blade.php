@@ -536,6 +536,8 @@
                                         </div>
                                     </div>
 
+                                    @include('admin._condicao-pagamento', ['item' => $req, 'sufixo' => 'req-' . $req->id . '-d', 'modo' => 'modal', 'obrigatorio' => false])
+
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
                                         @if($req->pedido_compra_path)
@@ -789,6 +791,8 @@
                                 <div style="padding:9px 10px; font-size:13.5px; color:#374151;">{{ $req->data_coleta?->format('d/m/Y') ?? '—' }}</div>
                             </div>
                         </div>
+                        @include('admin._condicao-pagamento', ['item' => $req, 'sufixo' => 'req-' . $req->id . '-m', 'modo' => 'modal', 'obrigatorio' => false])
+
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
                             @if($req->pedido_compra_path)

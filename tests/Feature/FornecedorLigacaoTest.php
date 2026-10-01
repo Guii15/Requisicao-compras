@@ -96,7 +96,7 @@ class FornecedorLigacaoTest extends TestCase
         $joyce = Fornecedor::create(['nome' => 'JOYCE INFORMÁTICA']);
         $igual = PurchaseRequest::factory()->aprovado()->create();
         $parecido = PurchaseRequest::factory()->aprovado()->create();
-        $dados = ['data_compra' => '2026-09-20', 'preco_unitario' => '10,00'];
+        $dados = ['data_compra' => '2026-09-20', 'preco_unitario' => '10,00', 'condicao_pagamento' => 'a_vista'];
 
         $this->actingAs($this->admin)->patch(route('admin.compras.update', $igual), $dados + ['supplier' => 'Joyce Informatica Ltda'])->assertSessionHasNoErrors();
         $this->actingAs($this->admin)->patch(route('admin.compras.update', $parecido), $dados + ['supplier' => 'Joyce'])->assertSessionHasNoErrors();

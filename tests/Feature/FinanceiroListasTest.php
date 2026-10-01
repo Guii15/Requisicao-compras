@@ -101,7 +101,7 @@ class FinanceiroListasTest extends TestCase
         $c = $this->compra('Joyce', 100);
 
         $this->actingAs($this->fin)->from(route('financeiro.aguardando'))
-            ->post(route('financeiro.pagar', $c), ['forma' => 'a_vista', 'data_pagamento' => '2026-10-01'])
+            ->post(route('financeiro.pagar', $c), ['forma' => 'a_vista', 'meio' => 'pix', 'banco' => 'Itaú', 'data_pagamento' => '2026-10-01'])
             ->assertRedirect(route('financeiro.aguardando'))
             ->assertSessionHas('success');
     }

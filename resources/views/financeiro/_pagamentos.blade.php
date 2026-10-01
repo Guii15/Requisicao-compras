@@ -4,6 +4,7 @@
         <span>{{ $pg->data_pagamento->format('d/m/Y') }}</span>
         <span style="background:#e0e7ff; color:#3730a3; padding:1px 8px; border-radius:20px; font-size:11.5px; font-weight:600;">{{ $pg->forma === 'a_vista' ? 'À vista' : 'Parcelado' }}</span>
         <strong style="color:#16a34a;">{{ \App\Support\Dinheiro::brl($pg->valor) }}</strong>
+        @if($pg->meioRotulo())<span style="color:#374151;">{{ $pg->meioRotulo() }}@if($pg->banco) · {{ $pg->banco }}@endif</span>@endif
         @if($pg->obs)<span style="color:#6b7280;">· {{ $pg->obs }}</span>@endif
         <span style="color:#9ca3af;">por {{ $pg->user?->name ?? '—' }}</span>
         <form method="POST" action="{{ route('financeiro.desfazer', $pg) }}" style="display:inline;"

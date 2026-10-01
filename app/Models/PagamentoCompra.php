@@ -10,7 +10,17 @@ class PagamentoCompra extends Model
 {
     protected $table = 'pagamentos_compra';
 
-    protected $fillable = ['purchase_request_id', 'valor', 'forma', 'data_pagamento', 'obs', 'user_id'];
+    /** Como o pagamento foi feito. */
+    public const MEIOS = [
+        'pix' => 'PIX',
+        'boleto' => 'Boleto',
+        'transferencia' => 'Transferência (TED)',
+        'cartao' => 'Cartão de crédito',
+        'dinheiro' => 'Dinheiro',
+        'cheque' => 'Cheque',
+    ];
+
+    protected $fillable = ['purchase_request_id', 'valor', 'forma', 'meio', 'banco', 'data_pagamento', 'obs', 'user_id'];
 
     protected $casts = [
         'valor' => 'decimal:2',
@@ -25,5 +35,16 @@ class PagamentoCompra extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    public function meioRotulo(): ?string
+    {
+        return self::MEIOS[$this->meio] ?? null;
+    }
+
+    /** Bancos já usados antes, para sugerir no campo (o banco é digitado livremente). */
+    public static function bancosUsados(): array
+    {
+        return static::query()->whereNotNull('banco')->distinct()->orderBy('banco')->pluck('banco')->all();
     }
 }
