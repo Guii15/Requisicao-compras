@@ -8,7 +8,10 @@ use App\Services\PushNotifier;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ConferenciaController extends Controller
 {
@@ -59,13 +62,16 @@ class ConferenciaController extends Controller
                 ->with('aviso', 'Este item já foi conferido (provavelmente um clique duplicado) — nada foi alterado.');
         }
 
+        $aguardarRestante = $request->acao === 'aguardar_restante';
+
         $request->validate([
             'quantidade_recebida'     => 'required|integer|min:0',
             'foto'                    => 'required|image|mimes:jpg,jpeg,png,webp|max:15360',
             'resultado'               => 'required|in:ok,divergente',
-            'observacao_conferencia'  => 'required_if:resultado,divergente|nullable|string|max:500',
+            // Ao aguardar o restante a divergência já é explicada pela própria quantidade.
+            'observacao_conferencia'  => [Rule::requiredIf(fn () => $request->resultado === 'divergente' && !$aguardarRestante), 'nullable', 'string', 'max:500'],
             'obs'                     => 'nullable|string|max:500',
-            'acao'                    => 'required|in:salvar,avancar_mesmo_assim',
+            'acao'                    => 'required|in:salvar,avancar_mesmo_assim,aguardar_restante',
         ], [
             'quantidade_recebida.required'       => 'Informe a quantidade recebida.',
             'foto.required'                      => 'A foto é obrigatória.',
@@ -73,8 +79,14 @@ class ConferenciaController extends Controller
             'foto.mimes'                          => 'Formatos aceitos: jpg, jpeg, png, webp.',
             'foto.max'                            => 'A foto deve ter no máximo 15MB.',
             'resultado.required'                 => 'Selecione o resultado da conferência.',
-            'observacao_conferencia.required_if' => 'A observação é obrigatória quando divergente.',
+            'observacao_conferencia.required'    => 'A observação é obrigatória quando divergente.',
         ]);
+
+        if ($aguardarRestante && ((int) $request->quantidade_recebida < 1 || (int) $request->quantidade_recebida >= $purchaseRequest->quantity)) {
+            throw ValidationException::withMessages([
+                'quantidade_recebida' => 'Para aguardar o restante, a quantidade recebida precisa ser maior que 0 e menor que a solicitada (' . $purchaseRequest->quantity . ').',
+            ]);
+        }
 
         $podeAvancarMesmoAssim = $request->resultado === 'divergente' && $purchaseRequest->tipo_entrega === 'entrega_direta';
 
@@ -82,7 +94,7 @@ class ConferenciaController extends Controller
             abort(403, 'Ação não permitida para esta combinação de resultado e tipo de entrega.');
         }
 
-        if ($request->resultado === 'ok') {
+        if ($request->resultado === 'ok' || $aguardarRestante) {
             $statusConferencia = 'conferido_ok';
         } elseif ($request->acao === 'avancar_mesmo_assim') {
             $statusConferencia = 'avancado_mesmo_assim';
@@ -90,10 +102,21 @@ class ConferenciaController extends Controller
             $statusConferencia = 'divergente';
         }
 
-        $purchaseRequest->update([
+        $observacao = $request->observacao_conferencia;
+        $dadosParcial = [];
+
+        if ($aguardarRestante) {
+            $totalPedido = $purchaseRequest->quantidade_original ?? $purchaseRequest->quantity;
+            $this->criarRestante($purchaseRequest, (int) $request->quantidade_recebida, $totalPedido);
+
+            $dadosParcial = ['quantity' => (int) $request->quantidade_recebida, 'quantidade_original' => $totalPedido];
+            $observacao = $observacao ?: 'Recebimento parcial: chegaram ' . $request->quantidade_recebida . ' de ' . $totalPedido . '; aguardando o restante.';
+        }
+
+        $purchaseRequest->update($dadosParcial + [
             'quantidade_recebida'    => $request->quantidade_recebida,
             'status_conferencia'     => $statusConferencia,
-            'observacao_conferencia' => $request->observacao_conferencia,
+            'observacao_conferencia' => $observacao,
             'obs'                    => $request->obs,
             'conferente_id'          => auth()->id(),
         ]);
@@ -118,6 +141,27 @@ class ConferenciaController extends Controller
         defer(fn () => app(PushNotifier::class)->conferida($purchaseRequest));
 
         return redirect()->route('conferencia.index')->with('success', 'Conferência registrada com sucesso!');
+    }
+
+    /**
+     * Cria o item da parte que ainda não chegou (mesmo grupo, mesma compra), para ser conferido
+     * e receber entrada quando chegar. Nada da conferência/entrada/coleta do original é copiado.
+     */
+    private function criarRestante(PurchaseRequest $item, int $recebida, int $totalPedido): PurchaseRequest
+    {
+        $restante = $item->replicate([
+            'status_conferencia', 'quantidade_recebida', 'conferente_id', 'observacao_conferencia', 'obs',
+            'quantidade_entrada', 'obs_entrada', 'vendedor_destino', 'entrada_concluida_em',
+            'data_coleta', 'coletado_por', 'valor',
+        ]);
+
+        $restante->quantity = $item->quantity - $recebida;
+        $restante->quantidade_original = $totalPedido;
+        $restante->restante_de_id = $item->id;
+        $restante->status_coleta = 'aguardando';
+        $restante->save();
+
+        return $restante;
     }
 
     public function registrarColeta(Request $request, PurchaseRequest $purchaseRequest)

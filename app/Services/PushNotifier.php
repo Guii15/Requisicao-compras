@@ -33,12 +33,13 @@ class PushNotifier
     public function conferida(PurchaseRequest $item): void
     {
         $seguePraEntrada = in_array($item->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
+        $aguardaRestante = $item->quantidade_original && $item->restante()->exists();
 
         if ($seguePraEntrada) {
             $this->enviar(
                 $this->entrada(),
                 'Item pronto para entrada',
-                $this->resumo($item, ($item->quantidade_recebida ?? $item->quantity) . ' un. conferidas'),
+                $this->resumo($item, ($item->quantidade_recebida ?? $item->quantity) . ' un. conferidas' . ($aguardaRestante ? ' (parcial: faltam ' . ($item->quantidade_original - $item->quantity) . ')' : '')),
                 route('entrada.index', [], false),
                 'entrada-' . $item->grupo_id
             );
@@ -48,10 +49,12 @@ class PushNotifier
 
         $this->enviar(
             $this->dono($item),
-            $divergente ? 'Conferência com divergência' : 'Item conferido',
+            $divergente ? 'Conferência com divergência' : ($aguardaRestante ? 'Chegou só uma parte' : 'Item conferido'),
             $divergente
                 ? $this->resumo($item, $item->observacao_conferencia ?: 'fale com a conferência')
-                : $this->resumo($item, 'conferido, segue para a entrada'),
+                : ($aguardaRestante
+                    ? $this->resumo($item, 'chegaram ' . $item->quantity . ' de ' . $item->quantidade_original . ' un.; o restante será conferido quando chegar')
+                    : $this->resumo($item, 'conferido, segue para a entrada')),
             route('requests.index', [], false),
             'vendedor-conferida-' . $item->grupo_id
         );

@@ -138,6 +138,7 @@
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6;">
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">
                                 {{ $req->product_name }}
+                                <x-parcial-info :item="$req" />
                                 @if($req->status_conferencia === 'avancado_mesmo_assim')
                                     <span style="display:block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; width:fit-content;">⚠ Avançado Mesmo Assim</span>
                                 @endif
@@ -325,6 +326,7 @@
             @foreach($grupo as $req)
             <div class="grupo-item-{{ $chaveEntrM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
                 <div style="font-size:15px; font-weight:700; color:#05018D; margin-bottom:6px;">{{ $req->product_name }}</div>
+                <x-parcial-info :item="$req" />
                 @if($req->status_conferencia === 'avancado_mesmo_assim')
                     <span style="display:inline-block; margin-bottom:10px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">⚠ Avançado Mesmo Assim</span>
                 @endif

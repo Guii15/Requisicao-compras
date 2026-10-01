@@ -231,6 +231,7 @@
                             <td style="padding:14px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? 'Não informado' }}</td>
                             <td style="padding:14px 16px; font-size:14px; color:#374151;">
                                 {{ $req->product_name }}
+                                <x-parcial-info :item="$req" />
                                 @if($req->product_code)
                                     <span style="display:block; font-size:12px; color:#9ca3af;">Cód: {{ $req->product_code }}</span>
                                 @endif
@@ -409,6 +410,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
                     <div>
                         <div style="font-size:15px; font-weight:700; color:#1e3a8a;">{{ $req->product_name }}</div>
+                        <x-parcial-info :item="$req" />
                         @if($req->product_code)
                             <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
                         @endif

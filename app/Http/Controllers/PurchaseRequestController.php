@@ -179,7 +179,7 @@ class PurchaseRequestController extends Controller
             $atualizacao['anexo_path'] = $arquivo->store('anexos-requisicao', self::DISCO_ANEXO);
             $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
 
-            if ($caminhoAntigo) {
+            if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('anexo_path', $caminhoAntigo)) {
                 Storage::disk(self::DISCO_ANEXO)->delete($caminhoAntigo);
             }
         }

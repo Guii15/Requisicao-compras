@@ -177,7 +177,7 @@ class AdminController extends Controller
             $atualizacao['pedido_compra_path'] = $arquivo->store('pedidos-compra', self::DISCO_PEDIDO_COMPRA);
             $atualizacao['pedido_compra_nome'] = $arquivo->getClientOriginalName();
 
-            if ($caminhoAntigo) {
+            if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('pedido_compra_path', $caminhoAntigo)) {
                 Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
             }
         }
@@ -189,7 +189,7 @@ class AdminController extends Controller
             $atualizacao['anexo_path'] = $arquivo->store('anexos-requisicao', self::DISCO_PEDIDO_COMPRA);
             $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
 
-            if ($caminhoAntigo) {
+            if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('anexo_path', $caminhoAntigo)) {
                 Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
             }
         }

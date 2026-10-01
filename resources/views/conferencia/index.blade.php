@@ -170,6 +170,7 @@
                             <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? '—' }}</td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">
                                 {{ $req->product_name }}
+                                <x-parcial-info :item="$req" />
                                 @if($req->pedido_compra_path)
                                     <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 Pedido de compra</a>
                                 @endif
@@ -302,6 +303,11 @@
                                             Avançar Mesmo Assim
                                         </button>
                                         @endif
+                                        <button type="submit" id="btn-aguardar-{{ $req->id }}" value="aguardar_restante" title="O que chegou segue para a entrada; o que falta fica aguardando e será conferido quando chegar"
+                                                onclick="document.getElementById('campo-acao-{{ $req->id }}').value='aguardar_restante'"
+                                                style="display:none; padding:9px 24px; border-radius:8px; background:#6d28d9; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                            Aguardar restante
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -317,8 +323,11 @@
                         }
                         function verificaDivergencia{{ $req->id }}(valor) {
                             var original = {{ $req->quantity }};
-                            var divergiu = valor !== '' && parseInt(valor, 10) !== original;
+                            var recebida = parseInt(valor, 10);
+                            var divergiu = valor !== '' && recebida !== original;
                             document.getElementById('aviso-divergencia-{{ $req->id }}').style.display = divergiu ? 'block' : 'none';
+                            // Chegou só uma parte (mais que 0 e menos que o pedido): pode aguardar o restante.
+                            document.getElementById('btn-aguardar-{{ $req->id }}').style.display = (recebida > 0 && recebida < original) ? 'inline-block' : 'none';
                             if (divergiu) {
                                 document.getElementById('campo-resultado-{{ $req->id }}').value = 'divergente';
                                 atualizaResultado{{ $req->id }}('divergente');
@@ -397,6 +406,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
                     <div>
                         <div style="font-size:15px; font-weight:700; color:#05018D;">{{ $req->product_name }}</div>
+                        <x-parcial-info :item="$req" />
                         @if($req->pedido_compra_path)
                             <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 Pedido de compra</a>
                         @endif
@@ -535,6 +545,11 @@
                                 Avançar Mesmo Assim
                             </button>
                             @endif
+                            <button type="submit" id="btn-aguardar-m-{{ $req->id }}" value="aguardar_restante"
+                                    onclick="document.getElementById('campo-acao-m-{{ $req->id }}').value='aguardar_restante'"
+                                    style="display:none; padding:9px 24px; border-radius:8px; background:#6d28d9; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                Aguardar restante
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -550,8 +565,10 @@
             }
             function verificaDivergenciaMobile{{ $req->id }}(valor) {
                 var original = {{ $req->quantity }};
-                var divergiu = valor !== '' && parseInt(valor, 10) !== original;
+                var recebida = parseInt(valor, 10);
+                var divergiu = valor !== '' && recebida !== original;
                 document.getElementById('aviso-divergencia-m-{{ $req->id }}').style.display = divergiu ? 'block' : 'none';
+                document.getElementById('btn-aguardar-m-{{ $req->id }}').style.display = (recebida > 0 && recebida < original) ? 'inline-block' : 'none';
                 if (divergiu) {
                     document.getElementById('campo-resultado-m-{{ $req->id }}').value = 'divergente';
                     atualizaResultadoMobile{{ $req->id }}('divergente');

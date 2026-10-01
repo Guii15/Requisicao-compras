@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PurchaseRequest extends Model
 {
@@ -42,6 +43,8 @@ class PurchaseRequest extends Model
         'fornecedor_id',
         'supplier_original',
         'quantity',
+        'quantidade_original',
+        'restante_de_id',
         'reason',
         'urgency',
         'justification',
@@ -103,6 +106,28 @@ class PurchaseRequest extends Model
     public function fornecedor(): BelongsTo
     {
         return $this->belongsTo(Fornecedor::class);
+    }
+
+    /** O item de que este é o "restante" (a parte que faltava chegar). */
+    public function restanteDe(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'restante_de_id');
+    }
+
+    /** O item criado para a parte que ainda faltava chegar deste. */
+    public function restante(): HasOne
+    {
+        return $this->hasOne(self::class, 'restante_de_id');
+    }
+
+    /**
+     * Outro item usa o mesmo arquivo? Acontece quando o restante herda o pedido de compra/anexo do original;
+     * quem troca o arquivo não pode apagar o que o outro ainda usa.
+     */
+    public function arquivoUsadoPorOutro(string $coluna, ?string $caminho): bool
+    {
+        return $caminho !== null
+            && static::withoutGlobalScopes()->where($coluna, $caminho)->where('id', '!=', $this->id)->exists();
     }
 
     public function conferente(): BelongsTo
