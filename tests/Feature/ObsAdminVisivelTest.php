@@ -47,4 +47,24 @@ class ObsAdminVisivelTest extends TestCase
         $this->actingAs($vendedor)->get(route('requests.index'))->assertDontSee('Obs (Admin)');
         $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index'))->assertDontSee('Obs (Admin)');
     }
+
+    public function test_quadro_dar_entrada_mostra_a_observacao_do_admin(): void
+    {
+        $this->itemComObsAdmin();
+
+        $html = $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index'))->getContent();
+
+        // tabela + card do celular + quadro "Dar Entrada" do desktop + quadro do celular
+        $this->assertSame(4, substr_count($html, 'Comprar so da loja X, urgente'));
+    }
+
+    public function test_vendedor_nao_tem_mais_o_ver_obs_nem_o_modal_do_compras(): void
+    {
+        $vendedor = User::factory()->create(['role' => null]);
+        $this->itemComObsAdmin(['user_id' => $vendedor->id]);
+
+        $this->actingAs($vendedor)->get(route('requests.index'))
+            ->assertDontSee('Ver obs.')
+            ->assertDontSee('Observação do Compras');
+    }
 }

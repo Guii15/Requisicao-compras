@@ -231,6 +231,8 @@
                                 </div>
                                 @endif
 
+                                <x-obs-admin :item="$req" margem="16px" />
+
                                 <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
                                     @method('PATCH')
@@ -430,6 +432,8 @@
                         <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                     </div>
                     @endif
+
+                    <x-obs-admin :item="$req" margem="16px" />
 
                     <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf

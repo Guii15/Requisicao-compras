@@ -533,29 +533,6 @@
 
 </div>
 
-{{-- Modais de observação do compras --}}
-@foreach($requests as $grupo)
-    @foreach($grupo as $req)
-        @if($req->admin_note)
-            <div id="obs-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:400px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-                    <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Observação do Compras</h3>
-                    <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                    <div style="background:#f9fafb; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.6; margin-bottom:20px; white-space:pre-line;">
-                        {{ $req->admin_note }}
-                    </div>
-                    <div class="m-modal-acoes" style="text-align:right;">
-                        <button onclick="document.getElementById('obs-{{ $req->id }}').style.display='none'"
-                                style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @endif
-    @endforeach
-@endforeach
-
 {{-- Modais de foto da conferência --}}
 @foreach($requests as $grupo)
     @foreach($grupo as $req)
