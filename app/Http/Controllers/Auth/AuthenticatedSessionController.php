@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
+use App\Http\Middleware\ConferenteMiddleware;
+use App\Http\Middleware\EntradaMiddleware;
+use App\Http\Middleware\SuperAdminMiddleware;
+use App\Http\Middleware\VendedorMiddleware;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -57,7 +63,43 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Volta para a página que a pessoa tentou abrir, só se o perfil dela puder vê-la.
+        // Senão ela caía direto num 403 (ex: celular que já abriu /admin, agora usado por um vendedor).
+        $destino = $request->session()->pull('url.intended');
+
+        if ($destino && $this->podeAbrir(Auth::user(), $destino)) {
+            return redirect()->to($destino);
+        }
+
+        return redirect(route('dashboard', absolute: false));
+    }
+
+    /** Mesmas regras dos middlewares de perfil das rotas. */
+    private function podeAbrir(User $user, string $url): bool
+    {
+        try {
+            $rota = app('router')->getRoutes()->match(Request::create($url, 'GET'));
+        } catch (\Throwable) {
+            return false;
+        }
+
+        $regras = [
+            AdminMiddleware::class                   => fn () => $user->isAdmin(),
+            SuperAdminMiddleware::class              => fn () => $user->isSuperAdmin(),
+            ConferenciaVisualizacaoMiddleware::class => fn () => $user->isConferente() || $user->isEntrada(),
+            ConferenteMiddleware::class              => fn () => $user->isConferente(),
+            EntradaMiddleware::class                 => fn () => $user->isEntrada(),
+            VendedorMiddleware::class                => fn () => $user->isVendedor(),
+        ];
+
+        foreach ($rota->gatherMiddleware() as $middleware) {
+            $classe = is_string($middleware) ? explode(':', $middleware)[0] : null;
+            if ($classe && isset($regras[$classe]) && !$regras[$classe]()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function perfilCorresponde(User $user, string $perfil): bool
