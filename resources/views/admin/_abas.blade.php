@@ -7,7 +7,6 @@
     }
     $abasAdmin[] = ['rota' => 'pendencias.index', 'rotulo' => '📋 Pendências'];
     $abasAdmin[] = ['rota' => 'admin.compras.feitas', 'rotulo' => '📦 Compras Feitas'];
-    $abasAdmin[] = ['rota' => 'admin.fornecedores.index', 'rotulo' => '🏢 Fornecedores'];
 @endphp
 <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb; flex-wrap:wrap;">
     @foreach($abasAdmin as $aba)
