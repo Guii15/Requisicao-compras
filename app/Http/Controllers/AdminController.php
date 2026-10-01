@@ -100,7 +100,13 @@ class AdminController extends Controller
             ];
         });
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending'));
+        $supplierList = PurchaseRequest::whereNotNull('supplier')
+            ->where('supplier', '!=', '')
+            ->distinct()
+            ->orderBy('supplier')
+            ->pluck('supplier');
+
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     private const DISCO_PEDIDO_COMPRA = 'local';
@@ -126,8 +132,6 @@ class AdminController extends Controller
             'status'            => 'required|in:pendente,aprovado,rejeitado',
             'admin_note'        => 'nullable|string|max:2000',
             'supplier'          => 'nullable|string|max:255',
-            'fornecedor_id'     => 'nullable|integer|exists:fornecedores,id',
-            'confirmar_novo_fornecedor' => 'nullable|boolean',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'preco_unitario'    => 'nullable|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
@@ -142,21 +146,17 @@ class AdminController extends Controller
             'anexo.max'                  => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
-        $fornecedor = $fornecedores->paraAdmin(
-            $request->supplier,
-            $request->input('fornecedor_id'),
-            $request->boolean('confirmar_novo_fornecedor'),
-            $request->user()
-        );
-
         session()->forget('modal_aberto');
+
+        $digitado = trim((string) $request->supplier) ?: null;
+        $fornecedor = $digitado ? $fornecedores->exato($digitado) : null;
 
         $atualizacao = [
             'status'             => $request->status,
             'admin_note'         => $request->admin_note,
-            'supplier'           => $fornecedor?->nome,
+            'supplier'           => $fornecedor?->nome ?? ($digitado ? mb_convert_case(mb_strtolower($digitado), MB_CASE_TITLE, 'UTF-8') : null),
             'fornecedor_id'      => $fornecedor?->id,
-            'supplier_original'  => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: ($request->supplier ?: null)),
+            'supplier_original'  => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: $digitado),
             'codigo_fornecedor'  => $request->codigo_fornecedor ?: null,
             'preco_unitario'     => $request->preco_unitario ?: null,
             'preco_caixa'        => $request->preco_caixa ?: null,

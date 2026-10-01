@@ -310,6 +310,13 @@
         </form>
     </div>
 
+    {{-- Sugestões dos fornecedores já usados (o navegador só sugere; o campo continua livre) --}}
+    <datalist id="supplier-options">
+        @foreach($supplierList as $s)
+            <option value="{{ $s }}">
+        @endforeach
+    </datalist>
+
     @if(session('modal_aberto') && $errors->any())
         {{-- Salvar falhou: reabre o modal do item para mostrar o erro (versão mobile em telas pequenas). --}}
         <script>
@@ -488,12 +495,8 @@
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
-                                        @php $modalComErro = session('modal_aberto') == $req->id; @endphp
-                                        <x-fornecedor-input
-                                            :valor="$modalComErro ? old('supplier', $req->supplier) : $req->supplier"
-                                            :fornecedor-id="$modalComErro ? old('fornecedor_id') : $req->fornecedor_id"
-                                            :erro="$modalComErro ? $errors->first('supplier') : null"
-                                            :sugestoes="$modalComErro ? session('fornecedor_sugestoes', []) : []" />
+                                        <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                     </div>
 
                                     <div style="margin-bottom:16px;">
@@ -748,12 +751,8 @@
                         </div>
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
-                            @php $modalComErro = session('modal_aberto') == $req->id; @endphp
-                            <x-fornecedor-input
-                                :valor="$modalComErro ? old('supplier', $req->supplier) : $req->supplier"
-                                :fornecedor-id="$modalComErro ? old('fornecedor_id') : $req->fornecedor_id"
-                                :erro="$modalComErro ? $errors->first('supplier') : null"
-                                :sugestoes="$modalComErro ? session('fornecedor_sugestoes', []) : []" />
+                            <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Cód. no fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>

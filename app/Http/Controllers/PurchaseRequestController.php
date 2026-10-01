@@ -155,7 +155,7 @@ class PurchaseRequestController extends Controller
             'anexo.max'                => 'O anexo pode ter no máximo 10 MB.',
         ]);
 
-        $fornecedor = app(FornecedorResolver::class)->paraVendedor($request->supplier);
+        $fornecedor = app(FornecedorResolver::class)->exato($request->supplier);
 
         $atualizacao = [
             'requester_name' => $request->requester_name,
@@ -250,7 +250,7 @@ class PurchaseRequestController extends Controller
 
         $created = [];
         $grupoId = (string) Str::uuid();
-        $fornecedor = app(FornecedorResolver::class)->paraVendedor($request->supplier);
+        $fornecedor = app(FornecedorResolver::class)->exato($request->supplier);
 
         foreach ($request->products as $index => $product) {
             if (empty(trim($product['product_name'] ?? ''))) continue;
