@@ -199,6 +199,7 @@
                                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
                                         Conferir
                                     </button>
+                                    <x-editar-parcial :item="$req" />
                                 @else
                                     <span style="color:#9ca3af; font-size:12px;">Aguardando conferência</span>
                                 @endif
@@ -471,6 +472,7 @@
                                 style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
                             Conferir
                         </button>
+                        <span style="margin-left:8px;"><x-editar-parcial :item="$req" /></span>
                     @else
                         <span style="color:#9ca3af; font-size:12px;">Aguardando conferência</span>
                     @endif

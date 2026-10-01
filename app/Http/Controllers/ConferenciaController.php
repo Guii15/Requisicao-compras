@@ -144,6 +144,31 @@ class ConferenciaController extends Controller
     }
 
     /**
+     * O item "restante" (parte que ainda não chegou) pode ter a quantidade ajustada enquanto
+     * espera, porque não se sabe quanto nem quando vai chegar. Só diminui: o total pedido é o mesmo.
+     */
+    public function editarParcial(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->restante_de_id === null || $purchaseRequest->status !== 'aprovado' || $purchaseRequest->status_conferencia !== null) {
+            return redirect()->route('conferencia.index')
+                ->with('aviso', 'Só dá para editar um item parcial que ainda está aguardando o restante — nada foi alterado.');
+        }
+
+        $dados = $request->validate([
+            'quantity' => 'required|integer|min:1|max:' . $purchaseRequest->quantity,
+        ], [
+            'quantity.required' => 'Informe a quantidade que falta chegar.',
+            'quantity.integer'  => 'A quantidade precisa ser um número inteiro.',
+            'quantity.min'      => 'A quantidade que falta precisa ser pelo menos 1.',
+            'quantity.max'      => 'A quantidade não pode ser maior do que a que estava faltando (' . $purchaseRequest->quantity . ').',
+        ]);
+
+        $purchaseRequest->update(['quantity' => (int) $dados['quantity']]);
+
+        return redirect()->route('conferencia.index')->with('success', 'Quantidade que falta chegar atualizada.');
+    }
+
+    /**
      * Cria o item da parte que ainda não chegou (mesmo grupo, mesma compra), para ser conferido
      * e receber entrada quando chegar. Nada da conferência/entrada/coleta do original é copiado.
      */
