@@ -14,14 +14,15 @@
     <div style="margin-bottom:16px;">
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Compras Feitas</h2>
         <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
-            Requisições aprovadas que já têm os dados da compra registrados. Falta alguma? Registre em
+            Toda requisição aprovada a partir de {{ $dataCorte }} aparece aqui na hora, mesmo sem os dados da compra; as de antes entram quando já têm os dados.
+            Falta registrar algo? Use
             <a href="{{ route('admin.compras.index') }}" style="color:#05018D; font-weight:600;">Compras</a>.
         </p>
     </div>
 
     @if($totalSemDados > 0)
         <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px; line-height:1.5;">
-            ⚠️ {{ $totalSemDados }} {{ $totalSemDados === 1 ? 'compra aprovada ainda não tem' : 'compras aprovadas ainda não têm' }} data e preço unitário registrados,
+            ⚠️ {{ $totalSemDados }} {{ $totalSemDados === 1 ? 'compra aprovada' : 'compras aprovadas' }} antes de {{ $dataCorte }} {{ $totalSemDados === 1 ? 'ainda não tem' : 'ainda não têm' }} data e preço unitário registrados,
             por isso não aparecem aqui (mas já aparecem na Conferência).
             <a href="{{ route('admin.compras.index', ['situacao' => 'sem_dados']) }}" style="color:#05018D; font-weight:700; text-decoration:underline;">Ver e registrar em Compras →</a>
         </div>
@@ -81,6 +82,7 @@
                         $primeiroFeita = $grupo->first();
                         $chaveFeita = $primeiroFeita->grupo_id;
                         $todosComDados = $grupo->every(fn ($r) => $r->temDadosDaCompra());
+                        $nenhumComDados = $grupo->every(fn ($r) => !$r->temDadosDaCompra());
                         $produtosResumoFeita = $grupo->pluck('product_name')->filter()->implode(', ');
                         if (mb_strlen($produtosResumoFeita) > 60) {
                             $produtosResumoFeita = mb_substr($produtosResumoFeita, 0, 60) . '…';
@@ -97,7 +99,7 @@
                                     </div>
                                 </div>
                                 @unless($todosComDados)
-                                    <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Parcial</span>
+                                    <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDados ? 'Sem dados' : 'Parcial' }}</span>
                                 @endunless
                                 <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeita }}')"
                                         style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
@@ -110,6 +112,9 @@
                     <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6;">
                         <td style="padding:10px 14px; color:#111827;">
                             <strong>{{ $item->product_name }}</strong>
+                            @unless($item->temDadosDaCompra())
+                                <div style="color:#b45309; font-size:12px;">Falta registrar data e preço</div>
+                            @endunless
                             @if($item->codigo_fornecedor)
                                 <div style="color:#9ca3af; font-size:12px;">Cód. fornecedor: {{ $item->codigo_fornecedor }}</div>
                             @endif
@@ -132,7 +137,7 @@
                         <td style="padding:10px 14px; text-align:right;">
                             <a href="{{ route('admin.compras.edit', $item) }}"
                                style="display:inline-block; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap; border:1px solid #d1d5db; color:#374151; background:#fff;">
-                                Editar
+                                {{ $item->temDadosDaCompra() ? 'Editar' : 'Registrar compra' }}
                             </a>
                         </td>
                     </tr>
@@ -175,12 +180,13 @@
                 $primeiroFeitaM = $grupo->first();
                 $chaveFeitaM = $primeiroFeitaM->grupo_id;
                 $todosComDadosM = $grupo->every(fn ($r) => $r->temDadosDaCompra());
+                $nenhumComDadosM = $grupo->every(fn ($r) => !$r->temDadosDaCompra());
             @endphp
             <div class="m-card" style="cursor:pointer;" onclick="toggleGrupoCompraFeita('{{ $chaveFeitaM }}')">
                 <div class="m-card-topo">
                     <div class="m-card-titulo">Requisição #{{ $primeiroFeitaM->id }}</div>
                     @unless($todosComDadosM)
-                        <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Parcial</span>
+                        <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDadosM ? 'Sem dados' : 'Parcial' }}</span>
                     @endunless
                 </div>
                 <div style="font-size:13px; color:#6b7280;">{{ $primeiroFeitaM->requester_name ?? 'Não informado' }} · {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>

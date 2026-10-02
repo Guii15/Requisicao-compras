@@ -24,6 +24,32 @@ class PurchaseRequest extends Model
         });
     }
 
+    /** Daqui em diante, toda requisição aprovada aparece em Compras Feitas na hora, mesmo sem data e preço da compra. */
+    public const COMPRAS_FEITAS_DESDE = '2026-10-02';
+
+    /** Início do dia de corte (00:00 em São Paulo) no fuso do banco. */
+    public static function inicioComprasFeitas(): \Carbon\Carbon
+    {
+        return \Carbon\Carbon::parse(self::COMPRAS_FEITAS_DESDE . ' 00:00:00', 'America/Sao_Paulo')->setTimezone(config('app.timezone'));
+    }
+
+    /** O que aparece em Compras Feitas: aprovadas com data e preço, ou aprovadas a partir do dia de corte. */
+    public function scopeNaListaDeComprasFeitas($query)
+    {
+        return $query->where('status', 'aprovado')->where(function ($q) {
+            $q->where(fn ($d) => $d->whereNotNull('data_compra')->whereNotNull('preco_unitario'))
+                ->orWhere('approved_at', '>=', self::inicioComprasFeitas());
+        });
+    }
+
+    /** Aprovadas antes do corte que ainda não têm data e preço: ficam só em Compras (a tela de Compras Feitas avisa). */
+    public function scopeAprovadasAntigasSemDados($query)
+    {
+        return $query->where('status', 'aprovado')
+            ->where(fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario'))
+            ->where(fn ($q) => $q->whereNull('approved_at')->orWhere('approved_at', '<', self::inicioComprasFeitas()));
+    }
+
     public function scopeHistorico($query)
     {
         return $query->withoutGlobalScope('apenasFluxoAtivo')

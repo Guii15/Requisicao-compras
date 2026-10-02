@@ -47,8 +47,7 @@ class DadosCompraController extends Controller
 
     public function feitas(Request $request)
     {
-        $query = PurchaseRequest::with('user')->where('status', 'aprovado')
-            ->whereNotNull('data_compra')->whereNotNull('preco_unitario');
+        $query = PurchaseRequest::with('user')->naListaDeComprasFeitas();
 
         if ($request->filled('produto')) {
             $this->whereLikeInsensitive($query, 'product_name', $request->produto);
@@ -68,12 +67,11 @@ class DadosCompraController extends Controller
 
         $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], 'updated_at')->withQueryString();
 
-        // Aprovadas sem data ou preço aparecem na Conferência e em Compras, mas não aqui: o aviso explica isso.
-        $totalSemDados = PurchaseRequest::where('status', 'aprovado')
-            ->where(fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario'))
-            ->count();
+        // As aprovadas antes do corte e sem data/preço não aparecem aqui (só em Compras): o aviso explica isso.
+        $totalSemDados = PurchaseRequest::aprovadasAntigasSemDados()->count();
+        $dataCorte = PurchaseRequest::inicioComprasFeitas()->timezone('America/Sao_Paulo')->format('d/m/Y');
 
-        return view('admin.compras.feitas', compact('requests', 'totalSemDados'));
+        return view('admin.compras.feitas', compact('requests', 'totalSemDados', 'dataCorte'));
     }
 
     public function edit(PurchaseRequest $purchaseRequest)
