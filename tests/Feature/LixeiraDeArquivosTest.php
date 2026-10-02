@@ -99,7 +99,7 @@ class LixeiraDeArquivosTest extends TestCase
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $item = PurchaseRequest::factory()->aprovado()->create();
-        $dados = ['data_compra' => '2026-09-20', 'preco_unitario' => '10,00', 'supplier' => 'Kabum'];
+        $dados = ['data_compra' => '2026-09-20', 'preco_unitario' => '10,00', 'supplier' => 'Kabum', 'condicao_pagamento' => 'a_vista'];
 
         $this->actingAs($admin)->patch(route('admin.compras.update', $item), $dados + ['pedido_compra' => UploadedFile::fake()->create('antigo.pdf', 10, 'application/pdf')]);
         $antigo = $item->refresh()->pedido_compra_path;
