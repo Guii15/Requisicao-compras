@@ -7,6 +7,7 @@ use App\Services\FornecedorResolver;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -100,16 +101,34 @@ class DadosCompraController extends Controller
             'valor'             => 'nullable|numeric|min:0',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
+            'quantity'          => 'nullable|integer|min:1|max:1000000',
             'pedido_compra'     =>'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
+            'quantity.integer'           => 'A quantidade precisa ser um número inteiro.',
+            'quantity.min'               => 'A quantidade precisa ser pelo menos 1.',
+            'quantity.max'               => 'Quantidade grande demais.',
         ]);
+
+        // Quantidade realmente comprada: a Conferência lê este mesmo número.
+        $novaQuantidade = isset($dados['quantity']) ? (int) $dados['quantity'] : $purchaseRequest->quantity;
+
+        if ($novaQuantidade !== $purchaseRequest->quantity) {
+            if ($purchaseRequest->status_conferencia !== null) {
+                throw ValidationException::withMessages(['quantity' => 'Este item já foi conferido; a quantidade não pode mais ser alterada aqui.']);
+            }
+
+            if ($purchaseRequest->quantidade_original !== null || $purchaseRequest->restante_de_id !== null) {
+                throw ValidationException::withMessages(['quantity' => 'Este item é de um recebimento parcial; ajuste a quantidade pelo botão Editar da Conferência.']);
+            }
+        }
 
         $digitado = trim($dados['supplier']);
         $fornecedor = $fornecedores->exato($digitado);
 
         $atualizacao = [
+            'quantity'          => $novaQuantidade,
             'data_compra'       => $dados['data_compra'],
             'preco_unitario'    => $dados['preco_unitario'],
             'preco_caixa'       => $dados['preco_caixa'] ?? null,
