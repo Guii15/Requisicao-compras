@@ -57,6 +57,24 @@
                         @error('codigo_fornecedor') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
                     </div>
 
+                    @php
+                        $quantidadeTravada = $item->status_conferencia !== null || $item->quantidade_original !== null || $item->restante_de_id !== null;
+                    @endphp
+                    <div>
+                        <label style="{{ $labelStyle }}">Quantidade comprada <span style="color:#ef4444;">*</span></label>
+                        <input type="number" name="quantity" min="1" step="1" inputmode="numeric" required
+                               value="{{ old('quantity', $item->quantity) }}" @if($quantidadeTravada) readonly @endif
+                               style="{{ $inputStyle }} {{ $quantidadeTravada ? 'background:#f3f4f6; color:#6b7280;' : 'font-weight:700;' }}">
+                        @if($item->status_conferencia !== null)
+                            <div style="color:#6b7280; font-size:12px; margin-top:4px;">Este item já foi conferido; a quantidade não pode mais ser alterada.</div>
+                        @elseif($quantidadeTravada)
+                            <div style="color:#6b7280; font-size:12px; margin-top:4px;">Recebimento parcial: ajuste pelo botão Editar da Conferência.</div>
+                        @else
+                            <div style="color:#6b7280; font-size:12px; margin-top:4px;">Se comprou diferente do pedido, corrija aqui: a Conferência passa a ver este número. Se digita o preço total, confira se continua certo.</div>
+                        @endif
+                        @error('quantity') <div style="{{ $erroStyle }}">{{ $message }}</div> @enderror
+                    </div>
+
                     <div>
                         <label style="{{ $labelStyle }}">Preço unitário (R$) <span style="color:#ef4444;">*</span></label>
                         <input type="text" inputmode="decimal" name="preco_unitario" required placeholder="0,00" value="{{ $precoInicial }}" style="{{ $inputStyle }}">
