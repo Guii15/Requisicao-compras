@@ -64,25 +64,29 @@ class PurchaseRequestController extends Controller
             ];
         });
 
-        $vendorSpending = PurchaseRequest::select('requester_name')
-            ->selectRaw('SUM(valor) as total_gasto')
-            ->where('status', 'aprovado')
-            ->whereNotNull('valor')
-            ->groupBy('requester_name')
-            ->orderByDesc('total_gasto')
-            ->limit(10)
-            ->get();
+        // Os rankings juntam o mesmo nome escrito de formas diferentes (Yhan, YHAN, "Yhan ").
+        $vendorSpending = \App\Support\RankingPorNome::agrupar(
+            PurchaseRequest::select('requester_name')
+                ->selectRaw('SUM(valor) as total_gasto')
+                ->where('status', 'aprovado')
+                ->whereNotNull('valor')
+                ->groupBy('requester_name')
+                ->get(),
+            'requester_name'
+        );
 
-        $supplierSpending = PurchaseRequest::select('supplier')
-            ->selectRaw('SUM(valor) as total_gasto')
-            ->where('status', 'aprovado')
-            ->whereNotNull('valor')
-            ->whereNotNull('supplier')
-            ->where('supplier', '!=', '')
-            ->groupBy('supplier')
-            ->orderByDesc('total_gasto')
-            ->limit(10)
-            ->get();
+        $supplierSpending = \App\Support\RankingPorNome::agrupar(
+            PurchaseRequest::select('supplier')
+                ->selectRaw('SUM(valor) as total_gasto')
+                ->where('status', 'aprovado')
+                ->whereNotNull('valor')
+                ->whereNotNull('supplier')
+                ->where('supplier', '!=', '')
+                ->groupBy('supplier')
+                ->get(),
+            'supplier',
+            fn ($nome) => \App\Models\Fornecedor::normalizar($nome)
+        );
 
         return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
     }
