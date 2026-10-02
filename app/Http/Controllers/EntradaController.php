@@ -14,17 +14,24 @@ class EntradaController extends Controller
 
     public function index(Request $request)
     {
-        $aba = $request->query('aba') === 'concluidas' ? 'concluidas' : 'aguardando';
+        $aba = match ($request->query('aba')) {
+            'concluidas' => 'concluidas',
+            'divergencias' => 'divergencias',
+            default => 'aguardando',
+        };
         $q = trim((string) $request->query('q', ''));
 
-        $query = PurchaseRequest::where('status', 'aprovado')
-            ->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim']);
+        $query = PurchaseRequest::where('status', 'aprovado');
 
-        if ($aba === 'concluidas') {
-            $query->whereNotNull('entrada_concluida_em');
+        if ($aba === 'divergencias') {
+            // Só consulta: divergentes que ainda aguardam decisão (não podem receber entrada).
+            $query->where('status_conferencia', 'divergente');
+            $ordenarPor = 'updated_at';
+        } elseif ($aba === 'concluidas') {
+            $query->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim'])->whereNotNull('entrada_concluida_em');
             $ordenarPor = 'entrada_concluida_em';
         } else {
-            $query->whereNull('entrada_concluida_em');
+            $query->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim'])->whereNull('entrada_concluida_em');
             $ordenarPor = 'created_at';
         }
 
@@ -38,7 +45,9 @@ class EntradaController extends Controller
 
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente', 'fotosConferencia'], $ordenarPor, null, true)->withQueryString();
 
-        return view('entrada.index', compact('requests', 'aba', 'q'));
+        $qtdDivergencias = PurchaseRequest::where('status', 'aprovado')->where('status_conferencia', 'divergente')->count();
+
+        return view('entrada.index', compact('requests', 'aba', 'q', 'qtdDivergencias'));
     }
 
     public function darEntrada(Request $request, PurchaseRequest $purchaseRequest)
