@@ -207,6 +207,15 @@
                         </tr>
                         @endif
 
+                        @if(filled($req->reason) || filled($req->justification) || filled($req->observacao_conferencia))
+                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="10" style="padding:8px 16px;">
+                                <x-obs-vendedor :item="$req" margem="8px" />
+                                <x-obs-divergencia :item="$req" margem="0" />
+                            </td>
+                        </tr>
+                        @endif
+
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="10" style="padding:0;">
@@ -232,6 +241,8 @@
                                 @endif
 
                                 <x-obs-admin :item="$req" margem="16px" />
+                                <x-obs-vendedor :item="$req" margem="16px" />
+                                <x-obs-divergencia :item="$req" margem="16px" />
 
                                 <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                                     @csrf
@@ -398,6 +409,8 @@
                 </div>
                 @endif
 
+                <x-obs-vendedor :item="$req" margem="12px" />
+                <x-obs-divergencia :item="$req" margem="12px" />
                 <x-obs-admin :item="$req" margem="12px" />
                 <x-obs-entrada :item="$req" />
 
@@ -434,6 +447,8 @@
                     @endif
 
                     <x-obs-admin :item="$req" margem="16px" />
+                    <x-obs-vendedor :item="$req" margem="16px" />
+                    <x-obs-divergencia :item="$req" margem="16px" />
 
                     <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
                         @csrf

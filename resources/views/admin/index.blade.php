@@ -474,6 +474,15 @@
                             </td>
                         </tr>
 
+                        @if(filled($req->reason) || filled($req->justification) || filled($req->observacao_conferencia))
+                        <tr class="grupo-item-{{ $chaveAdm }}" style="display:none; background:#f9fafb; border-bottom:1px solid #f3f4f6;">
+                            <td colspan="10" style="padding:10px 16px;">
+                                <x-obs-vendedor :item="$req" margem="8px" />
+                                <x-obs-divergencia :item="$req" margem="0" />
+                            </td>
+                        </tr>
+                        @endif
+
                         {{-- Modal --}}
                         <div id="modal-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; max-height:90vh; overflow-y:auto;">
@@ -568,6 +577,8 @@
                                     @endif
 
                                     <x-obs-entrada :item="$req" margem="20px" />
+                                    <x-obs-vendedor :item="$req" margem="20px" />
+                                    <x-obs-divergencia :item="$req" margem="20px" />
 
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
                                         <button type="button" onclick="document.getElementById('modal-{{ $req->id }}').style.display='none'"
@@ -713,6 +724,9 @@
                     </div>
                 </div>
 
+                <x-obs-vendedor :item="$req" margem="10px" />
+                <x-obs-divergencia :item="$req" margem="10px" />
+
                 <div class="m-coluna" style="display:flex; align-items:center; justify-content:space-between;">
                     @if($req->urgency=='alta')
                         <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
@@ -819,6 +833,8 @@
                         @endif
 
                         <x-obs-entrada :item="$req" margem="16px" />
+                        <x-obs-vendedor :item="$req" margem="16px" />
+                        <x-obs-divergencia :item="$req" margem="16px" />
 
                         <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end;">
                             <button type="button" onclick="document.getElementById('modal-m-{{ $req->id }}').style.display='none'"

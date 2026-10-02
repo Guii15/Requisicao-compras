@@ -226,6 +226,15 @@
                         </tr>
                         @endif
 
+                        @if(filled($req->reason) || filled($req->justification) || filled($req->observacao_conferencia))
+                        <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="8" style="padding:12px 16px;">
+                                <x-obs-vendedor :item="$req" margem="8px" />
+                                <x-obs-divergencia :item="$req" margem="0" />
+                            </td>
+                        </tr>
+                        @endif
+
                         @if($req->admin_note)
                         <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="8" style="padding:12px 16px;">
@@ -242,6 +251,7 @@
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                                 <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                                <x-obs-vendedor :item="$req" margem="12px" />
                                 @if($req->pedido_compra_path)
                                     <p style="margin:0 0 16px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="font-size:13px; color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a></p>
                                 @endif
@@ -449,6 +459,8 @@
                 </div>
                 @endif
 
+                <x-obs-vendedor :item="$req" />
+                <x-obs-divergencia :item="$req" />
                 <x-obs-entrada :item="$req" />
 
                 @if($req->admin_note)
@@ -485,6 +497,7 @@
                 <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                     <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                    <x-obs-vendedor :item="$req" margem="12px" />
                     @if($req->pedido_compra_path)
                         <p style="margin:0 0 16px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="font-size:13px; color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a></p>
                     @endif

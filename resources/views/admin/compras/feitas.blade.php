@@ -143,6 +143,14 @@
                         <td colspan="11" style="padding:12px 14px;"><x-obs-entrada :item="$item" margem="0" /></td>
                     </tr>
                     @endif
+                    @if(filled($item->reason) || filled($item->justification) || filled($item->observacao_conferencia))
+                    <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6; background:#f9fafb;">
+                        <td colspan="11" style="padding:12px 14px;">
+                            <x-obs-vendedor :item="$item" margem="8px" />
+                            <x-obs-divergencia :item="$item" margem="0" />
+                        </td>
+                    </tr>
+                    @endif
                     @endforeach
                 @empty
                     <tr>
