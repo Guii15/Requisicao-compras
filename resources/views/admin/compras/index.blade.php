@@ -118,6 +118,14 @@
                         <td colspan="11" style="padding:12px 14px;"><x-obs-entrada :item="$item" margem="0" /></td>
                     </tr>
                     @endif
+                    @if(filled($item->reason) || filled($item->justification) || filled($item->observacao_conferencia))
+                    <tr style="border-top:1px solid #f3f4f6; background:#f9fafb;">
+                        <td colspan="11" style="padding:12px 14px;">
+                            <x-obs-vendedor :item="$item" margem="8px" />
+                            <x-obs-divergencia :item="$item" margem="0" />
+                        </td>
+                    </tr>
+                    @endif
                 @empty
                     <tr>
                         <td colspan="11" style="padding:40px 16px; text-align:center; color:#6b7280;">Nenhuma requisição aprovada encontrada.</td>

@@ -27,6 +27,11 @@
         </div>
     @endif
 
+    <div style="margin-top:8px;">
+        <x-obs-vendedor :item="$item" margem="8px" />
+        <x-obs-divergencia :item="$item" margem="0" />
+    </div>
+
     <x-obs-entrada :item="$item" margem="0" />
 
     <x-slot:acao>
