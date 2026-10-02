@@ -72,7 +72,10 @@ class PurchaseRequestController extends Controller
                 ->whereNotNull('valor')
                 ->groupBy('requester_name')
                 ->get(),
-            'requester_name'
+            'requester_name',
+            null,
+            10,
+            true
         );
 
         $supplierSpending = \App\Support\RankingPorNome::agrupar(

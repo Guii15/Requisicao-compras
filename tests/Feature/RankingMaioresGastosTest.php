@@ -66,13 +66,88 @@ class RankingMaioresGastosTest extends TestCase
         $this->assertSame(300.0, (float) $ranking->first()->total_gasto);
     }
 
-    public function test_nomes_diferentes_nao_sao_juntados(): void
+    public function test_nomes_sem_relacao_nao_sao_juntados(): void
     {
         $this->gasto('Yhan', 100);
-        $this->gasto('Yhan Silva', 100);
         $this->gasto('Yago', 100);
+        $this->gasto('Ana', 100);
+        $this->gasto('Anabela Costa', 100);   // "ana" não é o começo de "anabela": são palavras diferentes
 
-        $this->assertCount(3, $this->rankingVendedores());
+        $this->assertCount(4, $this->rankingVendedores());
+    }
+
+    public function test_nome_curto_junta_com_o_completo_quando_so_existe_um_completo(): void
+    {
+        $this->gasto('YHAN', 100);
+        $this->gasto('Yhan Rezende', 200);
+        $this->gasto('yhan', 50);
+
+        $ranking = $this->rankingVendedores();
+
+        $this->assertCount(1, $ranking);
+        $this->assertSame('Yhan Rezende', $ranking->first()->requester_name);   // mostra o nome mais completo
+        $this->assertSame(350.0, (float) $ranking->first()->total_gasto);
+    }
+
+    public function test_o_nome_completo_aparece_mesmo_quando_o_curto_gastou_mais(): void
+    {
+        $this->gasto('Yhan', 5000);
+        $this->gasto('Yhan Rezende', 10);
+
+        $this->assertSame('Yhan Rezende', $this->rankingVendedores()->first()->requester_name);
+    }
+
+    public function test_se_ha_dois_nomes_completos_o_curto_fica_separado(): void
+    {
+        $this->gasto('Yhan', 100);
+        $this->gasto('Yhan Rezende', 200);
+        $this->gasto('Yhan Souza', 300);
+
+        $ranking = $this->rankingVendedores();
+
+        $this->assertCount(3, $ranking);
+        $this->assertEqualsCanonicalizing(['Yhan', 'Yhan Rezende', 'Yhan Souza'], $ranking->pluck('requester_name')->all());
+    }
+
+    public function test_cadeia_de_nomes_cada_vez_mais_completos_vira_um_so(): void
+    {
+        $this->gasto('Yhan', 100);
+        $this->gasto('Yhan Rezende', 100);
+        $this->gasto('Yhan Rezende Silva', 100);
+
+        $ranking = $this->rankingVendedores();
+
+        $this->assertCount(1, $ranking);
+        $this->assertSame('Yhan Rezende Silva', $ranking->first()->requester_name);
+        $this->assertSame(300.0, (float) $ranking->first()->total_gasto);
+    }
+
+    public function test_so_junta_quando_o_curto_e_o_comeco_do_completo_e_nao_um_pedaco_do_meio(): void
+    {
+        $this->gasto('Rezende', 100);
+        $this->gasto('Yhan Rezende', 100);
+
+        $this->assertCount(2, $this->rankingVendedores());
+    }
+
+    public function test_fornecedores_nao_usam_essa_regra(): void
+    {
+        $this->gasto('Isaac', 100, ['supplier' => 'Joyce']);
+        $this->gasto('Isaac', 100, ['supplier' => 'Joyce Informática']);
+
+        $this->assertCount(2, $this->rankingFornecedores());
+    }
+
+    public function test_painel_do_vendedor_tambem_junta_o_nome_curto_com_o_completo(): void
+    {
+        $vendedor = User::factory()->create(['role' => null, 'is_admin' => false]);
+        $this->gasto('YHAN', 100);
+        $this->gasto('Yhan Rezende', 200);
+
+        $ranking = $this->actingAs($vendedor)->get(route('requests.index'))->assertOk()->viewData('vendorSpending');
+
+        $this->assertCount(1, $ranking);
+        $this->assertSame(300.0, (float) $ranking->first()->total_gasto);
     }
 
     public function test_o_nome_mostrado_e_a_grafia_que_mais_gastou_e_bem_formatada(): void
