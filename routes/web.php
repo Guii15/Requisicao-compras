@@ -60,6 +60,7 @@ Route::middleware(['auth', VendedorMiddleware::class])->group(function () {
     Route::get('/requisicoes/{purchaseRequest}/editar', [PurchaseRequestController::class, 'edit'])->name('requests.edit');
     Route::patch('/requisicoes/{purchaseRequest}', [PurchaseRequestController::class, 'update'])->middleware('throttle:30,1')->name('requests.update');
     Route::get('/requisicoes/{purchaseRequest}/exportar', [PurchaseRequestController::class, 'export'])->name('requests.export');
+    Route::delete('/requisicoes/{purchaseRequest}/anexo', [PurchaseRequestController::class, 'removerAnexo'])->middleware('throttle:30,1')->name('requests.anexo.remover');
 });
 
 // Criação de requisição: vendedor cria a própria, e admin também pode criar (em nome de um vendedor).
@@ -88,6 +89,8 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::patch('/requisicoes/{purchaseRequest}', [AdminController::class, 'update'])->middleware('throttle:60,1')->name('requests.update');
     Route::get('/requisicoes/{purchaseRequest}/exportar', [AdminController::class, 'export'])->name('requests.export');
+    Route::delete('/requisicoes/{purchaseRequest}/anexo', [AdminController::class, 'removerAnexo'])->middleware('throttle:60,1')->name('requests.anexo.remover');
+    Route::delete('/compras/{purchaseRequest}/pedido', [DadosCompraController::class, 'removerPedido'])->middleware('throttle:60,1')->name('compras.pedido.remover');
 
     Route::get('/mensal/{year}/{month}', [AdminController::class, 'monthlyRequests'])->name('monthly');
     Route::get('/compras', [DadosCompraController::class, 'index'])->name('compras.index');

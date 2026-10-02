@@ -28,6 +28,13 @@
         </div>
     @endif
 
+    @if(session('success'))
+        <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:14px;">✓ {{ session('success') }}</div>
+    @endif
+    @if(session('aviso'))
+        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:14px;">⚠️ {{ session('aviso') }}</div>
+    @endif
+
     <form method="POST" action="{{ route('requests.update', $purchaseRequest) }}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
@@ -115,7 +122,7 @@
             <div style="margin-top:16px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Anexo <span style="color:#9ca3af; font-weight:400;">(opcional — orçamento, print, cotação... PDF ou imagem)</span></label>
                 @if($purchaseRequest->anexo_path)
-                    <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $purchaseRequest) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $purchaseRequest->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                    <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $purchaseRequest) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $purchaseRequest->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span> <button type="submit" form="rm-anexo" onclick="return confirm('Remover este anexo?')" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-left:6px;">Remover anexo</button></div>
                 @endif
                 <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
             </div>
@@ -133,6 +140,13 @@
         </div>
 
     </form>
+
+    @if($purchaseRequest->anexo_path)
+        <form id="rm-anexo" method="POST" action="{{ route('requests.anexo.remover', $purchaseRequest) }}" style="display:none;">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endif
 
 </div>
 

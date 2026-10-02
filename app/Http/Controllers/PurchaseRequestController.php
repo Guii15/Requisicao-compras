@@ -180,13 +180,33 @@ class PurchaseRequestController extends Controller
             $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
 
             if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('anexo_path', $caminhoAntigo)) {
-                Storage::disk(self::DISCO_ANEXO)->delete($caminhoAntigo);
+                \App\Support\LixeiraDeArquivos::descartar(self::DISCO_ANEXO, $caminhoAntigo);
             }
         }
 
         $purchaseRequest->update($atualizacao);
 
         return redirect()->route('requests.index')->with('success', 'Requisição atualizada com sucesso!');
+    }
+
+    /** O vendedor tira o anexo da própria requisição (só enquanto está pendente, como na edição). */
+    public function removerAnexo(PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($purchaseRequest->status !== 'pendente') {
+            return redirect()->route('requests.index')->with('error', 'Só é possível editar requisições pendentes.');
+        }
+
+        if (!$purchaseRequest->anexo_path) {
+            return back()->with('aviso', 'Esta requisição não tem anexo.');
+        }
+
+        $purchaseRequest->removerArquivo('anexo_path', 'anexo_nome', self::DISCO_ANEXO);
+
+        return back()->with('success', 'Anexo removido.');
     }
 
     public function baixarAnexo(PurchaseRequest $purchaseRequest)

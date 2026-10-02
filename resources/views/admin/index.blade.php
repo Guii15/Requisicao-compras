@@ -541,7 +541,7 @@
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
                                         @if($req->pedido_compra_path)
-                                            <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                            <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span> <button type="submit" form="rm-pedido-{{ $req->id }}" onclick="return confirm('Remover o pedido de compra anexado?')" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-left:6px;">Remover pedido de compra</button></div>
                                         @endif
                                         <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                                style="width:100%; font-size:13px;">
@@ -550,7 +550,7 @@
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
                                         @if($req->anexo_path)
-                                            <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                            <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span> <button type="submit" form="rm-anexo-{{ $req->id }}" onclick="return confirm('Remover o anexo do vendedor?')" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-left:6px;">Remover anexo</button></div>
                                         @endif
                                         <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                                style="width:100%; font-size:13px;">
@@ -796,7 +796,7 @@
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
                             @if($req->pedido_compra_path)
-                                <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                <div style="margin-bottom:6px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->pedido_compra_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span> <button type="submit" form="rm-pedido-{{ $req->id }}" onclick="return confirm('Remover o pedido de compra anexado?')" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-left:6px;">Remover pedido de compra</button></div>
                             @endif
                             <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                    style="width:100%; font-size:13px;">
@@ -804,7 +804,7 @@
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Anexo do vendedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(orçamento, print... caso ele tenha esquecido)</span></label>
                             @if($req->anexo_path)
-                                <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span></div>
+                                <div style="margin-bottom:6px;"><a href="{{ route('requests.anexo', $req) }}" target="_blank" style="color:#05018D; font-weight:600; font-size:13px;">📎 {{ $req->anexo_nome }}</a> <span style="color:#9ca3af; font-size:12px;">(envie outro pra substituir)</span> <button type="submit" form="rm-anexo-{{ $req->id }}" onclick="return confirm('Remover o anexo do vendedor?')" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-left:6px;">Remover anexo</button></div>
                             @endif
                             <input type="file" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp"
                                    style="width:100%; font-size:13px;">
@@ -950,5 +950,18 @@ function toggleGrupoRequisicao(chave) {
     });
 }
 </script>
+
+
+{{-- Formulários de remover anexo (fora das tabelas e dos quadros; os botões apontam para eles pelo atributo form) --}}
+@foreach($requests as $grupo)
+    @foreach($grupo as $req)
+        @if($req->anexo_path)
+            <form id="rm-anexo-{{ $req->id }}" method="POST" action="{{ route('admin.requests.anexo.remover', $req) }}" style="display:none;">@csrf @method('DELETE')</form>
+        @endif
+        @if($req->pedido_compra_path)
+            <form id="rm-pedido-{{ $req->id }}" method="POST" action="{{ route('admin.compras.pedido.remover', $req) }}" style="display:none;">@csrf @method('DELETE')</form>
+        @endif
+    @endforeach
+@endforeach
 
 @endsection

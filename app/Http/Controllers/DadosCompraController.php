@@ -160,7 +160,7 @@ class DadosCompraController extends Controller
             $atualizacao['pedido_compra_nome'] = $arquivo->getClientOriginalName();
 
             if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('pedido_compra_path', $caminhoAntigo)) {
-                Storage::disk(self::DISCO)->delete($caminhoAntigo);
+                \App\Support\LixeiraDeArquivos::descartar(self::DISCO, $caminhoAntigo);
             }
         }
 
@@ -168,6 +168,18 @@ class DadosCompraController extends Controller
 
         return redirect()->route('admin.compras.edit', $purchaseRequest)
             ->with('success', 'Dados da compra salvos.');
+    }
+
+    /** O admin tira o pedido de compra anexado (também limpa a referência de um arquivo que já não existe). */
+    public function removerPedido(PurchaseRequest $purchaseRequest)
+    {
+        if (!$purchaseRequest->pedido_compra_path) {
+            return back()->with('aviso', 'Esta compra não tem pedido de compra anexado.');
+        }
+
+        $purchaseRequest->removerArquivo('pedido_compra_path', 'pedido_compra_nome', self::DISCO);
+
+        return back()->with('success', 'Pedido de compra removido.');
     }
 
     public function baixarPedido(PurchaseRequest $purchaseRequest)
