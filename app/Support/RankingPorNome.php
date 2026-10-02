@@ -14,18 +14,29 @@ class RankingPorNome
     /**
      * @param  Collection  $linhas  objetos com o nome em `$campo` e `total_gasto`
      * @param  callable|null  $normalizar  como comparar os nomes (por padrão ignora caixa, acento e espaços)
+     * @param  bool  $juntarNomeIncompleto  nome curto que é o começo de UM único nome completo junta com ele
+     *                                      ("YHAN" + "Yhan Rezende"). Se houver mais de um completo possível, não junta.
      * @return Collection<int, object>  objetos com `$campo` e `total_gasto`, do maior para o menor, no máximo `$limite`
      */
-    public static function agrupar(Collection $linhas, string $campo, ?callable $normalizar = null, int $limite = 10): Collection
+    public static function agrupar(Collection $linhas, string $campo, ?callable $normalizar = null, int $limite = 10, bool $juntarNomeIncompleto = false): Collection
     {
         $normalizar ??= fn (?string $nome) => self::chave($nome);
 
+        $raiz = $juntarNomeIncompleto
+            ? self::raizes($linhas->map(fn ($l) => $normalizar((string) $l->{$campo}))->unique()->values()->all())
+            : [];
+
         return $linhas
-            ->groupBy(fn ($linha) => $normalizar((string) $linha->{$campo}))
-            ->map(function (Collection $grupo) use ($campo) {
-                // Mostra a grafia que mais gastou (no empate, a primeira em ordem alfabética).
+            ->groupBy(function ($linha) use ($campo, $normalizar, $raiz) {
+                $chave = $normalizar((string) $linha->{$campo});
+
+                return $raiz[$chave] ?? $chave;
+            })
+            ->map(function (Collection $grupo) use ($campo, $normalizar) {
+                // Mostra o nome mais completo; entre os de mesmo tamanho, a grafia que mais gastou (e, no empate, a primeira em ordem alfabética).
+                $palavras = fn ($l) => count(array_filter(explode(' ', $normalizar((string) $l->{$campo}))));
                 $principal = $grupo
-                    ->sort(fn ($a, $b) => [(float) $b->total_gasto, (string) $a->{$campo}] <=> [(float) $a->total_gasto, (string) $b->{$campo}])
+                    ->sort(fn ($a, $b) => [$palavras($b), (float) $b->total_gasto, (string) $a->{$campo}] <=> [$palavras($a), (float) $a->total_gasto, (string) $b->{$campo}])
                     ->first();
 
                 return (object) [
@@ -42,6 +53,38 @@ class RankingPorNome
     public static function chave(?string $nome): string
     {
         return trim(preg_replace('/[^a-z0-9]+/', ' ', Str::ascii(mb_strtolower((string) $nome))));
+    }
+
+    /**
+     * Para cada nome (já normalizado) que é só o começo, palavra por palavra, de outros nomes, diz a qual nome completo ele pertence.
+     * Só junta quando existe exatamente UM nome completo possível (um que não seja o começo de outro).
+     *
+     * @param  array<int, string>  $chaves
+     * @return array<string, string>  nome curto => nome completo
+     */
+    private static function raizes(array $chaves): array
+    {
+        $palavras = [];
+        foreach ($chaves as $chave) {
+            $palavras[$chave] = $chave === '' ? [] : explode(' ', $chave);
+        }
+
+        $ehComeco = fn (array $curto, array $longo) => count($curto) > 0
+            && count($curto) < count($longo)
+            && array_slice($longo, 0, count($curto)) === $curto;
+
+        $raiz = [];
+
+        foreach ($chaves as $chave) {
+            $candidatos = array_filter($chaves, fn ($outro) => $ehComeco($palavras[$chave], $palavras[$outro]));
+            $completos = array_filter($candidatos, fn ($c) => !array_filter($candidatos, fn ($outro) => $ehComeco($palavras[$c], $palavras[$outro])));
+
+            if (count($completos) === 1) {
+                $raiz[$chave] = array_values($completos)[0];
+            }
+        }
+
+        return $raiz;
     }
 
     /** Tira espaços sobrando; nome todo em maiúsculas ou minúsculas vira "Yhan". Grafia já bem escrita fica como está. */
