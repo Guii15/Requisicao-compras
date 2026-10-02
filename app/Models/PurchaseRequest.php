@@ -130,6 +130,21 @@ class PurchaseRequest extends Model
             && static::withoutGlobalScopes()->where($coluna, $caminho)->where('id', '!=', $this->id)->exists();
     }
 
+    /**
+     * Tira o arquivo anexado do registro e manda o arquivo para a lixeira (fica 30 dias). Se outro item usa o mesmo
+     * arquivo, só o registro é limpo e o arquivo continua no lugar.
+     */
+    public function removerArquivo(string $colunaCaminho, string $colunaNome, string $disco): void
+    {
+        $caminho = $this->{$colunaCaminho};
+
+        $this->update([$colunaCaminho => null, $colunaNome => null]);
+
+        if ($caminho && !$this->arquivoUsadoPorOutro($colunaCaminho, $caminho)) {
+            \App\Support\LixeiraDeArquivos::descartar($disco, $caminho);
+        }
+    }
+
     public function conferente(): BelongsTo
     {
         return $this->belongsTo(User::class, 'conferente_id');

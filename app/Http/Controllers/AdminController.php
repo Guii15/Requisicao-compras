@@ -178,7 +178,7 @@ class AdminController extends Controller
             $atualizacao['pedido_compra_nome'] = $arquivo->getClientOriginalName();
 
             if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('pedido_compra_path', $caminhoAntigo)) {
-                Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
+                \App\Support\LixeiraDeArquivos::descartar(self::DISCO_PEDIDO_COMPRA, $caminhoAntigo);
             }
         }
 
@@ -190,7 +190,7 @@ class AdminController extends Controller
             $atualizacao['anexo_nome'] = $arquivo->getClientOriginalName();
 
             if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('anexo_path', $caminhoAntigo)) {
-                Storage::disk(self::DISCO_PEDIDO_COMPRA)->delete($caminhoAntigo);
+                \App\Support\LixeiraDeArquivos::descartar(self::DISCO_PEDIDO_COMPRA, $caminhoAntigo);
             }
         }
 
@@ -203,6 +203,18 @@ class AdminController extends Controller
         }
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
+    }
+
+    /** O admin tira o anexo que o vendedor colocou na requisição (em qualquer status). */
+    public function removerAnexo(PurchaseRequest $purchaseRequest)
+    {
+        if (!$purchaseRequest->anexo_path) {
+            return back()->with('aviso', 'Esta requisição não tem anexo.');
+        }
+
+        $purchaseRequest->removerArquivo('anexo_path', 'anexo_nome', self::DISCO_PEDIDO_COMPRA);
+
+        return back()->with('success', 'Anexo removido.');
     }
 
     /** Converte "1.250,50" em "1250.50"; valor ja' com ponto decimal passa direto. */

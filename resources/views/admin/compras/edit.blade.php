@@ -97,7 +97,7 @@
                     @if($item->pedido_compra_path)
                         <div style="font-size:13px; margin-bottom:8px;">
                             Anexado: <a href="{{ route('admin.compras.pedido', $item) }}" target="_blank" style="color:#05018D; font-weight:600;">{{ $item->pedido_compra_nome }}</a>
-                            <span style="color:#9ca3af;">— enviar outro arquivo substitui este</span>
+                            <span style="color:#9ca3af;">— enviar outro arquivo substitui este</span> <button type="submit" form="rm-pedido" onclick="return confirm('Remover o pedido de compra anexado?')" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-left:6px;">Remover pedido de compra</button>
                         </div>
                     @endif
                     <input type="file" name="pedido_compra" accept=".pdf,.jpg,.jpeg,.png,.webp" style="font-size:13px;">
@@ -110,6 +110,13 @@
                     </button>
                 </div>
             </form>
+
+            @if($item->pedido_compra_path)
+                <form id="rm-pedido" method="POST" action="{{ route('admin.compras.pedido.remover', $item) }}" style="display:none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endif
         </div>
 
         {{-- Resumo do andamento --}}
