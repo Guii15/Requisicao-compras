@@ -14,7 +14,7 @@
 
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Entrada</h1>
-        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'concluidas' ? 'Itens que já tiveram entrada registrada' : 'Itens liberados pela conferência aguardando entrada' }}</p>
+        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'concluidas' ? 'Itens que já tiveram entrada registrada' : ($aba === 'divergencias' ? 'Itens que chegaram com divergência e ainda aguardam decisão' : 'Itens liberados pela conferência aguardando entrada') }}</p>
     </div>
 
     <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
@@ -31,6 +31,16 @@
                   border:2px solid {{ $aba === 'concluidas' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'concluidas' ? '#05018D' : 'transparent' }};"
            @if($aba !== 'concluidas') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Entrada Realizada
+        </a>
+        <a href="{{ route('entrada.index', ['aba' => 'divergencias']) }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px; display:inline-flex; align-items:center; gap:8px;
+                  background:{{ $aba === 'divergencias' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'divergencias' ? '#fff' : '#6b7280' }};
+                  border:2px solid {{ $aba === 'divergencias' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'divergencias' ? '#05018D' : 'transparent' }};"
+           @if($aba !== 'divergencias') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
+            Divergências
+            @if($qtdDivergencias > 0)
+                <span style="background:{{ $aba === 'divergencias' ? 'rgba(255,255,255,0.22)' : '#fee2e2' }}; color:{{ $aba === 'divergencias' ? '#fff' : '#dc2626' }}; padding:1px 8px; border-radius:20px; font-size:11.5px; font-weight:700;">{{ $qtdDivergencias }}</span>
+            @endif
         </a>
     </div>
 
@@ -73,6 +83,9 @@
         </div>
     @endif
 
+    @if($aba === 'divergencias')
+        @include('entrada._divergencias')
+    @else
     <div class="entr-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
@@ -499,6 +512,7 @@
             </div>
         @endif
     </div>
+    @endif
 
 </div>
 
