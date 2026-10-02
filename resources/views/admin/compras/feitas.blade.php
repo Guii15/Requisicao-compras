@@ -19,6 +19,14 @@
         </p>
     </div>
 
+    @if($totalSemDados > 0)
+        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px; line-height:1.5;">
+            ⚠️ {{ $totalSemDados }} {{ $totalSemDados === 1 ? 'compra aprovada ainda não tem' : 'compras aprovadas ainda não têm' }} data e preço unitário registrados,
+            por isso não aparecem aqui (mas já aparecem na Conferência).
+            <a href="{{ route('admin.compras.index', ['situacao' => 'sem_dados']) }}" style="color:#05018D; font-weight:700; text-decoration:underline;">Ver e registrar em Compras →</a>
+        </div>
+    @endif
+
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route('admin.compras.feitas') }}" class="m-empilhar" style="display:grid; grid-template-columns:1fr 1fr 160px 160px auto; gap:8px; align-items:end;">
             <div>

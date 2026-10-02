@@ -68,7 +68,12 @@ class DadosCompraController extends Controller
 
         $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], 'updated_at')->withQueryString();
 
-        return view('admin.compras.feitas', compact('requests'));
+        // Aprovadas sem data ou preço aparecem na Conferência e em Compras, mas não aqui: o aviso explica isso.
+        $totalSemDados = PurchaseRequest::where('status', 'aprovado')
+            ->where(fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario'))
+            ->count();
+
+        return view('admin.compras.feitas', compact('requests', 'totalSemDados'));
     }
 
     public function edit(PurchaseRequest $purchaseRequest)
