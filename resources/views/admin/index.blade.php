@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Listagem usa a largura toda da tela (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 
 <style>
@@ -57,7 +60,7 @@
             <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Gerencie todas as requisições de compra</p>
         </div>
         <a href="{{ route('requests.create') }}"
-           style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(90deg,#1d4ed8,#dc2626); color:#fff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+           style="display:inline-flex; align-items:center; gap:8px; background:#05018D; color:#fff; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
             <svg xmlns="http://www.w3.org/2000/svg" style="width:16px; height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -330,21 +333,22 @@
     @endif
 
     {{-- Tabela (desktop) --}}
-    <div class="adm-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+    {{-- Uma linha por requisição; ao abrir, cada item vira um cartão (<x-item-requisicao>). --}}
+    <div class="adm-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
-                    <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Vendedor</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Urgência</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Valor</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Atraso</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
+                    <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                        @php $thAdm = 'padding:12px 16px; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;'; @endphp
+                        <th style="{{ $thAdm }} text-align:left;">Nº</th>
+                        <th style="{{ $thAdm }} text-align:left;">Vendedor</th>
+                        <th style="{{ $thAdm }} text-align:left;">Itens</th>
+                        <th style="{{ $thAdm }} text-align:right;">Total</th>
+                        <th style="{{ $thAdm }} text-align:left;">Etapa</th>
+                        <th style="{{ $thAdm }} text-align:left;">Coleta</th>
+                        <th style="{{ $thAdm }} text-align:left;">Data</th>
+                        <th style="{{ $thAdm }} text-align:left;">Status</th>
+                        <th style="{{ $thAdm }} text-align:right;">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -353,135 +357,76 @@
                             $primeiroAdm = $grupo->first();
                             $chaveAdm = $primeiroAdm->grupo_id;
                             $statusUnicosAdm = $grupo->pluck('status')->unique();
-                            if ($statusUnicosAdm->count() === 1) {
-                                $statusChaveAdm = $statusUnicosAdm->first();
-                                $rotuloGrupoAdm = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveAdm] ?? ucfirst($statusChaveAdm);
-                            } else {
-                                $statusChaveAdm = 'parcial';
-                                $rotuloGrupoAdm = 'Parcial';
-                            }
-                            $corsGrupoAdm = [
-                                'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                                'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                                'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
-                                'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
-                            ][$statusChaveAdm];
+                            $statusChaveAdm = $statusUnicosAdm->count() === 1 ? $statusUnicosAdm->first() : 'parcial';
                             $produtosResumoAdm = $grupo->pluck('product_name')->filter()->implode(', ');
-                            if (mb_strlen($produtosResumoAdm) > 60) {
-                                $produtosResumoAdm = mb_substr($produtosResumoAdm, 0, 60) . '…';
+                            if (mb_strlen($produtosResumoAdm) > 80) {
+                                $produtosResumoAdm = mb_substr($produtosResumoAdm, 0, 80) . '…';
                             }
+                            $totalGrupoAdm = (float) $grupo->sum('valor');
+                            $grupoUrgenteAdm = $grupo->contains('urgency', 'alta');
+                            $grupoAtrasadoAdm = $grupo->contains('status_coleta', 'atraso');
+                            $grupoTemAprovadoAdm = $grupo->contains('status', 'aprovado');
+                            $tdAdm = 'padding:12px 16px; font-size:14px; color:#374151; vertical-align:middle;';
                         @endphp
-                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
-                            <td colspan="10" style="padding:0;">
-                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
-                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoAdm['barra'] }};"></div>
-                                    <div style="flex:1; min-width:0;">
-                                        <div style="font-size:13.5px; line-height:1.4;">
-                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroAdm->id }}</span>
-                                            <span style="color:#9ca3af; font-weight:500;"> — {{ $primeiroAdm->requester_name ?? 'Não informado' }}</span>
-                                        </div>
-                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoAdm }}
-                                        </div>
-                                    </div>
-                                    <span style="background:{{ $corsGrupoAdm['bg'] }}; color:{{ $corsGrupoAdm['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoAdm }}</span>
-                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdm }}')"
-                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
-                                        <span id="seta-grupo-{{ $chaveAdm }}">Ver itens</span>
-                                    </button>
+                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #eef0f3; cursor:pointer;" onmouseover="this.style.background='#f7f8fa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveAdm }}')">
+                            <td style="{{ $tdAdm }} font-weight:700; color:#111827; white-space:nowrap;">#{{ $primeiroAdm->id }}</td>
+                            <td style="{{ $tdAdm }}">{{ $primeiroAdm->requester_name ?? 'Não informado' }}</td>
+                            <td style="{{ $tdAdm }} max-width:420px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoAdm }}</span>
+                                    @if($grupoUrgenteAdm)
+                                        <span style="flex:none; color:#b8301a; border:1px solid #b8301a; padding:0 8px; border-radius:9999px; font-size:11px; font-weight:700;">Urgente</span>
+                                    @endif
                                 </div>
+                                <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
+                            </td>
+                            <td style="{{ $tdAdm }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalGrupoAdm > 0 ? 'R$ ' . number_format($totalGrupoAdm, 2, ',', '.') : '—' }}</td>
+                            <td style="{{ $tdAdm }}"><x-trilha-etapas :itens="$grupo" /></td>
+                            <td style="{{ $tdAdm }} font-size:13px; white-space:nowrap;">
+                                @if($grupoAtrasadoAdm)
+                                    <strong style="color:#b8301a;">Atrasada</strong>
+                                @elseif($grupoTemAprovadoAdm)
+                                    <span style="color:#6b7280;">No prazo</span>
+                                @else
+                                    <span style="color:#9ca3af;">—</span>
+                                @endif
+                            </td>
+                            <td style="{{ $tdAdm }} font-size:13px; white-space:nowrap;">
+                                {{ $primeiroAdm->created_at->timezone('America/Sao_Paulo')->format('d/m/Y') }}
+                                <span style="display:block; font-size:12px; color:#6b7280;">{{ $primeiroAdm->created_at->timezone('America/Sao_Paulo')->format('H:i') }}</span>
+                            </td>
+                            <td style="{{ $tdAdm }}"><x-status-requisicao :status="$statusChaveAdm" /></td>
+                            <td style="{{ $tdAdm }} text-align:right;">
+                                <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveAdm }}')"
+                                        style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:7px 16px; border-radius:9999px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                    <span id="seta-grupo-{{ $chaveAdm }}">Ver itens</span>
+                                </button>
                             </td>
                         </tr>
                     @foreach($grupo as $req)
-                        <tr class="grupo-item-{{ $chaveAdm }}" style="display:none; border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
-                            <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">{{ $req->requester_name ?? '—' }}</td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">
-                                {{ $req->product_name }}
-                                @if($req->product_code)
-                                    <span style="display:block; font-size:11px; color:#9ca3af;">Cód: {{ $req->product_code }}</span>
-                                @endif
-                                @if($req->product_url)
-                                    <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">Ver link</a>
-                                @endif
-                                @if($req->anexo_path)
-                                    <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">
-                                {{ $req->supplier ?? '—' }}
-                                @if($req->temDadosDaCompra())
-                                    <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
-                                        Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
-                                        @if($req->preco_caixa)
-                                            <br>Caixa: R$ {{ number_format($req->preco_caixa, 2, ',', '.') }}
-                                        @endif
-                                        @if($req->valor)
-                                            <br>Total: <strong style="color:#059669;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
-                                        @endif
-                                        @if($req->data_compra)
-                                            <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
-                                        @endif
-                                        @if($req->data_coleta)
-                                            <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
-                                        @endif
-                                        @if($req->pedido_compra_path)
-                                            <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a>
-                                        @endif
-                                    </div>
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
-                            <td style="padding:12px 16px; text-align:center;">
-                                @if($req->urgency=='alta')
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
-                                @elseif($req->urgency=='media')
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
-                                @else
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; text-align:center;">
-                                @if($req->status=='aprovado')
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Aprovado</span>
-                                @elseif($req->status=='rejeitado')
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Rejeitado</span>
-                                @else
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Pendente</span>
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; text-align:center; font-size:13px; font-weight:600; color:#059669;">
-                                {{ $req->valor ? 'R$ '.number_format($req->valor, 2, ',', '.') : '—' }}
-                            </td>
-                            <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
-                            <td style="padding:12px 16px; text-align:center;">
-                                @if($req->status_coleta === 'atraso')
-                                    <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
-                                @else
-                                    <span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Não</span>
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; text-align:center;">
-                                <div style="display:flex; gap:6px; justify-content:center;">
+                        <tr class="grupo-item-{{ $chaveAdm }}" style="display:none; background:#f7f8fa;">
+                            <td colspan="9" style="padding:{{ $loop->first ? '14px' : '0' }} 20px {{ $loop->last ? '18px' : '10px' }} 20px; {{ $loop->last ? 'border-bottom:1px solid #e5e7eb;' : '' }}">
+                                <x-item-requisicao :req="$req">
                                     <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
-                                       style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap;">
+                                       style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap;">
                                         Exportar
                                     </a>
-                                    <button onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
-                                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                    <button type="button" onclick="document.getElementById('modal-{{ $req->id }}').style.display='flex'"
+                                            style="background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
                                         Atualizar
                                     </button>
-                                </div>
-                            </td>
-                        </tr>
 
-                        @if(filled($req->reason) || filled($req->justification) || filled($req->observacao_conferencia))
-                        <tr class="grupo-item-{{ $chaveAdm }}" style="display:none; background:#f9fafb; border-bottom:1px solid #f3f4f6;">
-                            <td colspan="10" style="padding:10px 16px;">
-                                <x-obs-vendedor :item="$req" margem="8px" />
-                                <x-obs-divergencia :item="$req" margem="0" />
+                                    <x-slot:notas>
+                                        @if(filled($req->reason) || filled($req->justification) || filled($req->observacao_conferencia))
+                                            <x-obs-vendedor :item="$req" margem="8px" />
+                                            <x-obs-divergencia :item="$req" margem="0" />
+                                        @else
+                                            <div style="color:#6b7280;">Nenhuma nota.</div>
+                                        @endif
+                                    </x-slot:notas>
+                                </x-item-requisicao>
                             </td>
                         </tr>
-                        @endif
 
                         {{-- Modal --}}
                         <div id="modal-{{ $req->id }}" data-quantity="{{ $req->quantity }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
@@ -572,7 +517,7 @@
                                     </div>
 
                                     @if($req->obs)
-                                    <div style="margin-bottom:20px; padding:12px 14px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                                    <div style="margin-bottom:20px; padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#15803d; margin-bottom:5px; text-transform:uppercase;">Obs (Conferente)</label>
                                         <div style="font-size:14px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                                     </div>
@@ -588,7 +533,7 @@
                                             Cancelar
                                         </button>
                                         <button type="submit"
-                                                style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                                style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                             Salvar
                                         </button>
                                     </div>
@@ -628,10 +573,10 @@
                     $rotuloGrupoAdmM = 'Parcial';
                 }
                 $corsGrupoAdmM = [
-                    'pendente'  => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                    'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                    'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
-                    'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                    'pendente'  => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                    'aprovado'  => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
+                    'rejeitado' => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
+                    'parcial'   => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                 ][$statusChaveAdmM];
                 $produtosResumoAdmM = $grupo->pluck('product_name')->filter()->implode(', ');
                 if (mb_strlen($produtosResumoAdmM) > 60) {
@@ -675,11 +620,11 @@
                         @endif
                     </div>
                     @if($req->status=='aprovado')
-                        <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Aprovado</span>
+                        <span style="background:#fff; color:#17794a; border:1px solid #17794a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Aprovado</span>
                     @elseif($req->status=='rejeitado')
-                        <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Rejeitado</span>
+                        <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Rejeitado</span>
                     @else
-                        <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Pendente</span>
+                        <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Pendente</span>
                     @endif
                 </div>
 
@@ -731,11 +676,11 @@
 
                 <div class="m-coluna" style="display:flex; align-items:center; justify-content:space-between;">
                     @if($req->urgency=='alta')
-                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
+                        <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
                     @elseif($req->urgency=='media')
-                        <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
+                        <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
                     @else
-                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
+                        <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
                     @endif
                     <div class="m-card-acao" style="display:flex; gap:6px;">
                         <a href="{{ route('admin.requests.export', $req) }}" target="_blank"
@@ -830,7 +775,7 @@
                         </div>
 
                         @if($req->obs)
-                        <div style="margin-bottom:16px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                        <div style="margin-bottom:16px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#15803d; margin-bottom:5px; text-transform:uppercase;">Obs (Conferente)</label>
                             <div style="font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                         </div>
@@ -846,7 +791,7 @@
                                 Cancelar
                             </button>
                             <button type="submit"
-                                    style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                    style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                 Salvar
                             </button>
                         </div>

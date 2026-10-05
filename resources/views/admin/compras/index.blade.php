@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Listagem usa a largura toda da tela (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 
 <div style="padding: 8px 0;">
@@ -106,7 +109,7 @@
                     @if($item->obs)
                     <tr style="border-top:1px solid #f3f4f6; background:#f9fafb;">
                         <td colspan="11" style="padding:12px 14px;">
-                            <div style="padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                            <div style="padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                                 <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                                 <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $item->obs }}</div>
                             </div>

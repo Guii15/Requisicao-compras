@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Listagem usa a largura toda da tela (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 
 <style>
@@ -90,17 +93,17 @@
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
-                    <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</th>
-                        <th style="padding:13px 16px; text-align:right; color:#fff; font-size:13px; font-weight:600;">Preço Unit.</th>
-                        <th style="padding:13px 16px; text-align:right; color:#fff; font-size:13px; font-weight:600;">Preço Total</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Pedido</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Foto</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Atraso</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'concluidas' ? 'Data da Entrada' : 'Ação' }}</th>
+                    <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Produto</th>
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</th>
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Fornecedor</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</th>
+                        <th style="padding:13px 16px; text-align:right; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Preço Unit.</th>
+                        <th style="padding:13px 16px; text-align:right; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Preço Total</th>
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Pedido</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Foto</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Atraso</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{{ $aba === 'concluidas' ? 'Data da Entrada' : 'Ação' }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,9 +120,9 @@
                                 $rotuloEntr = 'Parcial';
                             }
                             $corsGrupoEntr = [
-                                'aguardando' => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                                'concluida'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                                'parcial'    => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                                'aguardando' => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                                'concluida'  => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
+                                'parcial'    => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                             ][$statusChaveEntr];
                             $produtosResumoEntr = $grupo->pluck('product_name')->filter()->implode(', ');
                             if (mb_strlen($produtosResumoEntr) > 60) {
@@ -153,7 +156,7 @@
                                 {{ $req->product_name }}
                                 <x-parcial-info :item="$req" />
                                 @if($req->status_conferencia === 'avancado_mesmo_assim')
-                                    <span style="display:block; margin-top:4px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; width:fit-content;">⚠ Avançado Mesmo Assim</span>
+                                    <span style="display:block; margin-top:4px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; width:fit-content;">⚠ Avançado Mesmo Assim</span>
                                 @endif
                             </td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ ($req->entrada_concluida_em ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</td>
@@ -179,9 +182,9 @@
                             </td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->status_coleta === 'atraso')
-                                    <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
+                                    <span style="background:#b8301a; color:#fff; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
                                 @else
-                                    <span style="background:#dcfce7; color:#15803d; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Não</span>
+                                    <span style="color:#9ca3af; font-size:13px;">Não</span>
                                 @endif
                             </td>
                             @php
@@ -225,7 +228,7 @@
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="10" style="padding:0;">
-                                <div style="padding:14px 16px; background:#f0fdf4; border-bottom:1px solid #e5e7eb; margin:8px 0;">
+                                <div style="padding:14px 16px; background:#f8fafc; border-bottom:1px solid #e5e7eb; margin:8px 0;">
                                     <span style="font-size:10px; font-weight:700; color:#15803d; text-transform:uppercase; letter-spacing:0.5px;">📝 Obs (Conferente):</span>
                                     <div style="margin-top:6px; font-size:13px; color:#166534; line-height:1.6;">{{ $req->obs }}</div>
                                 </div>
@@ -240,7 +243,7 @@
                                 <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
                                 @if($req->obs)
-                                <div style="margin-bottom:16px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                                <div style="margin-bottom:16px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                                     <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                                     <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                                 </div>
@@ -279,7 +282,7 @@
                                             Cancelar
                                         </button>
                                         <button type="submit"
-                                                style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                                style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                             Confirmar
                                         </button>
                                     </div>
@@ -319,9 +322,9 @@
                     $rotuloEntrM = 'Parcial';
                 }
                 $corsGrupoEntrM = [
-                    'aguardando' => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                    'concluida'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                    'parcial'    => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                    'aguardando' => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                    'concluida'  => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
+                    'parcial'    => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                 ][$statusChaveEntrM];
                 $produtosResumoEntrM = $grupo->pluck('product_name')->filter()->implode(', ');
                 if (mb_strlen($produtosResumoEntrM) > 60) {
@@ -353,7 +356,7 @@
                 <div style="font-size:15px; font-weight:700; color:#05018D; margin-bottom:6px;">{{ $req->product_name }}</div>
                 <x-parcial-info :item="$req" />
                 @if($req->status_conferencia === 'avancado_mesmo_assim')
-                    <span style="display:inline-block; margin-bottom:10px; background:#dbeafe; color:#2563eb; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">⚠ Avançado Mesmo Assim</span>
+                    <span style="display:inline-block; margin-bottom:10px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">⚠ Avançado Mesmo Assim</span>
                 @endif
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:10px;">
@@ -402,7 +405,7 @@
                 </div>
 
                 @if($req->obs)
-                <div style="margin-bottom:12px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                <div style="margin-bottom:12px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                     <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                     <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                 </div>
@@ -439,7 +442,7 @@
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
                     @if($req->obs)
-                    <div style="margin-bottom:16px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                    <div style="margin-bottom:16px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                         <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                         <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                     </div>
@@ -478,7 +481,7 @@
                                 Cancelar
                             </button>
                             <button type="submit"
-                                    style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                    style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                 Confirmar
                             </button>
                         </div>

@@ -43,9 +43,9 @@ class ObsNaColetaTest extends TestCase
 
         $html = $this->coleta();
 
-        $this->assertStringContainsString('Obs (Admin)', $html);
-        $this->assertStringContainsString('Obs (Vendedor)', $html);
-        $this->assertStringContainsString('Motivo (Vendedor)', $html);
+        $this->assertStringContainsString('>ADMIN</span>', $html);
+        $this->assertStringContainsString('>VENDEDOR</span>', $html);
+        $this->assertStringContainsString('<strong>Motivo:</strong>', $html);
         // linha do desktop + card do celular + quadro Registrar Coleta
         $this->assertSame(3, substr_count($html, self::ADMIN));
         $this->assertSame(3, substr_count($html, self::OBS));
@@ -58,9 +58,9 @@ class ObsNaColetaTest extends TestCase
 
         $html = $this->coleta();
 
-        $this->assertStringContainsString('Obs (Conferente)', $html);
-        $this->assertStringContainsString('Divergência (Conferência)', $html);
-        $this->assertStringContainsString('Obs (Entrada)', $html);
+        $this->assertStringContainsString('>CONFERÊNCIA</span>', $html);
+        $this->assertStringContainsString('>DIVERGÊNCIA</span>', $html);
+        $this->assertStringContainsString('>ENTRADA</span>', $html);
         $this->assertStringContainsString(self::CONFERENTE, $html);
         $this->assertStringContainsString(self::DIVERGENCIA, $html);
         $this->assertStringContainsString(self::ENTRADA, $html);
@@ -88,7 +88,7 @@ class ObsNaColetaTest extends TestCase
 
         $html = $this->coleta();
 
-        foreach (['Obs (Admin)', 'Obs (Vendedor)', 'Motivo (Vendedor)', 'Obs (Conferente)', 'Divergência (Conferência)', 'Obs (Entrada)'] as $bloco) {
+        foreach (['Notas e Ocorrências', '>ADMIN</span>', '>VENDEDOR</span>', '<strong>Motivo:</strong>', '>CONFERÊNCIA</span>', '>DIVERGÊNCIA</span>', '>ENTRADA</span>'] as $bloco) {
             $this->assertStringNotContainsString($bloco, $html, $bloco);
         }
     }
@@ -110,7 +110,7 @@ class ObsNaColetaTest extends TestCase
 
         $html = $this->coleta();
 
-        $this->assertStringContainsString('Obs (Admin)', $html);
-        $this->assertStringNotContainsString('Obs (Vendedor)', $html);
+        $this->assertStringContainsString('>ADMIN</span>', $html);
+        $this->assertStringNotContainsString('>VENDEDOR</span>', $html);
     }
 }

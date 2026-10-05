@@ -24,9 +24,9 @@
                             @endif
                         </div>
                         @if($req->tipo_entrega === 'entrega_direta')
-                            <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Venda Casada</span>
+                            <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Venda Casada</span>
                         @else
-                            <span style="background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Estoque</span>
+                            <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Estoque</span>
                         @endif
                     </div>
 
@@ -98,7 +98,7 @@
                                     <button type="button" onclick="document.getElementById('modal-entrada-div-{{ $req->id }}').style.display='none'"
                                             style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">Cancelar</button>
                                     <button type="submit"
-                                            style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">Confirmar</button>
+                                            style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">Confirmar</button>
                                 </div>
                             </form>
                         </div>
