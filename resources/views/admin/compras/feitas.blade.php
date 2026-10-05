@@ -120,7 +120,10 @@
                             @endif
                         </td>
                         <td style="padding:10px 14px;">{{ $item->quantity }}</td>
-                        <td style="padding:10px 14px;">{{ $item->supplier ?: '—' }}</td>
+                        <td style="padding:10px 14px;">
+                            {{ $item->supplier ?: '—' }}
+                            @if($item->empresa)<div style="color:#6b7280; font-size:12px;">Empresa: {{ $item->empresa }}</div>@endif
+                        </td>
                         <td style="padding:10px 14px; white-space:nowrap;">{{ $item->data_compra?->format('d/m/Y') ?? '—' }}</td>
                         <td style="padding:10px 14px; text-align:right; white-space:nowrap;">{{ $item->preco_unitario !== null ? 'R$ ' . number_format($item->preco_unitario, 2, ',', '.') : '—' }}</td>
                         <td style="padding:10px 14px; text-align:right; white-space:nowrap; font-weight:600;">{{ $item->valor ? 'R$ ' . number_format($item->valor, 2, ',', '.') : '—' }}</td>

@@ -21,10 +21,12 @@ class PainelFinanceiro
     {
     }
 
-    public function dados(?CarbonImmutable $hoje = null): array
+    public function dados(?CarbonImmutable $hoje = null, ?string $empresa = null): array
     {
         $hoje ??= CarbonImmutable::now('America/Sao_Paulo');
-        $linhas = $this->saldos->linhas($hoje);
+        $todas = $this->saldos->linhas($hoje);
+        $empresas = $this->saldos->empresas($todas);
+        $linhas = $this->saldos->somenteEmpresa($todas, $empresa);
         $abertas = $linhas->where('aberto', '>', 0);
         $mesAtual = $hoje->format('Y-m');
 
@@ -33,6 +35,8 @@ class PainelFinanceiro
         $pagamentos = $linhas->flatMap(fn (array $l) => $l['compra']->pagamentos->map(fn ($p) => ['pg' => $p, 'linha' => $l]));
 
         return [
+            'empresas' => $empresas->all(),
+            'empresa' => trim((string) $empresa) === '' ? null : trim((string) $empresa),
             'saldo' => round($linhas->sum('aberto'), 2),
             'comprado' => $comprado,
             'pago' => $pago,

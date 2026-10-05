@@ -546,6 +546,7 @@
                                     </div>
 
                                     @include('admin._condicao-pagamento', ['item' => $req, 'sufixo' => 'req-' . $req->id . '-d', 'modo' => 'modal', 'obrigatorio' => false])
+                                    @include('admin._empresa-compra', ['item' => $req, 'modo' => 'modal'])
 
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>
@@ -806,6 +807,7 @@
                             </div>
                         </div>
                         @include('admin._condicao-pagamento', ['item' => $req, 'sufixo' => 'req-' . $req->id . '-m', 'modo' => 'modal', 'obrigatorio' => false])
+                                    @include('admin._empresa-compra', ['item' => $req, 'modo' => 'modal'])
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Pedido de compra <span style="color:#9ca3af; font-weight:400; text-transform:none;">(PDF ou imagem, opcional)</span></label>

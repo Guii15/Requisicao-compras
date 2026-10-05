@@ -21,12 +21,20 @@
     </div>
 
     @include('financeiro._abas')
+    @include('financeiro._filtro-empresa')
 
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">✓ {{ session('success') }}</div>
     @endif
     @if(session('aviso'))
         <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">⚠️ {{ session('aviso') }}</div>
+    @endif
+
+    @if($empresaSel !== null)
+        @php $nomeFiltrada = collect($d['empresas'])->firstWhere('chave', $empresaSel)['nome'] ?? $empresaSel; @endphp
+        <div style="background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">
+            Mostrando só as compras de <strong>{{ $nomeFiltrada }}</strong>.
+        </div>
     @endif
 
     @if($semDados)
@@ -65,9 +73,25 @@
         <div class="fin-card">
             <div class="fin-rotulo">Compras pagas</div>
             <div class="fin-num">{{ $d['pagas'] }}</div>
-            <div class="fin-nota"><a href="{{ route('financeiro.pagos') }}" style="color:#05018D; font-weight:600;">Ver pagos</a> · <a href="{{ route('financeiro.aguardando') }}" style="color:#05018D; font-weight:600;">{{ $d['aguardando']['compras'] }} aguardando</a></div>
+            <div class="fin-nota"><a href="{{ route('financeiro.pagos', array_filter(['empresa' => request('empresa')])) }}" style="color:#05018D; font-weight:600;">Ver pagos</a> · <a href="{{ route('financeiro.aguardando', array_filter(['empresa' => request('empresa')])) }}" style="color:#05018D; font-weight:600;">{{ $d['aguardando']['compras'] }} aguardando</a></div>
         </div>
     </div>
+
+    @if($empresaSel === null && count($d['empresas']) >= 2)
+        <div class="fin-card" style="margin-bottom:16px;">
+            <h2>Saldo devedor por empresa</h2>
+            <p class="fin-sub">Quanto cada empresa ainda deve. Clique numa empresa para ver só as compras dela.</p>
+            @foreach($d['empresas'] as $e)
+                <div class="fin-pagamento">
+                    <a href="{{ route('financeiro.index', ['empresa' => $e['chave']]) }}" style="color:#111827; font-weight:600; text-decoration:none;">{{ $e['nome'] }}</a>
+                    <div style="text-align:right; white-space:nowrap;">
+                        <span class="fin-valor" style="color:{{ $e['saldo'] > 0 ? '#dc2626' : '#16a34a' }};">{{ Dinheiro::brl($e['saldo']) }}</span>
+                        <span class="fin-nota"> · {{ $e['compras'] }} {{ $e['compras'] === 1 ? 'compra' : 'compras' }}</span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     {{-- Comprado × pago + idade --}}
     <div class="fin-grade">
@@ -102,7 +126,7 @@
             <p class="fin-sub">Os 8 fornecedores com mais a pagar.</p>
             @forelse($d['top'] as $f)
                 <div class="fin-barra-linha" title="{{ $f['nome'] }}: {{ Dinheiro::brl($f['saldo']) }}">
-                    <a href="{{ route('financeiro.fornecedor', $f['chave']) }}">{{ $f['nome'] }}</a>
+                    <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $f['chave'], 'empresa' => request('empresa')])) }}">{{ $f['nome'] }}</a>
                     <div class="fin-trilho"><div class="fin-fio" style="width:{{ max(1, $f['saldo'] / $maiorTop * 100) }}%; background:var(--fin-s1);"></div></div>
                     <span class="fin-valor">{{ Dinheiro::brl($f['saldo']) }}</span>
                 </div>
@@ -117,7 +141,7 @@
             @forelse($d['ultimos'] as $u)
                 <div class="fin-pagamento">
                     <div style="min-width:0;">
-                        <a href="{{ route('financeiro.fornecedor', $u['chave']) }}" style="color:#111827; font-weight:600; text-decoration:none;">{{ $u['fornecedor'] }}</a>
+                        <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $u['chave'], 'empresa' => request('empresa')])) }}" style="color:#111827; font-weight:600; text-decoration:none;">{{ $u['fornecedor'] }}</a>
                         <div class="fin-nota" style="margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $u['produto'] }} · req. #{{ $u['requisicao'] }}</div>
                     </div>
                     <div style="text-align:right; white-space:nowrap;">

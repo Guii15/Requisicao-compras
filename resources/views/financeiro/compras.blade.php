@@ -23,6 +23,7 @@
     </div>
 
     @include('financeiro._abas')
+    @include('financeiro._filtro-empresa')
 
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">✓ {{ session('success') }}</div>
@@ -47,6 +48,7 @@
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route($rota) }}" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
+            @if(request('empresa'))<input type="hidden" name="empresa" value="{{ request('empresa') }}">@endif
             <div style="flex:1; min-width:220px;">
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Buscar</label>
                 <input type="text" name="q" value="{{ $q }}" placeholder="Fornecedor, produto, comprador ou nº da requisição..."
@@ -54,7 +56,7 @@
             </div>
             <button type="submit" style="padding:8px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Buscar</button>
             @if($q !== '')
-                <a href="{{ route($rota) }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px;">Limpar</a>
+                <a href="{{ route($rota, array_filter(['empresa' => request('empresa')])) }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px;">Limpar</a>
             @endif
         </form>
     </div>
@@ -80,7 +82,7 @@
                     @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
                     <tr style="border-top:1px solid #f3f4f6;">
                         <td style="padding:12px 9px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}@if($aguardando)<div style="font-size:11.5px; color:#9ca3af;">há {{ $dias($c) }} {{ $dias($c) === 1 ? 'dia' : 'dias' }}</div>@endif</td>
-                        <td style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', $linha['chave']) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a></td>
+                        <td style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a>@if($linha['empresa'])<div style="font-size:11.5px; font-weight:400; color:#9ca3af;">Empresa: {{ $linha['empresa'] }}</div>@endif</td>
                         <td style="padding:12px 9px; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span>
                             <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
@@ -112,7 +114,7 @@
                                 <button type="button" onclick="document.getElementById('modal-pagar-{{ $c->id }}').style.display='flex'"
                                         style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Pagar</button>
                             @else
-                                <a href="{{ route('financeiro.fornecedor', $linha['chave']) }}" style="color:#05018D; font-size:12px; font-weight:600;">Ver</a>
+                                <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#05018D; font-size:12px; font-weight:600;">Ver</a>
                             @endif
                         </td>
                     </tr>
@@ -130,7 +132,7 @@
         @forelse($itens as $linha)
             @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
             <x-mobile-card :titulo="$linha['fornecedor']"
-                           :campos="['Produto' => $c->product_name . ' × ' . $c->quantity, 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Compra' => $c->data_compra->format('d/m/Y'), 'Condição' => $linha['condicao'], 'Vencimento' => $aguardando ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), ($aguardando ? 'Em aberto' : 'Pago') => Dinheiro::brl($aguardando ? $linha['aberto'] : $linha['pago']), ($aguardando ? 'Idade' : 'Pago em') => $aguardando ? $dias($c) . ' dias' : $linha['ultimo_pagamento']?->format('d/m/Y')]">
+                           :campos="['Empresa' => $linha['empresa'], 'Produto' => $c->product_name . ' × ' . $c->quantity, 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Compra' => $c->data_compra->format('d/m/Y'), 'Condição' => $linha['condicao'], 'Vencimento' => $aguardando ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), ($aguardando ? 'Em aberto' : 'Pago') => Dinheiro::brl($aguardando ? $linha['aberto'] : $linha['pago']), ($aguardando ? 'Idade' : 'Pago em') => $aguardando ? $dias($c) . ' dias' : $linha['ultimo_pagamento']?->format('d/m/Y')]">
                 <x-slot:badge>
                     <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $linha['situacao'] }}</span>
                 </x-slot:badge>
@@ -139,7 +141,7 @@
                         <button type="button" onclick="document.getElementById('modal-pagar-{{ $c->id }}').style.display='flex'"
                                 style="background:#05018D; color:#fff; border:none; border-radius:8px; padding:8px 18px; font-size:14px; font-weight:600; cursor:pointer;">Pagar</button>
                     @else
-                        <a href="{{ route('financeiro.fornecedor', $linha['chave']) }}" style="color:#05018D; font-weight:600;">Ver fornecedor</a>
+                        <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#05018D; font-weight:600;">Ver fornecedor</a>
                     @endif
                 </x-slot:acao>
             </x-mobile-card>
