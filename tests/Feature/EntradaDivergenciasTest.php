@@ -65,14 +65,14 @@ class EntradaDivergenciasTest extends TestCase
         $this->assertMatchesRegularExpression('/Recebido[^<]*<[^>]*>\s*8\b/u', $html);
     }
 
-    public function test_item_em_divergencia_nao_tem_botao_de_dar_entrada(): void
+    public function test_item_em_divergencia_tem_o_botao_de_dar_entrada_com_observacao(): void
     {
-        $this->divergente();
+        $item = $this->divergente();
 
         $html = $this->aba()->getContent();
 
-        $this->assertStringNotContainsString('Dar Entrada', $html);
-        $this->assertStringNotContainsString(route('entrada.darEntrada', PurchaseRequest::first()), $html);
+        $this->assertStringContainsString('Dar Entrada', $html);
+        $this->assertStringContainsString(route('entrada.darEntrada', $item), $html);
         $this->assertStringContainsString('Aguardando decisão do admin', $html);
     }
 
