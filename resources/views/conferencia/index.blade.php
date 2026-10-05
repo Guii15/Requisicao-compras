@@ -246,11 +246,20 @@
                         </tr>
                         @endif
 
+                        @if(in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true))
+                        <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="8" style="padding:12px 16px;">
+                                <x-entrada-info :item="$req" margem="0" />
+                            </td>
+                        </tr>
+                        @endif
+
                         @if($req->status_conferencia === null && $podeConferir)
                         <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                             <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
                                 <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                                 <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                                <x-obs-admin :item="$req" margem="12px" />
                                 <x-obs-vendedor :item="$req" margem="12px" />
                                 @if($req->pedido_compra_path)
                                     <p style="margin:0 0 16px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="font-size:13px; color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a></p>
@@ -273,6 +282,12 @@
                                     <div style="margin-bottom:16px;">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Foto</label>
                                         <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fotos extras <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — ex.: código de barras, até 5)</span></label>
+                                        <input type="file" name="fotos_extras[]" accept=".jpg,.jpeg,.png,.webp" multiple
                                                style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                                     </div>
 
@@ -459,6 +474,7 @@
                 </div>
                 @endif
 
+                <x-entrada-info :item="$req" />
                 <x-obs-vendedor :item="$req" />
                 <x-obs-divergencia :item="$req" />
                 <x-obs-entrada :item="$req" />
@@ -497,6 +513,7 @@
                 <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Conferir Item</h3>
                     <p style="margin:0 0 8px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
+                    <x-obs-admin :item="$req" margem="12px" />
                     <x-obs-vendedor :item="$req" margem="12px" />
                     @if($req->pedido_compra_path)
                         <p style="margin:0 0 16px;"><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="font-size:13px; color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a></p>
@@ -521,6 +538,12 @@
                             <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
+
+                                    <div style="margin-bottom:16px;">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fotos extras <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — ex.: código de barras, até 5)</span></label>
+                                        <input type="file" name="fotos_extras[]" accept=".jpg,.jpeg,.png,.webp" multiple
+                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    </div>
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Resultado</label>
