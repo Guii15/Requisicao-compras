@@ -409,6 +409,7 @@
                             </td>
                             <td style="padding:12px 16px; font-size:14px; color:#374151;">
                                 {{ $req->supplier ?? '—' }}
+                                @if($req->empresa)<div style="font-size:11px; color:#6b7280; margin-top:2px;">Empresa: {{ $req->empresa }}</div>@endif
                                 @if($req->temDadosDaCompra())
                                     <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
                                         Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
@@ -692,6 +693,7 @@
                     <div>
                         <span style="color:#9ca3af;">Fornecedor</span>
                         <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
+                        @if($req->empresa)<div style="font-size:11px; color:#6b7280; margin-top:2px;">Empresa: {{ $req->empresa }}</div>@endif
                         @if($req->temDadosDaCompra())
                             <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
                                 Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}

@@ -146,4 +146,20 @@ class EmpresaDaCompraTest extends TestCase
 
         $this->actingAs($this->admin)->get(route('admin.compras.feitas'))->assertDontSee('Empresa:');
     }
+
+    public function test_lista_de_requisicoes_do_admin_mostra_a_empresa_no_desktop_e_no_celular(): void
+    {
+        PurchaseRequest::factory()->create(['status' => 'pendente', 'product_name' => 'Item Da Lista', 'empresa' => 'Oasis Comércio']);
+
+        $html = $this->actingAs($this->admin)->get(route('admin.index'))->assertOk()->getContent();
+
+        $this->assertSame(2, substr_count($html, 'Empresa: Oasis Comércio')); // linha do desktop + card do celular
+    }
+
+    public function test_lista_de_requisicoes_sem_empresa_nao_mostra_o_rotulo(): void
+    {
+        PurchaseRequest::factory()->create(['status' => 'pendente', 'empresa' => null]);
+
+        $this->actingAs($this->admin)->get(route('admin.index'))->assertDontSee('Empresa:');
+    }
 }
