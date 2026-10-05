@@ -390,7 +390,7 @@ class EntradaControllerTest extends TestCase
     public function test_dar_entrada_rejects_item_not_conferido_ok_or_avancado(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
-        $req = $this->itemLiberadoParaEntrada(['status_conferencia' => 'divergente']);
+        $req = $this->itemLiberadoParaEntrada(['status_conferencia' => 'cancelado']);
 
         $response = $this->actingAs($entrada)->patch(route('entrada.darEntrada', $req), [
             'vendedor_destino' => 'Vendedor Original',
