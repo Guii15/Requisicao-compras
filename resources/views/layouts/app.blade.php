@@ -19,7 +19,7 @@
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600|inter:300,400,500,600|playfair-display:400,500&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -29,40 +29,166 @@
         html { color-scheme: light; }
         html.dark { color-scheme: dark; }
 
-        html.dark body, html.dark .bg-gray-100 { background-color: #0f172a !important; }
-        html.dark footer { background: #000050 !important; color: rgba(255,255,255,0.4) !important; }
+        /* ===== Tema escuro "Slash": midnight + cobre. Cores só como tokens; telas herdam por seletor de atributo. ===== */
+        html.dark {
+            --sl-void: #08080a;     /* canvas */
+            --sl-card: #040406;     /* cards */
+            --sl-panel: #121317;    /* painéis, inputs, cabeçalhos de tabela */
+            --sl-line: #1c1d22;     /* hairline */
+            --sl-line-2: #2e3038;   /* borda secundária */
+            --sl-steel: #9a9dab;   /* texto terciário (era #777a88, fraco demais p/ 11-12px) */
+            --sl-fog: #b6b9c4;     /* texto secundário (era #9194a1) */
+            --sl-bone: #e2e3e9;     /* texto padrão */
+            --sl-copper: #cc9166;   /* único acento cromático */
+        }
+        html.dark body { font-family: 'Inter', 'Figtree', ui-sans-serif, system-ui, sans-serif; color: var(--sl-bone); }
+        html.dark body, html.dark .bg-gray-100 { background-color: var(--sl-void) !important; }
+        /* Título da página: serifa, nunca abaixo de 28px */
+        html.dark main h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 400 !important; font-size: 28px !important; letter-spacing: 0.01em; line-height: 1.15; color: #fff !important; }
+        html.dark nav { background: var(--sl-void) !important; box-shadow: none !important; border-bottom: 1px solid var(--sl-line); }
+        html.dark footer { background: var(--sl-void) !important; color: var(--sl-fog) !important; border-top: 1px solid var(--sl-line); }
 
-        html.dark [style*="background:#fff"],
-        html.dark [style*="background: #fff"] { background-color: #1e293b !important; }
+        /* Superfícies */
+        html.dark [style*="background:#fff"], html.dark [style*="background: #fff"],
+        html.dark [style*="background:#ffffff"], html.dark [style*="background: #ffffff"],
+        html.dark .bg-white { background-color: var(--sl-card) !important; }
+        html.dark [style*="background:#f3f4f6"], html.dark [style*="background: #f3f4f6"],
+        html.dark [style*="background:#f9fafb"], html.dark [style*="background: #f9fafb"],
+        html.dark [style*="background:#f8fafc"], html.dark [style*="background:#f1f5f9"],
+        html.dark [style*="background:#fafafa"] { background-color: var(--sl-panel) !important; }
+        html.dark [style*="background:#05018D"], html.dark [style*="background: #05018D"],
+        html.dark [style*="background:#000069"] { background: var(--sl-panel) !important; color: var(--sl-bone) !important; }
 
-        html.dark [style*="background:#f3f4f6"],
-        html.dark [style*="background: #f3f4f6"],
-        html.dark [style*="background:#f9fafb"],
-        html.dark [style*="background: #f9fafb"] { background-color: #0f172a !important; }
-
+        /* Texto */
         html.dark [style*="color:#111827"], html.dark [style*="color: #111827"],
-        html.dark [style*="color:#374151"], html.dark [style*="color: #374151"] { color: #e2e8f0 !important; }
-        html.dark [style*="color:#6b7280"], html.dark [style*="color: #6b7280"] { color: #94a3b8 !important; }
-        html.dark [style*="color:#9ca3af"], html.dark [style*="color: #9ca3af"] { color: #64748b !important; }
-        html.dark [style*="color:#1e3a8a"], html.dark [style*="color: #1e3a8a"] { color: #93c5fd !important; }
+        html.dark [style*="color:#374151"], html.dark [style*="color: #374151"],
+        html.dark [style*="color:#0f172a"], html.dark [style*="color:#1e293b"],
+        html.dark [style*="color:#334155"], html.dark [style*="color:#1e3a8a"], html.dark [style*="color: #1e3a8a"],
+        html.dark .text-gray-700, html.dark .text-gray-600 { color: var(--sl-bone) !important; }
+        html.dark [style*="color:#6b7280"], html.dark [style*="color: #6b7280"],
+        html.dark [style*="color:#475569"], html.dark [style*="color:#64748b"] { color: var(--sl-fog) !important; }
+        html.dark [style*="color:#9ca3af"], html.dark [style*="color: #9ca3af"],
+        html.dark [style*="color:#94a3b8"], html.dark [style*="color:#d1d5db"] { color: var(--sl-steel) !important; }
 
-        html.dark [style*="border:1px solid #e5e7eb"],
-        html.dark [style*="border: 1px solid #e5e7eb"] { border-color: #334155 !important; }
-        html.dark [style*="border-bottom:1px solid #f3f4f6"],
-        html.dark [style*="border-bottom:1px solid #e5e7eb"] { border-color: #334155 !important; }
-        html.dark [style*="border-top:1px solid #f3f4f6"] { border-color: #334155 !important; }
+        /* Bordas: hairlines, sem sombra */
+        html.dark [style*="border:1px solid #e5e7eb"], html.dark [style*="border: 1px solid #e5e7eb"],
+        html.dark [style*="border:1px solid #e2e8f0"], html.dark [style*="border:1.5px solid #e5e7eb"],
+        html.dark [style*="border-bottom:1px solid #f3f4f6"], html.dark [style*="border-bottom:1px solid #e5e7eb"],
+        html.dark [style*="border-bottom:1px solid #f1f5f9"], html.dark [style*="border-bottom:1px solid #e2e8f0"],
+        html.dark [style*="border-top:1px solid #f3f4f6"], html.dark [style*="border-top:1px solid #e5e7eb"],
+        html.dark .border-gray-200, html.dark .divide-gray-100 { border-color: var(--sl-line) !important; }
+        html.dark [style*="border:1px solid #cbd5e1"], html.dark [style*="border:1px solid #d1d5db"] { border-color: var(--sl-line-2) !important; }
+        html.dark [style*="box-shadow"] { box-shadow: none !important; }
 
-        html.dark input[type="text"],
-        html.dark input[type="date"],
-        html.dark input[type="email"],
-        html.dark input[type="password"],
-        html.dark input[type="number"],
-        html.dark textarea,
-        html.dark select { background-color: #334155 !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+        /* Campos */
+        html.dark input[type="text"], html.dark input[type="date"], html.dark input[type="email"],
+        html.dark input[type="password"], html.dark input[type="number"], html.dark input[type="url"],
+        html.dark textarea, html.dark select, html.dark .cr-input {
+            background-color: var(--sl-panel) !important; color: var(--sl-bone) !important;
+            border-color: var(--sl-line-2) !important; border-radius: 8px;
+        }
+        html.dark input::placeholder, html.dark textarea::placeholder { color: var(--sl-steel) !important; }
+        html.dark .cr-input:focus, html.dark input:focus, html.dark textarea:focus, html.dark select:focus {
+            border-color: var(--sl-steel) !important; box-shadow: 0 0 0 1px var(--sl-steel) !important; outline: none;
+        }
 
-        html.dark .bg-white { background-color: #1e293b !important; }
-        html.dark .text-gray-700, html.dark .text-gray-600 { color: #e2e8f0 !important; }
-        html.dark .border-gray-200, html.dark .divide-gray-100 { border-color: #334155 !important; }
+        /* Status: sem preenchimento saturado — fundo translúcido, tom dessaturado, borda fina */
+        html.dark [style*="background:#dcfce7"], html.dark [style*="background:#f0fdf4"], html.dark [style*="background:#d1fae5"] { background: rgba(134,211,160,.08) !important; box-shadow: inset 0 0 0 1px rgba(134,211,160,.28) !important; }
+        html.dark [style*="background:#fee2e2"], html.dark [style*="background:#fef2f2"] { background: rgba(229,154,154,.08) !important; box-shadow: inset 0 0 0 1px rgba(229,154,154,.28) !important; }
+        html.dark [style*="background:#fef3c7"], html.dark [style*="background:#fffbeb"] { background: rgba(217,179,107,.08) !important; box-shadow: inset 0 0 0 1px rgba(217,179,107,.28) !important; }
+        html.dark [style*="background:#dbeafe"], html.dark [style*="background:#eff6ff"] { background: rgba(169,184,217,.08) !important; box-shadow: inset 0 0 0 1px rgba(169,184,217,.28) !important; }
+        html.dark [style*="background:#ffedd5"], html.dark [style*="background:#fff7ed"] { background: rgba(224,160,112,.08) !important; box-shadow: inset 0 0 0 1px rgba(224,160,112,.28) !important; }
+        html.dark [style*="color:#16a34a"], html.dark [style*="color:#15803d"], html.dark [style*="color:#166534"], html.dark [style*="color:#14532d"], html.dark [style*="color:#059669"] { color: #86d3a0 !important; }
+        html.dark [style*="color:#dc2626"], html.dark [style*="color:#b91c1c"], html.dark [style*="color:#991b1b"], html.dark [style*="color:#7f1d1d"] { color: #e59a9a !important; }
+        html.dark [style*="color:#d97706"], html.dark [style*="color:#b45309"], html.dark [style*="color:#92400e"] { color: #d9b36b !important; }
+        html.dark [style*="color:#1d4ed8"], html.dark [style*="color:#1e40af"], html.dark [style*="color:#2563eb"] { color: #a9b8d9 !important; }
+        html.dark [style*="color:#c2410c"], html.dark [style*="color:#9a3412"], html.dark [style*="color:#7c2d12"] { color: #e0a070 !important; }
+
+        /* Paleta de status pensada p/ fundo claro (#17794a, #b8301a, #8a5a00): clarear no escuro p/ manter contraste */
+        /* Linhas de item expandido, divisórias dos cartões e trilha de etapas (componentes novos) */
+        html.dark [style*="background:#f7f8fa"], html.dark tr[class*="grupo-item-"] { background-color: var(--sl-void) !important; }
+        html.dark [style*="#eef0f3"] { border-color: var(--sl-line) !important; }
+        html.dark [style*="background:#111827"] { background: var(--sl-bone) !important; }
+        html.dark [style*="background:#d7dbe2"] { background: var(--sl-line-2) !important; }
+        html.dark [style*="border:2px solid #c5cbd6"] { border-color: var(--sl-steel) !important; }
+
+        /* Links em azul-marinho (#05018D) somem no preto (1,4:1): cobre é o acento de link do Slash */
+        html.dark a[style*="color:#05018D"], html.dark a[style*="color: #05018D"],
+        html.dark [style*="color:#05018D"], html.dark [style*="color: #05018D"] { color: var(--sl-copper) !important; }
+        html.dark [style*="color:#7a4f00"] { color: #d9b36b !important; }
+        html.dark [style*="border:1px solid #c98a00"] { border-color: rgba(217,179,107,.45) !important; }
+        html.dark [style*="color:#17794a"] { color: #86d3a0 !important; }
+        html.dark [style*="color:#b8301a"] { color: #e59a9a !important; }
+        html.dark [style*="color:#8a5a00"] { color: #d9b36b !important; }
+        html.dark [style*="border:1px solid #17794a"] { border-color: rgba(134,211,160,.45) !important; }
+        html.dark [style*="border:1px solid #b8301a"] { border-color: rgba(229,154,154,.45) !important; }
+        html.dark [style*="border:1px solid #d99a00"] { border-color: rgba(217,179,107,.45) !important; }
+
+        /* Ação principal: pílula branca (a única cor "alta" do sistema) */
+        html.dark button[style*="background:#2563eb"], html.dark a[style*="background:#2563eb"],
+        html.dark button[style*="background:#05018D"], html.dark a[style*="background:#05018D"],
+        html.dark button[style*="linear-gradient"], html.dark a[style*="linear-gradient"],
+        html.dark button[style*="background:#0f172a"] {
+            background: #fff !important; color: #000 !important; border-radius: 9999px !important; box-shadow: none !important;
+        }
+
+        /* Cabeçalhos de tabela em degradê azul, trilhas e barras de gráfico, hover de linha */
+        html.dark tr[style*="linear-gradient"], html.dark thead[style*="linear-gradient"],
+        html.dark div[style*="linear-gradient"]:not([style*="border-radius:9999px"]) { background: var(--sl-panel) !important; border-bottom: 1px solid var(--sl-line-2); }
+        html.dark tr[style*="linear-gradient"] th { color: var(--sl-fog) !important; font-weight: 500; }
+        html.dark [style*="background:#e5e7eb"], html.dark [style*="background:#e2e8f0"] { background: var(--sl-line) !important; }
+        html.dark div[style*="background:#2563eb"], html.dark div[style*="background:#3b82f6"], html.dark div[style*="background:#1d4ed8"] { background: var(--sl-fog) !important; }
+        html.dark [style*="border-bottom:0.5px solid #e5e7eb"] { border-color: var(--sl-line) !important; }
+        html.dark table tr, html.dark table td, html.dark table th, html.dark tbody { border-color: var(--sl-line) !important; }
+        html.dark tbody tr:hover { background-color: var(--sl-panel) !important; }
+
+        /* ===== Slash claro: mesma estrutura do escuro (hairlines, serifa, pílula), sobre papel claro ===== */
+        html:not(.dark) body, html:not(.dark) .bg-gray-100 { background-color: #f6f6f7 !important; font-family: 'Inter', 'Figtree', ui-sans-serif, system-ui, sans-serif; }
+        html:not(.dark) nav { background: #08080a !important; box-shadow: none !important; border-bottom: 1px solid #1c1d22; }
+        html:not(.dark) footer { background: #08080a !important; color: #9194a1 !important; }
+        html:not(.dark) main h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 400 !important; font-size: 28px !important; letter-spacing: 0.01em; line-height: 1.15; color: #121317 !important; }
+
+        /* Texto azul de título/link vira quase-preto; azul não é cor do sistema */
+        html:not(.dark) [style*="color:#1e3a8a"], html:not(.dark) [style*="color:#05018D"] { color: #121317 !important; }
+        html:not(.dark) [style*="color:#374151"], html:not(.dark) [style*="color:#111827"] { color: #121317 !important; }
+        html:not(.dark) [style*="color:#6b7280"] { color: #5e616e !important; }
+        /* #9ca3af tem 2,5:1 sobre branco; #059669 tem 3,8:1 — subir p/ passar de 4,5:1 */
+        html:not(.dark) [style*="color:#9ca3af"], html:not(.dark) [style*="color: #9ca3af"] { color: #6a6f7b !important; }
+        html:not(.dark) [style*="color:#059669"] { color: #047857 !important; }
+
+        /* Bordas e cartões: hairline, sem sombra */
+        html:not(.dark) [style*="border:1px solid #e5e7eb"], html:not(.dark) [style*="border:1.5px solid #e5e7eb"],
+        html:not(.dark) [style*="border:1px solid #e2e8f0"] { border-color: #e4e4e8 !important; }
+        html:not(.dark) [style*="box-shadow:0 1px 3px"], html:not(.dark) [style*="box-shadow: 0 1px 3px"],
+        html:not(.dark) [style*="box-shadow:0 1px 4px"] { box-shadow: none !important; }
+
+        /* Campos */
+        html:not(.dark) input[type="text"], html:not(.dark) input[type="date"], html:not(.dark) input[type="email"],
+        html:not(.dark) input[type="password"], html:not(.dark) input[type="number"], html:not(.dark) input[type="url"],
+        html:not(.dark) textarea, html:not(.dark) select, html:not(.dark) .cr-input { border-color: #d4d4da !important; border-radius: 8px; }
+        html:not(.dark) .cr-input:focus, html:not(.dark) input:focus, html:not(.dark) textarea:focus, html:not(.dark) select:focus {
+            border-color: #121317 !important; box-shadow: 0 0 0 1px #121317 !important; outline: none;
+        }
+
+        /* Cabeçalhos de tabela em degradê azul → painel claro com texto discreto */
+        html:not(.dark) tr[style*="linear-gradient"], html:not(.dark) thead[style*="linear-gradient"],
+        html:not(.dark) div[style*="linear-gradient"]:not([style*="border-radius:9999px"]):not(a):not(button) { background: #f0f0f2 !important; border-bottom: 1px solid #e4e4e8; }
+        html:not(.dark) tr[style*="linear-gradient"] th { color: #5e616e !important; font-weight: 500; }
+        html:not(.dark) div[style*="background:#2563eb"], html:not(.dark) div[style*="background:#3b82f6"], html:not(.dark) div[style*="background:#1d4ed8"] { background: #777a88 !important; }
+
+        /* Ação principal: pílula preta (um destaque por tela) */
+        html:not(.dark) button[style*="background:#2563eb"], html:not(.dark) a[style*="background:#2563eb"],
+        html:not(.dark) button[style*="background:#05018D"], html:not(.dark) a[style*="background:#05018D"],
+        html:not(.dark) button[style*="linear-gradient"], html:not(.dark) a[style*="linear-gradient"],
+        html:not(.dark) button[style*="background:#0f172a"] {
+            background: #08080a !important; color: #fff !important; border-radius: 9999px !important; box-shadow: none !important;
+        }
+
+        /* Cards mobile (regras do app.css usavam slate azulado) */
+        html.dark .m-card { background: var(--sl-card) !important; border-color: var(--sl-line) !important; }
+        html.dark .m-card-titulo, html.dark .m-card-linha > strong { color: var(--sl-bone) !important; }
+        html.dark .m-card-linha > span { color: var(--sl-fog) !important; }
+        html.dark .m-pilulas > a:not(.ativo), html.dark .m-pilulas > button:not(.ativo) { background: var(--sl-panel) !important; color: var(--sl-fog) !important; }
 
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
@@ -75,11 +201,10 @@
         html.dark input:-webkit-autofill,
         html.dark input:-webkit-autofill:hover,
         html.dark input:-webkit-autofill:focus {
-            -webkit-box-shadow: 0 0 0 1000px #334155 inset !important;
-            -webkit-text-fill-color: #e2e8f0 !important;
-            caret-color: #e2e8f0 !important;
+            -webkit-box-shadow: 0 0 0 1000px #121317 inset !important;
+            -webkit-text-fill-color: #e2e3e9 !important;
+            caret-color: #e2e3e9 !important;
         }
-        html.dark [style*="box-shadow"] { box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important; }
         </style>
 
         <script>
@@ -110,7 +235,7 @@
                 </main>
             @else
                 <main class="py-6" style="flex:1;">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" @if(View::hasSection('tela_cheia')) style="max-width:none;" @endif>
                         @yield('content')
                     </div>
                 </main>
