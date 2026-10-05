@@ -209,6 +209,17 @@
                             @endif
                         </tr>
 
+                        @if($aba === 'conferidos' && $req->fotosConferencia->isNotEmpty())
+                        <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                            <td colspan="8" style="padding:12px 16px;">
+                                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                    <span style="font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase;">Fotos da conferência:</span>
+                                    <x-fotos-conferencia :item="$req" :tamanho="72" />
+                                </div>
+                            </td>
+                        </tr>
+                        @endif
+
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="8" style="padding:12px 16px;">
@@ -465,6 +476,13 @@
 
                 @if($aba === 'conferidos')
                     <div style="font-size:12px; color:#9ca3af; margin-bottom:8px;">Conferido por: <strong style="color:#374151;">{{ $req->conferente->name ?? '—' }}</strong></div>
+                @endif
+
+                @if($aba === 'conferidos' && $req->fotosConferencia->isNotEmpty())
+                    <div style="margin-bottom:12px;">
+                        <div style="font-size:11px; font-weight:700; color:#6b7280; text-transform:uppercase; margin-bottom:6px;">Fotos da conferência:</div>
+                        <x-fotos-conferencia :item="$req" :tamanho="72" />
+                    </div>
                 @endif
 
                 @if($req->obs)
