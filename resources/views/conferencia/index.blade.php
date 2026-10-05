@@ -663,6 +663,13 @@
                                     @endif
                                 </td>
                             </tr>
+                            @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
+                            <tr style="border-bottom:1px solid #f3f4f6; background:#f9fafb;">
+                                <td colspan="6" style="padding:10px 16px;">
+                                    <x-obs-todas :item="$req" margem="8px" />
+                                </td>
+                            </tr>
+                            @endif
                             @endforeach
                         @empty
                             <tr>
@@ -695,6 +702,9 @@
                                 <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Aguardando</span>
                             @endif
                         </x-slot:badge>
+                        <div style="margin-top:8px;">
+                            <x-obs-todas :item="$req" margem="8px" />
+                        </div>
                         @if($req->status_coleta !== 'coletado' && $podeConferir)
                             <x-slot:acao>
                                 <button type="button" onclick="abrirModalColeta({{ $req->id }})"
@@ -718,7 +728,9 @@
             <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
                 <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:480px; margin:16px; box-shadow:0 20px 25px rgba(0,0,0,0.15);">
                     <h3 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#05018D;">Registrar Coleta</h3>
-                    <p style="margin:0 0 20px; font-size:14px; color:#6b7280;">Requisição #{{ $req->id }} - {{ $req->product_name }}</p>
+                    <p style="margin:0 0 14px; font-size:14px; color:#6b7280;">Requisição #{{ $req->id }} - {{ $req->product_name }}</p>
+
+                    <x-obs-todas :item="$req" margem="12px" />
 
                     <form method="POST" action="{{ route('conferencia.coleta', $req) }}" id="form-coleta-{{ $req->id }}" onsubmit="return validarColeta({{ $req->id }})">
                         @csrf
