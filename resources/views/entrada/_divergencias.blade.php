@@ -36,14 +36,17 @@
                         @if($req->conferente)
                             <span style="color:#6b7280;">Conferido por {{ $req->conferente->name }}</span>
                         @endif
-                        @if($req->fotosConferencia->first())
-                            <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank" style="color:#05018D; font-weight:600;">📷 Ver foto</a>
-                        @endif
+                        <x-fotos-conferencia :item="$req" modo="links" />
                     </div>
 
                     <x-obs-divergencia :item="$req" margem="8px" />
                     <x-obs-vendedor :item="$req" margem="8px" />
                     <x-obs-admin :item="$req" margem="8px" />
+                    @if($req->pedido_compra_path)
+                        <div style="margin-bottom:8px; font-size:13px;">
+                            <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; text-decoration:underline;">📎 Pedido de compra{{ $req->pedido_compra_nome ? ': ' . $req->pedido_compra_nome : '' }}</a>
+                        </div>
+                    @endif
 
                     <div style="margin-top:6px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                         <span style="font-size:12.5px; font-weight:600; color:#b45309;">
@@ -61,6 +64,11 @@
                             <p style="margin:0 0 14px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
 
                             <x-obs-divergencia :item="$req" margem="12px" />
+                            @if($req->pedido_compra_path)
+                                <div style="margin-bottom:12px; font-size:13px;">
+                                    <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; text-decoration:underline;">📎 Pedido de compra{{ $req->pedido_compra_nome ? ': ' . $req->pedido_compra_nome : '' }}</a>
+                                </div>
+                            @endif
 
                             <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" onsubmit="return protegerEnvioDuplo(this)">
                                 @csrf

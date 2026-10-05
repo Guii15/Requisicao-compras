@@ -67,6 +67,8 @@ class ConferenciaController extends Controller
         $request->validate([
             'quantidade_recebida'     => 'required|integer|min:0',
             'foto'                    => 'required|image|mimes:jpg,jpeg,png,webp|max:15360',
+            'fotos_extras'            => 'nullable|array|max:5',
+            'fotos_extras.*'          => 'image|mimes:jpg,jpeg,png,webp|max:15360',
             'resultado'               => 'required|in:ok,divergente',
             // Ao aguardar o restante a divergência já é explicada pela própria quantidade.
             'observacao_conferencia'  => [Rule::requiredIf(fn () => $request->resultado === 'divergente' && !$aguardarRestante), 'nullable', 'string', 'max:500'],
@@ -78,6 +80,10 @@ class ConferenciaController extends Controller
             'foto.image'                          => 'O arquivo precisa ser uma imagem.',
             'foto.mimes'                          => 'Formatos aceitos: jpg, jpeg, png, webp.',
             'foto.max'                            => 'A foto deve ter no máximo 15MB.',
+            'fotos_extras.max'                    => 'Envie no máximo 5 fotos extras.',
+            'fotos_extras.*.image'                => 'As fotos extras precisam ser imagens.',
+            'fotos_extras.*.mimes'                => 'Formatos aceitos nas fotos extras: jpg, jpeg, png, webp.',
+            'fotos_extras.*.max'                  => 'Cada foto extra deve ter no máximo 15MB.',
             'resultado.required'                 => 'Selecione o resultado da conferência.',
             'observacao_conferencia.required'    => 'A observação é obrigatória quando divergente.',
         ]);
@@ -126,6 +132,14 @@ class ConferenciaController extends Controller
             'caminho_arquivo' => $path,
             'nome_original'   => $request->file('foto')->getClientOriginalName(),
         ]);
+
+        // Fotos extras (ex.: código de barras), guardadas junto com a principal.
+        foreach ($request->file('fotos_extras', []) as $extra) {
+            $purchaseRequest->fotosConferencia()->create([
+                'caminho_arquivo' => $extra->store('conferencia', 'public'),
+                'nome_original'   => $extra->getClientOriginalName(),
+            ]);
+        }
 
         if ($statusConferencia === 'conferido_ok') {
             $destinatarios = array_filter([env('ENTRADA_EMAIL'), env('ENTRADA_EMAIL_2')]);

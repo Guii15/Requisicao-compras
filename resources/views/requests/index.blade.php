@@ -541,8 +541,10 @@
                 <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
                     <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Foto da Conferência</h3>
                     <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                    <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
-                         style="width:100%; border-radius:8px; margin-bottom:20px; display:block;">
+                    @foreach($req->fotosConferencia as $fotoQuadro)
+                        <img src="{{ Storage::url($fotoQuadro->caminho_arquivo) }}" alt="Foto da conferência"
+                             style="width:100%; border-radius:8px; margin-bottom:12px; display:block;">
+                    @endforeach
                     <div class="m-modal-acoes" style="text-align:right;">
                         <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='none'"
                                 style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">

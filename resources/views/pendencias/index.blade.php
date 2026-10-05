@@ -70,11 +70,7 @@
                                 {{ $req->observacao_conferencia }}
                             </td>
                             <td style="padding:12px 16px; text-align:center;">
-                                @if($req->fotosConferencia->first())
-                                    <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank" style="color:#1d4ed8; font-size:12px; text-decoration:underline;">Ver foto</a>
-                                @else
-                                    —
-                                @endif
+                                <x-fotos-conferencia :item="$req" modo="links" cor="#1d4ed8" vazio="—" />
                             </td>
                             <td style="padding:12px 16px; text-align:center;">
                                 <button onclick="document.getElementById('modal-resolver-{{ $req->id }}').style.display='flex'"
@@ -177,11 +173,7 @@
                     <div>
                         <span style="color:#9ca3af;">Foto</span>
                         <div>
-                            @if($req->fotosConferencia->first())
-                                <a href="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" target="_blank" style="color:#1d4ed8; font-size:12px; text-decoration:underline;">Ver foto</a>
-                            @else
-                                —
-                            @endif
+                            <x-fotos-conferencia :item="$req" modo="links" cor="#1d4ed8" vazio="—" />
                         </div>
                     </div>
                 </div>
