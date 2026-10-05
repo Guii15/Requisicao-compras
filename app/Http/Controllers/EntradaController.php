@@ -58,34 +58,45 @@ class EntradaController extends Controller
         }
 
         if ($purchaseRequest->status !== 'aprovado'
-            || !in_array($purchaseRequest->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true)) {
+            || !in_array($purchaseRequest->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim', 'divergente'], true)) {
             return redirect()->route('entrada.index')
                 ->with('aviso', 'Este item ainda não foi aprovado/conferido — não é possível dar entrada nele ainda.');
         }
+
+        // Item divergente: a Entrada pode dar entrada (ex.: o admin liberou no grupo interno), mas precisa explicar na observação.
+        $divergente = $purchaseRequest->status_conferencia === 'divergente';
 
         $quantidadeMaxima = $purchaseRequest->quantidade_recebida ?? $purchaseRequest->quantity;
 
         $request->validate([
             'vendedor_destino'   => 'required|string|max:255',
             'quantidade_entrada' => 'required|integer|min:' . $quantidadeMaxima . '|max:' . $quantidadeMaxima,
-            'obs_entrada'        => 'nullable|string|max:500',
+            'obs_entrada'        => [$divergente ? 'required' : 'nullable', 'string', 'max:500'],
         ], [
             'obs_entrada.max'             => 'A observação da entrada pode ter no máximo 500 caracteres.',
+            'obs_entrada.required'        => 'Este item está com divergência: escreva na observação por que está dando entrada (ex.: liberado pelo admin no grupo interno).',
             'vendedor_destino.required'   => 'Informe o vendedor destino.',
             'quantidade_entrada.required' => 'Informe a quantidade que entrou.',
             'quantidade_entrada.min'      => 'A entrada precisa ser da quantidade cheia recebida na conferência (' . $quantidadeMaxima . '). Se faltou alguma unidade, resolva isso na conferência antes de dar entrada.',
             'quantidade_entrada.max'      => 'A entrada precisa ser da quantidade cheia recebida na conferência (' . $quantidadeMaxima . '). Se faltou alguma unidade, resolva isso na conferência antes de dar entrada.',
         ]);
 
-        $purchaseRequest->update([
+        $dados = [
             'vendedor_destino'     => $request->vendedor_destino,
             'quantidade_entrada'   => $request->quantidade_entrada,
             'obs_entrada'          => trim((string) $request->obs_entrada) ?: null,
             'entrada_concluida_em' => now(),
-        ]);
+        ];
+
+        // Liberar um item divergente na Entrada equivale a "avançar mesmo assim": sai das Pendências do admin.
+        if ($divergente) {
+            $dados['status_conferencia'] = 'avancado_mesmo_assim';
+        }
+
+        $purchaseRequest->update($dados);
 
         defer(fn () => app(PushNotifier::class)->entradaConcluida($purchaseRequest));
 
-        return redirect()->route('entrada.index')->with('success', 'Entrada registrada com sucesso!');
+        return redirect()->route('entrada.index', $divergente ? ['aba' => 'divergencias'] : [])->with('success', 'Entrada registrada com sucesso!');
     }
 }
