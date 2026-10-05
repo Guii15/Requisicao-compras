@@ -3,7 +3,7 @@
     modo "miniaturas": quadradinhos clicáveis; modo "links": "📷 Foto 1 · Foto 2" (ou "Ver foto" se for uma só).
     "vazio" é o texto quando não há foto.
 --}}
-@props(['item', 'modo' => 'miniaturas', 'cor' => '#05018D', 'vazio' => ''])
+@props(['item', 'modo' => 'miniaturas', 'cor' => '#05018D', 'vazio' => '', 'tamanho' => 44])
 @php
     use Illuminate\Support\Facades\Storage;
     $fotos = $item->fotosConferencia;
@@ -20,7 +20,7 @@
         @foreach($fotos as $foto)
             <a href="{{ Storage::url($foto->caminho_arquivo) }}" target="_blank">
                 <img src="{{ Storage::url($foto->caminho_arquivo) }}" alt="Foto da conferência"
-                     style="width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:inline-block;">
+                     style="width:{{ $tamanho }}px; height:{{ $tamanho }}px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:inline-block;">
             </a>
         @endforeach
     </div>

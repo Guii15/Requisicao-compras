@@ -50,7 +50,7 @@ class ConferenciaController extends Controller
         }
 
         $ordenarPor = 'created_at';
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente'], $ordenarPor, null, true)->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'conferente', 'fotosConferencia'], $ordenarPor, null, true)->withQueryString();
 
         return view('conferencia.index', compact('requests', 'aba', 'resultado', 'q'));
     }
