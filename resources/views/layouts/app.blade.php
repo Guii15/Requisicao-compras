@@ -144,8 +144,8 @@
 
         /* ===== Slash claro: mesma estrutura do escuro (hairlines, serifa, pílula), sobre papel claro ===== */
         html:not(.dark) body, html:not(.dark) .bg-gray-100 { background-color: #f6f6f7 !important; font-family: 'Inter', 'Figtree', ui-sans-serif, system-ui, sans-serif; }
-        html:not(.dark) nav { background: #08080a !important; box-shadow: none !important; border-bottom: 1px solid #1c1d22; }
-        html:not(.dark) footer { background: #08080a !important; color: #9194a1 !important; }
+        html:not(.dark) nav { background: #05018D !important; box-shadow: none !important; border-bottom: 1px solid #05018D; }
+        html:not(.dark) footer { background: #05018D !important; color: rgba(255,255,255,0.6) !important; }
         html:not(.dark) main h1 { font-family: 'Playfair Display', Georgia, serif; font-weight: 400 !important; font-size: 28px !important; letter-spacing: 0.01em; line-height: 1.15; color: #121317 !important; }
 
         /* Texto azul de título/link vira quase-preto; azul não é cor do sistema */
@@ -176,12 +176,12 @@
         html:not(.dark) tr[style*="linear-gradient"] th { color: #5e616e !important; font-weight: 500; }
         html:not(.dark) div[style*="background:#2563eb"], html:not(.dark) div[style*="background:#3b82f6"], html:not(.dark) div[style*="background:#1d4ed8"] { background: #777a88 !important; }
 
-        /* Ação principal: pílula preta (um destaque por tela) */
+        /* Ação principal: pílula no azul da Binário (um destaque por tela) */
         html:not(.dark) button[style*="background:#2563eb"], html:not(.dark) a[style*="background:#2563eb"],
         html:not(.dark) button[style*="background:#05018D"], html:not(.dark) a[style*="background:#05018D"],
         html:not(.dark) button[style*="linear-gradient"], html:not(.dark) a[style*="linear-gradient"],
         html:not(.dark) button[style*="background:#0f172a"] {
-            background: #08080a !important; color: #fff !important; border-radius: 9999px !important; box-shadow: none !important;
+            background: #05018D !important; color: #fff !important; border-radius: 9999px !important; box-shadow: none !important;
         }
 
         /* Cards mobile (regras do app.css usavam slate azulado) */
