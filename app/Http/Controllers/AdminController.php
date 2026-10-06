@@ -56,7 +56,7 @@ class AdminController extends Controller
         $grupoComItemNaoFinalizado = $this->subqueryGrupoNaoFinalizado();
         $query->whereIn('grupo_id', $grupoComItemNaoFinalizado);
 
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'fotosConferencia'])->withQueryString();
 
         $stats = [
             'total'       => PurchaseRequest::count(),

@@ -66,10 +66,31 @@
                 <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="{{ $linkItem }}">📎 {{ $req->anexo_nome }}</a>
             @endif
             @if($req->fotosConferencia->isNotEmpty())
-                <a href="javascript:void(0)" onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência" style="display:inline-block; margin-top:8px;">
+                {{-- A janela vai junto com o cartão: antes ela só existia na tela do vendedor e no admin o clique não fazia nada. --}}
+                <a href="javascript:void(0)" onclick="document.getElementById('foto-item-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência" style="display:inline-block; margin-top:8px;">
                     <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
                          style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid #e5e7eb; display:block;">
+                    @if($req->fotosConferencia->count() > 1)
+                        <span style="display:block; margin-top:3px; font-size:11.5px; color:#6b7280;">{{ $req->fotosConferencia->count() }} fotos</span>
+                    @endif
                 </a>
+                <section id="foto-item-{{ $req->id }}" onclick="if(event.target===this)this.style.display='none'"
+                         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center;">
+                    <div style="background:#fff; border-radius:12px; padding:24px; width:100%; max-width:480px; max-height:calc(100vh - 32px); overflow-y:auto; margin:16px; box-sizing:border-box;">
+                        <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#111827;">Fotos da Conferência</h3>
+                        <p style="margin:0 0 16px; font-size:12px; color:#6b7280;">{{ $req->product_name }}</p>
+                        @foreach($req->fotosConferencia as $fotoItem)
+                            <img src="{{ Storage::url($fotoItem->caminho_arquivo) }}" alt="Foto da conferência"
+                                 style="width:100%; border-radius:8px; margin-bottom:12px; display:block;">
+                        @endforeach
+                        <div style="text-align:right;">
+                            <button type="button" onclick="document.getElementById('foto-item-{{ $req->id }}').style.display='none'"
+                                    style="padding:9px 24px; border-radius:9999px; border:1px solid #d1d5db; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </section>
             @endif
             @if($semAnexosItem)
                 <div style="margin-top:6px; color:#6b7280;">Nenhum anexo.</div>
