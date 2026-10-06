@@ -336,6 +336,8 @@
         </script>
     @endif
 
+    @include('admin._rascunho-janela')
+
     {{-- Tabela (desktop) --}}
     {{-- Uma linha por requisição; ao abrir, cada item vira um cartão (<x-item-requisicao>). --}}
     <div class="adm-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
@@ -457,7 +459,7 @@
                                 </div>
 
                                 {{-- Corpo do Formulário --}}
-                                <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
+                                <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data" data-rascunho="{{ $req->id }}" data-versao="{{ $req->updated_at?->timestamp }}" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
                                     @csrf
                                     @method('PATCH')
 
@@ -752,7 +754,7 @@
                 <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; max-height:90vh; overflow-y:auto;">
                     <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Atualizar Requisição</h3>
                     <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }} — {{ $req->requester_name }}</p>
-                    <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('admin.requests.update', $req) }}" enctype="multipart/form-data" data-rascunho="{{ $req->id }}" data-versao="{{ $req->updated_at?->timestamp }}">
                         @csrf
                         @method('PATCH')
                         <div style="margin-bottom:16px;">
