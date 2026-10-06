@@ -148,7 +148,7 @@
                 <div style="flex:1; min-width:0;">
                     <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $v->requester_name }}</div>
                     <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
-                        <div style="height:100%; width:{{ round($v->total_gasto/$maxSpend*100) }}%; background:#059669; border-radius:2px;"></div>
+                        <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($v->total_gasto, $maxSpend) }}%; background:#059669; border-radius:2px;"></div>
                     </div>
                 </div>
                 <div style="font-size:13px; font-weight:700; color:#059669; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
@@ -169,7 +169,7 @@
                 <div style="flex:1; min-width:0;">
                     <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
                     <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
-                        <div style="height:100%; width:{{ round($s->total_gasto/$maxSupplierSpend*100) }}%; background:#2563eb; border-radius:2px;"></div>
+                        <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($s->total_gasto, $maxSupplierSpend) }}%; background:#2563eb; border-radius:2px;"></div>
                     </div>
                 </div>
                 <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
@@ -216,7 +216,7 @@
                         <div style="flex:1; min-width:0;">
                             <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $v->requester_name }}</div>
                             <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:{{ round($v->total_gasto/$maxSpend*100) }}%; background:#059669; border-radius:2px;"></div>
+                                <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($v->total_gasto, $maxSpend) }}%; background:#059669; border-radius:2px;"></div>
                             </div>
                         </div>
                         <div style="font-size:13px; font-weight:700; color:#059669; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
@@ -236,7 +236,7 @@
                         <div style="flex:1; min-width:0;">
                             <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
                             <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
-                                <div style="height:100%; width:{{ round($s->total_gasto/$maxSupplierSpend*100) }}%; background:#2563eb; border-radius:2px;"></div>
+                                <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($s->total_gasto, $maxSupplierSpend) }}%; background:#2563eb; border-radius:2px;"></div>
                             </div>
                         </div>
                         <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
