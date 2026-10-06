@@ -113,11 +113,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        $empresaList = PurchaseRequest::whereNotNull('empresa_compradora')
-            ->where('empresa_compradora', '!=', '')
-            ->distinct()
-            ->orderBy('empresa_compradora')
-            ->pluck('empresa_compradora');
+        $empresaList = \App\Support\EmpresaCompradora::sugestoes();
 
         return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList', 'empresaList'));
     }
@@ -139,7 +135,7 @@ class AdminController extends Controller
         }
 
         // Só espaços conta como vazio (assim o required_if abaixo pega).
-        $request->merge(['empresa_compradora' => trim((string) $request->input('empresa_compradora')) ?: null]);
+        $request->merge(['empresa_compradora' => \App\Support\EmpresaCompradora::limpar($request->input('empresa_compradora'))]);
 
         // Se algo falhar, a tela reabre o modal deste item para mostrar o erro.
         session()->flash('modal_aberto', $purchaseRequest->id);
@@ -183,7 +179,7 @@ class AdminController extends Controller
             'fornecedor_id'      => $fornecedor?->id,
             'supplier_original'  => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: $digitado),
             'codigo_fornecedor'  => $request->codigo_fornecedor ?: null,
-            'empresa_compradora' => $request->empresa_compradora,
+            'empresa_compradora' => \App\Support\EmpresaCompradora::canonica($request->empresa_compradora, $purchaseRequest->id),
             'preco_unitario'     => $request->preco_unitario ?: null,
             'preco_caixa'        => $request->preco_caixa ?: null,
             'valor'              => $request->valor ?: null,
