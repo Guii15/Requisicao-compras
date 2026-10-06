@@ -66,6 +66,21 @@ class AdminController extends Controller
             'total_gasto' => (float) PurchaseRequest::where('status', 'aprovado')->sum('valor'),
         ];
 
+        // Linha de tendência dos blocos do topo: requisições criadas em cada um dos últimos 6 meses, pelo status de hoje.
+        $mesesTendencia = collect(range(5, 0))->map(fn ($atras) => now()->startOfMonth()->subMonths($atras));
+        $criadasPorMes = fn (?string $status) => $mesesTendencia->map(
+            fn ($mes) => PurchaseRequest::when($status, fn ($q) => $q->where('status', $status))
+                ->whereYear('created_at', $mes->year)
+                ->whereMonth('created_at', $mes->month)
+                ->count()
+        )->all();
+        $tendencias = [
+            'total'     => $criadasPorMes(null),
+            'pendente'  => $criadasPorMes('pendente'),
+            'aprovado'  => $criadasPorMes('aprovado'),
+            'rejeitado' => $criadasPorMes('rejeitado'),
+        ];
+
         // Os rankings juntam o mesmo nome escrito de formas diferentes (Yhan, YHAN, "Yhan ").
         $vendorSpending = \App\Support\RankingPorNome::agrupar(
             PurchaseRequest::select('requester_name')
@@ -113,7 +128,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
+        return view('admin.index', compact('requests', 'stats', 'tendencias', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     private const DISCO_PEDIDO_COMPRA = 'local';

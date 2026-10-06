@@ -75,21 +75,11 @@
 
         {{-- Gasto mensal --}}
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px;">
-            <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; color:#374151; margin-bottom:10px;">
                 Gasto mensal <span style="font-size:12px; font-weight:400; color:#9ca3af;">aprovadas</span>
             </div>
             @php $maxMonth = $monthlySpending->max('total') ?: 1; @endphp
-            <div style="display:flex; align-items:flex-end; gap:8px; height:100px;">
-                @foreach($monthlySpending as $i => $m)
-                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                    <div style="font-size:10px; color:#9ca3af; white-space:nowrap;">
-                        @if($m['total'] > 0) R$ {{ number_format($m['total']/1000, 1, ',', '.') }}k @endif
-                    </div>
-                    <div style="width:100%; border-radius:4px 4px 0 0; background:{{ $i == 5 ? '#059669' : '#d1fae5' }}; height:{{ max(6, round($m['total']/$maxMonth*72)) }}px;"></div>
-                    <div style="font-size:11px; color:#6b7280; white-space:nowrap;">{{ $m['label'] }}</div>
-                </div>
-                @endforeach
-            </div>
+            <x-grafico-gasto-mensal :meses="$monthlySpending" />
         </div>
 
         {{-- Maiores gastos por vendedor --}}
@@ -103,10 +93,10 @@
                 <div style="flex:1; min-width:0;">
                     <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $v->requester_name }}</div>
                     <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
-                        <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($v->total_gasto, $maxSpend) }}%; background:#059669; border-radius:2px;"></div>
+                        <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($v->total_gasto, $maxSpend) }}%; background:#05018D; border-radius:2px;"></div>
                     </div>
                 </div>
-                <div style="font-size:13px; font-weight:700; color:#059669; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
+                <div style="font-size:13px; font-weight:700; color:#05018D; white-space:nowrap;">R$ {{ number_format($v->total_gasto, 2, ',', '.') }}</div>
             </div>
             @empty
             <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
@@ -124,10 +114,10 @@
                 <div style="flex:1; min-width:0;">
                     <div style="font-size:13px; font-weight:600; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $s->supplier }}</div>
                     <div style="height:4px; background:#e5e7eb; border-radius:2px; margin-top:4px;">
-                        <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($s->total_gasto, $maxSupplierSpend) }}%; background:#2563eb; border-radius:2px;"></div>
+                        <div style="height:100%; width:{{ \App\Support\LarguraBarra::percentual($s->total_gasto, $maxSupplierSpend) }}%; background:#05018D; border-radius:2px;"></div>
                     </div>
                 </div>
-                <div style="font-size:13px; font-weight:700; color:#2563eb; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
+                <div style="font-size:13px; font-weight:700; color:#05018D; white-space:nowrap;">R$ {{ number_format($s->total_gasto, 2, ',', '.') }}</div>
             </div>
             @empty
             <p style="font-size:13px; color:#9ca3af; margin:0;">Nenhum gasto aprovado ainda.</p>
@@ -375,7 +365,7 @@
                             <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
                                 Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
                                 @if($req->valor)
-                                    <br>Total: <strong style="color:#059669;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
+                                    <br>Total: <strong style="color:#05018D;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
                                 @endif
                                 @if($req->data_compra)
                                     <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
@@ -422,7 +412,7 @@
                         </a>
                         @endif
                         <a href="{{ route('requests.export', $req) }}" target="_blank"
-                           style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
+                           style="background:#fff; color:#05018D; border:1px solid #c7c6ea; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
                             Exportar
                         </a>
                     </div>

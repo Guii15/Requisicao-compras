@@ -27,7 +27,7 @@ class BarrasMaioresGastosTest extends TestCase
     /** Larguras (em %) das barras verdes/azuis dos rankings, na ordem em que aparecem. */
     private function larguras(string $html): array
     {
-        preg_match_all('/<div style="height:100%; width:(\d+)%; background:#(?:059669|2563eb); border-radius:2px;">/', $html, $m);
+        preg_match_all('/<div style="height:100%; width:(\d+)%; background:#(?:05018D|059669|2563eb); border-radius:2px;">/', $html, $m);
 
         return array_map('intval', $m[1]);
     }
