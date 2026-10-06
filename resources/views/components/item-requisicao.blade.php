@@ -103,6 +103,9 @@
             @if($req->supplier)
                 <div>Fornecedor: <strong style="color:#111827;">{{ $req->supplier }}</strong></div>
             @endif
+            @if(filled($req->empresa))
+                <div style="color:#111827;">Empresa: {{ $req->empresa }}</div>
+            @endif
             @if($req->temDadosDaCompra())
                 <div>Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}</div>
                 @if($req->preco_caixa)

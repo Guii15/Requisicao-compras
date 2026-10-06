@@ -486,6 +486,8 @@
                                                        style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                                             </div>
 
+                                            @include('admin._empresa-compra', ['item' => $req, 'modo' => 'janela'])
+
                                             <div style="margin-bottom:14px;">
                                                 <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Cód. no Fornecedor <span style="font-weight:400; color:#94a3b8;">(opcional)</span></label>
                                                 <input type="text" name="codigo_fornecedor" value="{{ $req->codigo_fornecedor }}" placeholder="Ex: FORN-123"
@@ -684,6 +686,7 @@
                     <div>
                         <span style="color:#9ca3af;">Fornecedor</span>
                         <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
+                        @if($req->empresa)<div style="font-size:11px; color:#6b7280; margin-top:2px;">Empresa: {{ $req->empresa }}</div>@endif
                         @if($req->temDadosDaCompra())
                             <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
                                 Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
@@ -765,6 +768,7 @@
                             <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
+                        @include('admin._empresa-compra', ['item' => $req, 'modo' => 'modal'])
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Cód. no fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
                             <input type="text" name="codigo_fornecedor" value="{{ $req->codigo_fornecedor }}" placeholder="Ex: FORN-123"

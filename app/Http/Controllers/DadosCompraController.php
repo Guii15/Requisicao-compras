@@ -105,6 +105,7 @@ class DadosCompraController extends Controller
             'codigo_fornecedor' => 'nullable|string|max:255',
             'supplier'          => 'required|string|max:255',
             'quantity'          => 'nullable|integer|min:1|max:1000000',
+            'empresa'           => 'nullable|string|max:100',
             'condicao_pagamento' => 'required|in:a_vista,parcelado',
             'parcelas'          => 'required_if:condicao_pagamento,parcelado|nullable|integer|min:2|max:36',
             'primeiro_vencimento' => 'nullable|date',
@@ -165,6 +166,11 @@ class DadosCompraController extends Controller
             if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('pedido_compra_path', $caminhoAntigo)) {
                 \App\Support\LixeiraDeArquivos::descartar(self::DISCO, $caminhoAntigo);
             }
+        }
+
+        // Só mexe na empresa quando o campo veio no envio (formulários antigos não apagam o que já está salvo).
+        if ($request->has('empresa')) {
+            $atualizacao['empresa'] = PurchaseRequest::nomeCanonicoEmpresa($dados['empresa'] ?? null);
         }
 
         $purchaseRequest->update($atualizacao);

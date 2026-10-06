@@ -7,6 +7,7 @@
         'Vendedor' => $item->requester_name,
         'Cód. fornecedor' => $item->codigo_fornecedor,
         'Fornecedor' => $item->supplier,
+        'Empresa' => $item->empresa,
         'Quantidade' => $item->quantity,
         'Compra' => $item->data_compra?->format('d/m/Y'),
         'Unitário' => $real($item->preco_unitario),

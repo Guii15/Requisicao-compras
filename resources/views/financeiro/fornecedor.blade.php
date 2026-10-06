@@ -13,8 +13,9 @@
 <div style="padding: 8px 0;">
 
     @include('financeiro._abas')
+    @include('financeiro._filtro-empresa')
 
-    <a href="{{ route('financeiro.fornecedores') }}" style="display:inline-block; font-size:13px; color:#6b7280; text-decoration:none; margin-bottom:10px;">&larr; Todos os fornecedores</a>
+    <a href="{{ route('financeiro.fornecedores', array_filter(['empresa' => request('empresa')])) }}" style="display:inline-block; font-size:13px; color:#6b7280; text-decoration:none; margin-bottom:10px;">&larr; Todos os fornecedores</a>
 
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">{{ $nome }}</h1>
@@ -75,6 +76,7 @@
                         <td style="padding:12px 14px; font-weight:600; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af; font-weight:400;">× {{ $c->quantity }}</span>
                             @if($linha['condicao'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">{{ $linha['condicao'] }}</div>@endif
+                            @if($linha['empresa'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">Empresa: {{ $linha['empresa'] }}</div>@endif
                             @if($c->pedido_compra_path)
                                 <a href="{{ route('admin.compras.pedido', $c) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; font-weight:400;">📎 Pedido de compra</a>
                             @endif
@@ -124,7 +126,7 @@
         @foreach($compras as $linha)
             @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
             <x-mobile-card :titulo="$c->product_name . ' × ' . $c->quantity"
-                           :campos="['Compra' => $c->data_compra->format('d/m/Y'), 'Requisição' => '#' . $c->id, 'Comprador' => $c->requester_name, 'Condição' => $linha['condicao'], 'Vencimento' => $linha['aberto'] > 0 ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), 'Pago' => Dinheiro::brl($linha['pago']), 'Em aberto' => Dinheiro::brl($linha['aberto'])]">
+                           :campos="['Compra' => $c->data_compra->format('d/m/Y'), 'Requisição' => '#' . $c->id, 'Empresa' => $linha['empresa'], 'Comprador' => $c->requester_name, 'Condição' => $linha['condicao'], 'Vencimento' => $linha['aberto'] > 0 ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), 'Pago' => Dinheiro::brl($linha['pago']), 'Em aberto' => Dinheiro::brl($linha['aberto'])]">
                 <x-slot:badge>
                     <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $linha['situacao'] }}</span>
                 </x-slot:badge>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Fornecedor;
 use App\Models\PurchaseRequest;
+use App\Support\RankingPorNome;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -17,6 +18,9 @@ class SaldoFornecedores
     /** Chave do grupo das compras sem fornecedor informado. */
     public const SEM_FORNECEDOR = '-';
 
+    /** Chave das compras sem empresa informada. */
+    public const SEM_EMPRESA = '_sem';
+
     /** Só conta compra aprovada com os dados da compra preenchidos (as importadas do histórico ficam de fora). */
     public function conta(PurchaseRequest $compra): bool
     {
@@ -26,6 +30,12 @@ class SaldoFornecedores
     public function chave(?string $fornecedor): string
     {
         return Fornecedor::normalizar($fornecedor) ?: self::SEM_FORNECEDOR;
+    }
+
+    /** "Binário", "BINARIO" e " binário " são a mesma empresa. */
+    public function chaveEmpresa(?string $empresa): string
+    {
+        return RankingPorNome::chave($empresa) ?: self::SEM_EMPRESA;
     }
 
     /**
@@ -138,13 +148,30 @@ class SaldoFornecedores
             ->groupBy(fn (PurchaseRequest $c) => (string) $this->chave($c->supplier))
             ->map(fn (Collection $grupo, $chave) => $this->nome((string) $chave, $grupo));
 
-        return $compras->map(function (PurchaseRequest $c) use ($nomes, $hoje) {
+        // Nome da empresa para mostrar: a grafia mais usada entre as compras dela.
+        $nomesEmpresa = $compras
+            ->groupBy(fn (PurchaseRequest $c) => $this->chaveEmpresa($c->empresa))
+            ->map(function (Collection $grupo, $chave) {
+                if ($chave === self::SEM_EMPRESA) {
+                    return null;
+                }
+
+                $grafias = $grupo->map(fn (PurchaseRequest $c) => trim((string) $c->empresa))->countBy()->all();
+                uksort($grafias, fn ($x, $y) => [$grafias[$y], $x] <=> [$grafias[$x], $y]);
+
+                return (string) array_key_first($grafias);
+            });
+
+        return $compras->map(function (PurchaseRequest $c) use ($nomes, $nomesEmpresa, $hoje) {
             $chave = $this->chave($c->supplier);
+            $chaveEmpresa = $this->chaveEmpresa($c->empresa);
 
             return [
                 'compra' => $c,
                 'chave' => $chave,
                 'fornecedor' => $nomes[$chave],
+                'empresa' => $nomesEmpresa[$chaveEmpresa],
+                'empresa_chave' => $chaveEmpresa,
             ] + $this->situacao($c, $hoje) + [
                 'ultimo_pagamento' => $c->pagamentos->max('data_pagamento'),
             ];
@@ -174,13 +201,46 @@ class SaldoFornecedores
     }
 
     /**
-     * As compras de um fornecedor, com o que já foi pago e o que falta.
+     * Uma linha por empresa que comprou, com quantas compras e quanto ainda falta pagar (as sem empresa por último).
+     *
+     * @return Collection<int, array{chave: string, nome: string, compras: int, saldo: float}>
+     */
+    public function empresas(Collection $linhas): Collection
+    {
+        return $linhas
+            ->groupBy('empresa_chave')
+            ->map(fn (Collection $grupo, $chave) => [
+                'chave' => (string) $chave,
+                'nome' => $grupo->first()['empresa'] ?? 'Não informada',
+                'compras' => $grupo->count(),
+                'saldo' => round($grupo->sum('aberto'), 2),
+            ])
+            ->sortBy(fn ($e) => [$e['chave'] === self::SEM_EMPRESA ? 1 : 0, -$e['saldo'], $e['nome']])
+            ->values();
+    }
+
+    /** Só as compras da empresa escolhida (a chave vem da tela). Sem escolha, devolve tudo. */
+    public function somenteEmpresa(Collection $linhas, ?string $empresa): Collection
+    {
+        $empresa = trim((string) $empresa);
+
+        if ($empresa === '') {
+            return $linhas;
+        }
+
+        $chave = $empresa === self::SEM_EMPRESA ? self::SEM_EMPRESA : $this->chaveEmpresa($empresa);
+
+        return $linhas->where('empresa_chave', $chave)->values();
+    }
+
+    /**
+     * As compras de um fornecedor, com o que já foi pago e o que falta (de uma empresa só, se for pedido).
      *
      * @return Collection<int, array{compra: PurchaseRequest, custo: float, pago: float, aberto: float, situacao: string}>
      */
-    public function comprasDoFornecedor(string $chave): Collection
+    public function comprasDoFornecedor(string $chave, ?string $empresa = null, ?Collection $linhas = null): Collection
     {
-        return $this->linhas()
+        return $this->somenteEmpresa($linhas ?? $this->linhas(), $empresa)
             ->where('chave', $chave)
             ->sortByDesc(fn (array $l) => $l['compra']->data_compra?->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
             ->values();
