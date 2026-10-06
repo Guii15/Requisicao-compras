@@ -77,7 +77,8 @@
         html.dark [style*="border-bottom:1px solid #f1f5f9"], html.dark [style*="border-bottom:1px solid #e2e8f0"],
         html.dark [style*="border-top:1px solid #f3f4f6"], html.dark [style*="border-top:1px solid #e5e7eb"],
         html.dark .border-gray-200, html.dark .divide-gray-100 { border-color: var(--sl-line) !important; }
-        html.dark [style*="border:1px solid #cbd5e1"], html.dark [style*="border:1px solid #d1d5db"] { border-color: var(--sl-line-2) !important; }
+        html.dark [style*="border:1px solid #cbd5e1"]:not([style*="border-left:6px"]), html.dark [style*="border:1px solid #d1d5db"]:not([style*="border-left:6px"]) { border-color: var(--sl-line-2) !important; }
+        html.dark [style*="border:1px solid #cbd5e1"][style*="border-left:6px"] { border-top-color: var(--sl-line-2) !important; border-right-color: var(--sl-line-2) !important; border-bottom-color: var(--sl-line-2) !important; }
         html.dark [style*="box-shadow"] { box-shadow: none !important; }
 
         /* Campos */
@@ -85,12 +86,15 @@
         html.dark input[type="password"], html.dark input[type="number"], html.dark input[type="url"],
         html.dark textarea, html.dark select, html.dark .cr-input {
             background-color: var(--sl-panel) !important; color: var(--sl-bone) !important;
-            border-color: var(--sl-line-2) !important; border-radius: 8px;
+            border-top-color: var(--sl-line-2) !important; border-right-color: var(--sl-line-2) !important; border-bottom-color: var(--sl-line-2) !important; border-radius: 8px;
         }
+        /* A borda esquerda só recebe a cor do tema se o campo não declarar tarja de status (border-left:6px) */
+        html.dark :is(input[type="text"], input[type="date"], input[type="email"], input[type="password"], input[type="number"], input[type="url"], textarea, select, .cr-input):not([style*="border-left:6px"]) { border-left-color: var(--sl-line-2) !important; }
         html.dark input::placeholder, html.dark textarea::placeholder { color: var(--sl-steel) !important; }
         html.dark .cr-input:focus, html.dark input:focus, html.dark textarea:focus, html.dark select:focus {
-            border-color: var(--sl-steel) !important; box-shadow: 0 0 0 1px var(--sl-steel) !important; outline: none;
+            border-top-color: var(--sl-steel) !important; border-right-color: var(--sl-steel) !important; border-bottom-color: var(--sl-steel) !important; box-shadow: 0 0 0 1px var(--sl-steel) !important; outline: none;
         }
+        html.dark :is(input[type="text"], input[type="date"], input[type="email"], input[type="password"], input[type="number"], input[type="url"], textarea, select, .cr-input):focus:not([style*="border-left:6px"]) { border-left-color: var(--sl-steel) !important; }
 
         /* Status: sem preenchimento saturado — fundo translúcido, tom dessaturado, borda fina */
         html.dark [style*="background:#dcfce7"], html.dark [style*="background:#f0fdf4"], html.dark [style*="background:#d1fae5"] { background: rgba(134,211,160,.08) !important; box-shadow: inset 0 0 0 1px rgba(134,211,160,.28) !important; }
@@ -165,10 +169,12 @@
         /* Campos */
         html:not(.dark) input[type="text"], html:not(.dark) input[type="date"], html:not(.dark) input[type="email"],
         html:not(.dark) input[type="password"], html:not(.dark) input[type="number"], html:not(.dark) input[type="url"],
-        html:not(.dark) textarea, html:not(.dark) select, html:not(.dark) .cr-input { border-color: #d4d4da !important; border-radius: 8px; }
+        html:not(.dark) textarea, html:not(.dark) select, html:not(.dark) .cr-input { border-top-color: #d4d4da !important; border-right-color: #d4d4da !important; border-bottom-color: #d4d4da !important; border-radius: 8px; }
+        html:not(.dark) :is(input[type="text"], input[type="date"], input[type="email"], input[type="password"], input[type="number"], input[type="url"], textarea, select, .cr-input):not([style*="border-left:6px"]) { border-left-color: #d4d4da !important; }
         html:not(.dark) .cr-input:focus, html:not(.dark) input:focus, html:not(.dark) textarea:focus, html:not(.dark) select:focus {
-            border-color: #121317 !important; box-shadow: 0 0 0 1px #121317 !important; outline: none;
+            border-top-color: #121317 !important; border-right-color: #121317 !important; border-bottom-color: #121317 !important; box-shadow: 0 0 0 1px #121317 !important; outline: none;
         }
+        html:not(.dark) :is(input[type="text"], input[type="date"], input[type="email"], input[type="password"], input[type="number"], input[type="url"], textarea, select, .cr-input):focus:not([style*="border-left:6px"]) { border-left-color: #121317 !important; }
 
         /* Cabeçalhos de tabela em degradê azul → painel claro com texto discreto */
         html:not(.dark) tr[style*="linear-gradient"], html:not(.dark) thead[style*="linear-gradient"],
