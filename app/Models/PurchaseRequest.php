@@ -100,6 +100,7 @@ class PurchaseRequest extends Model
         'preco_unitario',
         'preco_caixa',
         'codigo_fornecedor',
+        'empresa_compradora',
         'atraso',
         'pedido_compra_path',
         'pedido_compra_nome',

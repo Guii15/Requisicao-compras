@@ -76,7 +76,7 @@ class PushGatilhosTest extends TestCase
 
     private function adminMuda(PurchaseRequest $item, string $status)
     {
-        return $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => $status]);
+        return $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => $status, 'empresa_compradora' => 'Binário']);
     }
 
     public function test_aprovar_avisa_a_conferencia_e_a_entrada_que_tambem_confere(): void

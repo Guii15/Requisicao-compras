@@ -24,6 +24,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'            => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'supplier'          => 'kabum',
             'codigo_fornecedor' => 'FORN-123',
             'preco_unitario'    => '1.250,50',
@@ -46,6 +47,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'      => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'supplier'    => 'kabum',
             'data_coleta' => '2026-09-22',
         ]);
@@ -59,6 +61,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'   => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'supplier' => 'kabum',
         ]);
 
@@ -71,6 +74,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'         => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'supplier'       => 'kabum',
             'preco_unitario' => '10,00',
             'preco_caixa'    => '50,00',
@@ -89,6 +93,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'   => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'supplier' => 'kabum',
             'valor'    => 'abc',
         ])->assertSessionHasErrors('valor');
@@ -101,6 +106,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'        => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'pedido_compra' => UploadedFile::fake()->create('pedido 4512.pdf', 200, 'application/pdf'),
         ]);
 
@@ -123,6 +129,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status' => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'anexo'  => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
         ]);
 
@@ -146,12 +153,14 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($admin)->patch(route('admin.requests.update', $item), [
             'status'        => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'pedido_compra' => UploadedFile::fake()->create('antigo.pdf', 10, 'application/pdf'),
         ]);
         $caminhoAntigo = $item->refresh()->pedido_compra_path;
 
         $this->actingAs($admin)->patch(route('admin.requests.update', $item), [
             'status'        => 'aprovado',
+            'empresa_compradora' => 'Binário',
             'pedido_compra' => UploadedFile::fake()->create('novo.pdf', 10, 'application/pdf'),
         ]);
 

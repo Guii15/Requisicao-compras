@@ -242,7 +242,7 @@ class RecebimentoParcialTest extends TestCase
         $this->assertSame('pedidos-compra/pedido-original.pdf', $filho->pedido_compra_path);
 
         $this->actingAs($admin)->patch(route('admin.requests.update', $filho), [
-            'status' => 'aprovado', 'pedido_compra' => UploadedFile::fake()->create('novo.pdf', 10, 'application/pdf'),
+            'status' => 'aprovado', 'empresa_compradora' => 'Binário', 'pedido_compra' => UploadedFile::fake()->create('novo.pdf', 10, 'application/pdf'),
         ])->assertSessionHasNoErrors();
 
         $this->assertNotSame('pedidos-compra/pedido-original.pdf', $filho->fresh()->pedido_compra_path);

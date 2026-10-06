@@ -124,7 +124,7 @@ class CondicaoPagamentoTest extends TestCase
     {
         $item = PurchaseRequest::factory()->create(['status' => 'pendente']);
 
-        $this->actingAs($this->comprador)->patch(route('admin.requests.update', $item), ['status' => 'aprovado', 'condicao_pagamento' => 'parcelado', 'parcelas' => '4', 'primeiro_vencimento' => '2026-11-05'])
+        $this->actingAs($this->comprador)->patch(route('admin.requests.update', $item), ['status' => 'aprovado', 'empresa_compradora' => 'Binário', 'condicao_pagamento' => 'parcelado', 'parcelas' => '4', 'primeiro_vencimento' => '2026-11-05'])
             ->assertSessionHasNoErrors();
         $this->assertSame(4, $item->fresh()->parcelas);
 
