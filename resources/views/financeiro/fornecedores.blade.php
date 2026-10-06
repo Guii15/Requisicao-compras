@@ -11,6 +11,7 @@
     </div>
 
     @include('financeiro._abas')
+    @include('financeiro._filtro-empresa')
 
     @if(session('success'))
         <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">✓ {{ session('success') }}</div>
@@ -36,6 +37,7 @@
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route('financeiro.fornecedores') }}" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
+            @if(request('empresa'))<input type="hidden" name="empresa" value="{{ request('empresa') }}">@endif
             <div style="flex:1; min-width:200px;">
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Fornecedor</label>
                 <input type="text" name="q" value="{{ $q }}" placeholder="Buscar fornecedor..."
@@ -43,7 +45,7 @@
             </div>
             <button type="submit" style="padding:8px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Buscar</button>
             @if($q !== '')
-                <a href="{{ route('financeiro.fornecedores') }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px;">Limpar</a>
+                <a href="{{ route('financeiro.fornecedores', array_filter(['empresa' => request('empresa')])) }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px;">Limpar</a>
             @endif
         </form>
     </div>
@@ -69,7 +71,7 @@
                         <td style="padding:12px 14px; text-align:right; white-space:nowrap; color:#16a34a;">{{ Dinheiro::brl($f['pago']) }}</td>
                         <td style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700; color:{{ $f['saldo'] > 0 ? '#dc2626' : '#16a34a' }};">{{ Dinheiro::brl($f['saldo']) }}</td>
                         <td style="padding:12px 14px; text-align:center;">
-                            <a href="{{ route('financeiro.fornecedor', $f['chave']) }}"
+                            <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $f['chave'], 'empresa' => request('empresa')])) }}"
                                style="background:#05018D; color:#fff; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; text-decoration:none;">Abrir</a>
                         </td>
                     </tr>
@@ -84,7 +86,7 @@
         @forelse($fornecedores as $f)
             <x-mobile-card :titulo="$f['nome']" :campos="['Compras' => $f['compras'], 'Comprado' => Dinheiro::brl($f['comprado']), 'Pago' => Dinheiro::brl($f['pago']), 'Saldo devedor' => Dinheiro::brl($f['saldo'])]">
                 <x-slot:acao>
-                    <a href="{{ route('financeiro.fornecedor', $f['chave']) }}"
+                    <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $f['chave'], 'empresa' => request('empresa')])) }}"
                        style="background:#05018D; color:#fff; border-radius:8px; padding:8px 18px; font-size:14px; font-weight:600; text-decoration:none;">Abrir</a>
                 </x-slot:acao>
             </x-mobile-card>

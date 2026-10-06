@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Listagem usa a largura toda da tela (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 
 <div style="padding: 8px 0;">
@@ -133,11 +136,11 @@
                     $rotuloGrupoHist = 'Parcial';
                 }
                 $corsGrupoHist = [
-                    'aprovado'  => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                    'rejeitado' => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
-                    'cotacao'   => ['barra' => '#d97706', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                    'pendente'  => ['barra' => '#d97706', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                    'parcial'   => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                    'aprovado'  => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
+                    'rejeitado' => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
+                    'cotacao'   => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                    'pendente'  => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                    'parcial'   => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                 ][$tipoChaveHist] ?? ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'];
                 $produtosResumoHist = $grupo->pluck('product_name')->filter()->implode(', ');
                 if (mb_strlen($produtosResumoHist) > 60) {

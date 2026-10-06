@@ -1,470 +1,361 @@
 @extends('layouts.app')
 
-@section('fullcontent')
+@section('content')
 
 <style>
-.cr-wrapper {
-    min-height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: row;
+.cr-container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 12px 16px 40px;
 }
-.cr-left {
-    width: 42%;
-    background: #05018D;
+.cr-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+}
+.cr-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 16px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
-    padding: 48px 48px 40px;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
+    gap: 8px;
 }
-.cr-left-inner {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    color: #fff;
-    max-width: 320px;
+.cr-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+.cr-input {
     width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    color: #0f172a;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
 }
-.cr-left-desc { display: block; }
-.cr-left-divider { display: block; }
-.cr-right {
-    flex: 1;
-    background: #f8fafc;
-    display: flex;
-    align-items: stretch;
-    overflow: hidden;
-    min-width: 0;
+.cr-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
-.cr-form-col {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 40px 32px;
-    min-width: 0;
-}
-.cr-history-col {
-    width: 260px;
-    border-left: 2px solid #e5e7eb;
-    background: #f8fafc;
-    overflow-y: auto;
-    padding: 28px 18px;
-    flex-shrink: 0;
-}
-
-@media (max-width: 600px) {
-    .prod-add-row { grid-template-columns: 80px 1fr 60px !important; }
-    .add-btn-full { grid-column: 1 / -1; width: 100%; }
-    .prod-list-header, .prod-list-row { grid-template-columns: 1fr 50px 36px 36px !important; }
-    .col-code { display: none !important; }
-}
-
+html.dark .cr-card { background: var(--sl-card); border-color: var(--sl-line); }
+html.dark .cr-section-title { color: var(--sl-bone); }
+html.dark .cr-section-title > span { background: var(--sl-panel) !important; color: var(--sl-fog) !important; }
+html.dark .cr-field-label { color: var(--sl-fog); }
 @media (max-width: 768px) {
-    .cr-wrapper { flex-direction: column; }
-
-    .cr-left {
-        width: 100%;
-        padding: 20px 24px;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        flex-shrink: 0;
-    }
-    .cr-left-inner {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 16px;
-        text-align: left;
-        max-width: 100%;
-    }
-    .cr-left-inner h1 { font-size: 16px !important; margin: 0 !important; }
-    .cr-left-inner img { max-width: 90px !important; max-height: 40px !important; margin: 0 !important; }
-    .cr-left-desc { display: none; }
-    .cr-left-divider { display: none; }
-    .cr-stats { gap: 16px !important; }
-    .cr-stats p:first-child { font-size: 18px !important; }
-    .cr-circles { display: none; }
-
-    .cr-right { flex-direction: column; overflow: visible; }
-
-    .cr-form-col {
-        padding: 24px 16px;
-        overflow-y: visible;
-    }
-
-    .cr-history-col {
-        width: 100%;
-        border-left: none;
-        border-top: 2px solid #e5e7eb;
-        padding: 20px 16px;
-    }
+    .cr-grid-main { grid-template-columns: 1fr !important; }
+    .cr-prod-form { grid-template-columns: 1fr !important; }
+    .cr-prod-row { grid-template-columns: 1fr 60px 40px 40px !important; }
+    .col-code { display: none !important; }
 }
 </style>
 
-<div class="cr-wrapper">
+<div class="cr-container">
 
-    {{-- ESQUERDA: Painel da marca --}}
-    <div class="cr-left">
+    {{-- Topo sóbrio --}}
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <a href="{{ auth()->user()->isVendedor() ? route('requests.index') : route('admin.index') }}" style="color:#64748b; text-decoration:none; font-size:13px;">
+                    ← Voltar
+                </a>
+            </div>
+            <h1 style="margin:4px 0 0; font-size:22px; font-weight:700; color:#0f172a;">Nova Requisição de Compra</h1>
+            <p style="margin:2px 0 0; font-size:13px; color:#64748b;">Preencha os dados e produtos que necessitam de cotação ou compra.</p>
+        </div>
 
-        {{-- Círculos decorativos --}}
-        <div class="cr-circles" style="position:absolute; bottom:-100px; right:-100px; width:380px; height:380px; border-radius:50%; background:rgba(180,0,0,0.18); pointer-events:none;"></div>
-        <div class="cr-circles" style="position:absolute; top:-80px; left:-80px; width:280px; height:280px; border-radius:50%; background:rgba(255,255,255,0.04); pointer-events:none;"></div>
+        {{-- Resumo rápido discreto --}}
+        <div style="display:flex; gap:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 14px;">
+            <div style="text-align:right;">
+                <span style="font-size:11px; color:#64748b; text-transform:uppercase;">Minhas Requisições</span>
+                <div style="font-size:13px; font-weight:700; color:#0f172a;">{{ $stats['total'] }} total · <span style="color:#d97706;">{{ $stats['pendente'] }} pendentes</span></div>
+            </div>
+        </div>
+    </div>
 
-        <div class="cr-left-inner">
+    @if ($errors->any())
+        <div style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:13px;">
+            <strong style="display:block; margin-bottom:4px;">Verifique os erros abaixo:</strong>
+            <ul style="margin:0; padding-left:18px;">
+                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>
+        </div>
+    @endif
 
-            {{-- Logo ou ícone --}}
-            @if(file_exists(public_path('images/logo.png')))
-                <img src="{{ asset('images/logo.png') }}" alt="Binário" style="max-width:200px; max-height:90px; object-fit:contain; margin:0 auto 28px; display:block;">
-            @elseif(file_exists(public_path('imagens/logo.png')))
-                <img src="{{ asset('imagens/logo.png') }}" alt="Binário" style="max-width:200px; max-height:90px; object-fit:contain; margin:0 auto 28px; display:block;">
-            @else
-                <div style="width:64px; height:64px; background:rgba(255,255,255,0.12); border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
+    <form action="{{ route('requests.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+
+        {{-- 1. Dados da Solicitação --}}
+        <div class="cr-card">
+            <div class="cr-section-title">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#f1f5f9; color:#475569; font-size:11px;">1</span>
+                Informações da Requisição
+            </div>
+
+            <div class="cr-grid-main" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; margin-bottom:14px;">
+                <div>
+                    <label class="cr-field-label">Vendedor Solicitante <span style="color:#dc2626;">*</span></label>
+                    <input type="text" name="requester_name" value="{{ old('requester_name', auth()->user()->name) }}" required class="cr-input">
                 </div>
-            @endif
+
+                <div>
+                    <label class="cr-field-label">Fornecedor Sugerido <span style="font-weight:400; color:#94a3b8;">(opcional)</span></label>
+                    <input type="text" name="supplier" value="{{ old('supplier') }}" placeholder="Ex: Bomvink, GPJ..." class="cr-input">
+                </div>
+
+                <div>
+                    <label class="cr-field-label">Prioridade / Urgência <span style="color:#dc2626;">*</span></label>
+                    <select name="urgency" required class="cr-input">
+                        <option value="">Selecione...</option>
+                        <option value="baixa" {{ old('urgency')=='baixa' ? 'selected' : '' }}>Baixa (Reposição normal)</option>
+                        <option value="media" {{ old('urgency')=='media' ? 'selected' : '' }}>Média (Estoque baixo)</option>
+                        <option value="alta"  {{ old('urgency')=='alta'  ? 'selected' : '' }}>Alta (Cliente aguardando / Crítico)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="cr-grid-main" style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+                <div>
+                    <label class="cr-field-label">Motivo da Solicitação <span style="color:#dc2626;">*</span></label>
+                    <input type="text" name="reason" value="{{ old('reason') }}" required placeholder="Ex: Reposição de estoque, pedido especial de cliente..." class="cr-input">
+                </div>
+
+                <div>
+                    <label class="cr-field-label">Tipo de Entrega <span style="color:#dc2626;">*</span></label>
+                    <select name="tipo_entrega" required class="cr-input">
+                        <option value="estoque" {{ old('tipo_entrega', 'estoque')=='estoque' ? 'selected' : '' }}>Estoque (Centro de Distribuição)</option>
+                        <option value="entrega_direta" {{ old('tipo_entrega')=='entrega_direta' ? 'selected' : '' }}>Venda Casada (Direto ao cliente)</option>
+                    </select>
+                </div>
+            </div>
 
             <div>
-                <h1 style="font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-0.5px; color:#fff;">Requisição<br>de Compras</h1>
-                <p class="cr-left-desc" style="font-size:14px; color:rgba(255,255,255,0.6); line-height:1.7; margin:0 0 40px;">
-                    Solicite produtos ao setor de compras de forma rápida e organizada.
-                </p>
+                <label class="cr-field-label">
+                    Observações e Instruções da Compra <span style="color:#dc2626;">*</span>
+                    <span style="font-weight:400; color:#94a3b8;">(especifique filial 1 ou 31, dados do pedido ou detalhes importantes)</span>
+                </label>
+                <textarea name="justification" rows="2" required placeholder="Ex: Filial 31; cliente tem pressa na liberação; faturar junto com pedido X..."
+                          class="cr-input" style="resize:vertical; font-family:inherit;">{{ old('justification') }}</textarea>
+            </div>
+        </div>
 
-                {{-- Linha divisória --}}
-                <div class="cr-left-divider" style="width:48px; height:3px; background:linear-gradient(90deg,#fff,#b40000); border-radius:2px; margin:0 auto 32px;"></div>
-
-                {{-- Stats --}}
-                <div class="cr-stats" style="display:flex; gap:24px; justify-content:center;">
-                    <div style="text-align:center;">
-                        <p style="margin:0; font-size:26px; font-weight:800; color:#fff;">{{ $stats['total'] }}</p>
-                        <p style="margin:4px 0 0; font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px;">Total</p>
-                    </div>
-                    <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
-                    <div style="text-align:center;">
-                        <p style="margin:0; font-size:26px; font-weight:800; color:#fbbf24;">{{ $stats['pendente'] }}</p>
-                        <p style="margin:4px 0 0; font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px;">Pendentes</p>
-                    </div>
-                    <div style="width:1px; background:rgba(255,255,255,0.15);"></div>
-                    <div style="text-align:center;">
-                        <p style="margin:0; font-size:26px; font-weight:800; color:#4ade80;">{{ $stats['aprovado'] }}</p>
-                        <p style="margin:4px 0 0; font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px;">Aprovadas</p>
-                    </div>
-                </div>
+        {{-- 2. Itens Solicitados --}}
+        <div class="cr-card">
+            <div class="cr-section-title">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#f1f5f9; color:#475569; font-size:11px;">2</span>
+                Itens da Requisição
             </div>
 
-        </div>
-    </div>
-
-    {{-- DIREITA: Formulário + Histórico --}}
-    <div class="cr-right">
-
-        {{-- Coluna do formulário --}}
-        <div class="cr-form-col">
-            <div style="width:100%; max-width:520px;">
-
-                <h2 style="font-size:20px; font-weight:700; color:#05018D; margin:0 0 4px;">Nova Requisição</h2>
-                <p style="font-size:13px; color:#9ca3af; margin:0 0 24px;">Preencha os campos abaixo para enviar ao setor de compras</p>
-
-                @if ($errors->any())
-                    <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:11px 15px; border-radius:8px; margin-bottom:18px; font-size:13px;">
-                        <ul style="margin:0; padding-left:18px;">
-                            @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-                        </ul>
+            {{-- Formulário de adicionar item --}}
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:16px;">
+                <div class="cr-prod-form" style="display:grid; grid-template-columns: 130px 1fr 90px auto; gap:10px; align-items:end;">
+                    <div>
+                        <label class="cr-field-label" style="font-size:11px;">Código</label>
+                        <input type="text" id="inp-code" placeholder="Ex: 10423" class="cr-input">
                     </div>
-                @endif
-
-                <form action="{{ route('requests.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-
-                    @php
-                    $inputStyle = "width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 13px; font-size:14px; color:#374151; box-sizing:border-box; outline:none; background:#fff;";
-                    $labelStyle = "display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;";
-                    @endphp
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;">
-
-                        <div style="grid-column:1/-1;">
-                            <label style="{{ $labelStyle }}">Nome do Vendedor <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="requester_name" value="{{ old('requester_name', auth()->user()->name) }}" required
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                        </div>
-
-                        <div>
-                            <label style="{{ $labelStyle }}">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional)</span></label>
-                            <input type="text" name="supplier" value="{{ old('supplier') }}" placeholder="Ex: Bomvink, GPJ..."
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                        </div>
-
-                        <div>
-                            <label style="{{ $labelStyle }}">Urgência <span style="color:#ef4444;">*</span></label>
-                            <select name="urgency" required style="{{ $inputStyle }}"
-                                    onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                                <option value="">Selecione...</option>
-                                <option value="baixa" {{ old('urgency')=='baixa' ? 'selected' : '' }}>🟢 Baixa</option>
-                                <option value="media" {{ old('urgency')=='media' ? 'selected' : '' }}>🟡 Média</option>
-                                <option value="alta"  {{ old('urgency')=='alta'  ? 'selected' : '' }}>🔴 Alta</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label style="{{ $labelStyle }}">Motivo <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="reason" value="{{ old('reason') }}" required placeholder="Ex: Reposição de estoque"
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                        </div>
-
-                        <div>
-                            <label style="{{ $labelStyle }}">Tipo de Entrega <span style="color:#ef4444;">*</span></label>
-                            <select name="tipo_entrega" required style="{{ $inputStyle }}"
-                                    onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                                <option value="estoque" {{ old('tipo_entrega', 'estoque')=='estoque' ? 'selected' : '' }}>Estoque (CD)</option>
-                                <option value="entrega_direta" {{ old('tipo_entrega')=='entrega_direta' ? 'selected' : '' }}>Venda Casada</option>
-                            </select>
-                        </div>
-
-                        <div style="grid-column:1/-1;">
-                            <label style="{{ $labelStyle }}">Obs <span style="color:#ef4444;">*</span> <span style="color:#9ca3af; font-weight:400; text-transform:none;">(filial 1 ou 31, etc.)</span></label>
-                            <textarea name="justification" rows="2" placeholder="Ex: Filial 31, pedido urgente..." required
-                                      style="{{ $inputStyle }} resize:none; font-family:inherit;"
-                                      onfocus="this.style.borderColor='#05018D'; this.style.boxShadow='0 0 0 3px rgba(5,1,141,0.08)'"
-                                      onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">{{ old('justification') }}</textarea>
-                        </div>
-
+                    <div>
+                        <label class="cr-field-label" style="font-size:11px;">Nome / Descrição do Produto <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="inp-name" placeholder="Nome exato ou especificação" class="cr-input"
+                               onkeydown="if(event.key==='Enter'){event.preventDefault();addItem();}">
                     </div>
-
-                    {{-- Área de adicionar produto --}}
-                    <div style="margin-bottom:8px;">
-                        <label style="{{ $labelStyle }}">Produtos <span style="color:#ef4444;">*</span></label>
-                        <div class="prod-add-row" style="display:grid; grid-template-columns:110px 1fr 90px auto; gap:8px; align-items:center;">
-                            <input type="text" id="inp-code" placeholder="Código"
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
-                            <input type="text" id="inp-name" placeholder="Nome do produto"
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'"
-                                   onkeydown="if(event.key==='Enter'){event.preventDefault();addItem();}">
-                            <input type="number" id="inp-qty" placeholder="Qtd" min="1" value="1"
-                                   style="{{ $inputStyle }} text-align:center;"
-                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
-                            <button type="button" onclick="addItem()" class="add-btn-full"
-                                    style="padding:10px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">
-                                + Adicionar
-                            </button>
-                        </div>
-                        <div style="margin-top:8px;">
-                            <input type="url" id="inp-url" placeholder="Link do produto (opcional) — ex: https://mercadolivre.com.br/..."
-                                   style="{{ $inputStyle }}"
-                                   onfocus="this.style.borderColor='#05018D'" onblur="this.style.borderColor='#e5e7eb'">
-                        </div>
-                        <div style="margin-top:8px;">
-                            <label style="{{ $labelStyle }} margin-bottom:3px;">Anexo deste item <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — orçamento, print, cotação... PDF ou imagem)</span></label>
-                            <input type="file" id="inp-anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
-                        </div>
+                    <div>
+                        <label class="cr-field-label" style="font-size:11px;">Quantidade</label>
+                        <input type="number" id="inp-qty" min="1" value="1" class="cr-input" style="text-align:center;">
                     </div>
-
-                    {{-- Lista de produtos adicionados --}}
-                    <div id="products-list" style="background:#f8fafc; border:1.5px solid #e5e7eb; border-radius:8px; overflow:hidden; margin-bottom:20px; min-height:48px;">
-                        <div class="prod-list-header" style="display:grid; grid-template-columns:110px 1fr 60px 36px 36px; background:#05018D; padding:8px 12px;">
-                            <span class="col-code" style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Código</span>
-                            <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase;">Produto</span>
-                            <span style="font-size:11px; font-weight:700; color:#fff; text-transform:uppercase; text-align:center;">Qtd</span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                        <div id="products-body">
-                            <div id="empty-msg" style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">
-                                Nenhum produto adicionado ainda
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Hidden inputs gerados por JS --}}
-                    <div id="hidden-inputs"></div>
-
-                    <script>
-                    let items = [];
-
-                    function addItem() {
-                        const code = document.getElementById('inp-code').value.trim();
-                        const name = document.getElementById('inp-name').value.trim();
-                        const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
-                        let url = document.getElementById('inp-url').value.trim();
-                        if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-                        const anexoInput = document.getElementById('inp-anexo');
-                        const anexoFile = anexoInput.files[0] || null;
-
-                        if (!name) {
-                            document.getElementById('inp-name').style.borderColor = '#ef4444';
-                            document.getElementById('inp-name').focus();
-                            return;
-                        }
-
-                        items.push({ code, name, qty, url, anexoFile });
-                        renderList();
-
-                        document.getElementById('inp-code').value = '';
-                        document.getElementById('inp-name').value = '';
-                        document.getElementById('inp-qty').value  = '1';
-                        document.getElementById('inp-url').value  = '';
-                        anexoInput.value = '';
-                        document.getElementById('inp-code').focus();
-                    }
-
-                    function removeItem(index) {
-                        items.splice(index, 1);
-                        renderList();
-                    }
-
-                    function editItem(index) {
-                        const item = items[index];
-                        document.getElementById('inp-code').value = item.code;
-                        document.getElementById('inp-name').value = item.name;
-                        document.getElementById('inp-qty').value  = item.qty;
-                        document.getElementById('inp-url').value  = item.url || '';
-
-                        const anexoInput = document.getElementById('inp-anexo');
-                        anexoInput.value = '';
-                        if (item.anexoFile) {
-                            const dt = new DataTransfer();
-                            dt.items.add(item.anexoFile);
-                            anexoInput.files = dt.files;
-                        }
-
-                        items.splice(index, 1);
-                        renderList();
-                        document.getElementById('inp-name').focus();
-                    }
-
-                    function renderList() {
-                        const body   = document.getElementById('products-body');
-                        const hidden = document.getElementById('hidden-inputs');
-
-                        body.innerHTML = '';
-                        hidden.innerHTML = '';
-
-                        if (items.length === 0) {
-                            body.innerHTML = '<div id="empty-msg" style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">Nenhum produto adicionado ainda</div>';
-                            return;
-                        }
-
-                        items.forEach((item, i) => {
-                            const row = document.createElement('div');
-                            row.className = 'prod-list-row';
-                            row.style.cssText = 'display:grid; grid-template-columns:110px 1fr 60px 36px 36px; border-bottom:1px solid #f1f5f9; background:' + (i%2===0?'#fff':'#fafafa') + ';';
-                            row.innerHTML = `
-                                <span class="col-code" style="padding:9px 12px; font-size:13px; color:#6b7280;">${item.code || '—'}</span>
-                                <span style="padding:9px 12px; font-size:13px; font-weight:500; color:#374151;">${item.name}${item.anexoFile ? ' <span title="' + item.anexoFile.name + '" style="color:#05018D;">📎</span>' : ''}</span>
-                                <span style="padding:9px 12px; font-size:13px; text-align:center; font-weight:700; color:#374151;">${item.qty}</span>
-                                <button type="button" onclick="editItem(${i})" title="Editar" style="border:none; background:transparent; color:#6b7280; font-size:14px; cursor:pointer; padding:0 8px;">✏️</button>
-                                <button type="button" onclick="removeItem(${i})" title="Remover" style="border:none; background:transparent; color:#d1d5db; font-size:18px; cursor:pointer; padding:0 8px;">×</button>
-                            `;
-                            body.appendChild(row);
-
-                            const inpCode = document.createElement('input');
-                            inpCode.type = 'hidden';
-                            inpCode.name = `products[${i}][product_code]`;
-                            inpCode.value = item.code;
-                            hidden.appendChild(inpCode);
-
-                            const inpName = document.createElement('input');
-                            inpName.type = 'hidden';
-                            inpName.name = `products[${i}][product_name]`;
-                            inpName.value = item.name;
-                            hidden.appendChild(inpName);
-
-                            const inpQty = document.createElement('input');
-                            inpQty.type = 'hidden';
-                            inpQty.name = `products[${i}][quantity]`;
-                            inpQty.value = item.qty;
-                            hidden.appendChild(inpQty);
-
-                            if (item.url) {
-                                const inpUrl = document.createElement('input');
-                                inpUrl.type = 'hidden';
-                                inpUrl.name = `products[${i}][product_url]`;
-                                inpUrl.value = item.url;
-                                hidden.appendChild(inpUrl);
-                            }
-
-                            if (item.anexoFile) {
-                                const inpAnexo = document.createElement('input');
-                                inpAnexo.type = 'file';
-                                inpAnexo.name = `products[${i}][anexo]`;
-                                inpAnexo.style.display = 'none';
-                                const dt = new DataTransfer();
-                                dt.items.add(item.anexoFile);
-                                inpAnexo.files = dt.files;
-                                hidden.appendChild(inpAnexo);
-                            }
-                        });
-                    }
-
-                    document.querySelector('form').addEventListener('submit', function(e) {
-                        if (items.length === 0) {
-                            e.preventDefault();
-                            document.getElementById('inp-name').style.borderColor = '#ef4444';
-                            document.getElementById('inp-name').focus();
-                            alert('Adicione pelo menos um produto antes de enviar.');
-                        }
-                    });
-                    </script>
-
-                    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-                        <a href="{{ auth()->user()->isVendedor() ? route('requests.index') : route('admin.index') }}"
-                           style="padding:10px 22px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; text-decoration:none;">
-                            Cancelar
-                        </a>
-                        <button type="submit"
-                                style="padding:10px 28px; border-radius:8px; background:linear-gradient(90deg, #05018D 0%, #b40000 100%); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer; box-shadow:0 3px 12px rgba(5,1,141,0.35);">
-                            Enviar Requisição
+                    <div>
+                        <button type="button" onclick="addItem()"
+                                style="padding:9px 18px; background:#0f172a; color:#ffffff; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <span>+</span> Adicionar Item
                         </button>
                     </div>
-                </form>
-
-            </div>
-        </div>
-
-        {{-- Coluna do histórico (direita) --}}
-        <div class="cr-history-col">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-                <div style="width:3px; height:16px; background:linear-gradient(180deg,#05018D,#b40000); border-radius:2px;"></div>
-                <p style="margin:0; font-size:12px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.5px;">Últimas Requisições</p>
-            </div>
-            @forelse($recentes as $req)
-                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="font-size:13px; font-weight:600; color:#1e3a8a; margin-bottom:6px;">{{ $req->product_name }}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="font-size:12px; color:#6b7280;">Qtd: <strong>{{ $req->quantity }}</strong></span>
-                        <span style="font-size:11px; color:#9ca3af;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
-                    </div>
-                    @if($req->status=='aprovado')
-                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">Aprovado</span>
-                    @elseif($req->status=='rejeitado')
-                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">Rejeitado</span>
-                    @else
-                        <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">Pendente</span>
-                    @endif
                 </div>
-            @empty
-                <p style="font-size:13px; color:#d1d5db; text-align:center; margin-top:40px;">Nenhuma requisição ainda</p>
-            @endforelse
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                    <div>
+                        <label class="cr-field-label" style="font-size:11px;">Link / Referência externa <span style="font-weight:400; color:#94a3b8;">(opcional)</span></label>
+                        <input type="url" id="inp-url" placeholder="https://..." class="cr-input">
+                    </div>
+                    <div>
+                        <label class="cr-field-label" style="font-size:11px;">Anexo / Cotação / Print <span style="font-weight:400; color:#94a3b8;">(PDF ou imagem)</span></label>
+                        <input type="file" id="inp-anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" class="cr-input" style="padding:6px;">
+                    </div>
+                </div>
+            </div>
+
+            {{-- Tabela de produtos adicionados --}}
+            <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+                <div style="display:grid; grid-template-columns:120px 1fr 80px 44px 44px; background:#f1f5f9; border-bottom:1px solid #e2e8f0; padding:9px 14px; font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">
+                    <span class="col-code">Código</span>
+                    <span>Item</span>
+                    <span style="text-align:center;">Qtd</span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div id="products-body">
+                    <div id="empty-msg" style="padding:24px; text-align:center; color:#94a3b8; font-size:13px;">
+                        Nenhum produto adicionado. Preencha os campos acima e clique em <strong>+ Adicionar Item</strong>.
+                    </div>
+                </div>
+            </div>
+
+            {{-- Inputs hidden gerados dinamicamente --}}
+            <div id="hidden-inputs"></div>
         </div>
 
-    </div>
+        {{-- Ações de envio --}}
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <a href="{{ auth()->user()->isVendedor() ? route('requests.index') : route('admin.index') }}"
+               style="padding:10px 20px; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13.5px; font-weight:600; text-decoration:none;">
+                Cancelar
+            </a>
+            <button type="submit"
+                    style="padding:10px 24px; border-radius:6px; background:#2563eb; color:#ffffff; font-size:13.5px; font-weight:600; border:none; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                Enviar Requisição
+            </button>
+        </div>
+    </form>
 
 </div>
+
+<script>
+let items = [];
+
+function addItem() {
+    const code = document.getElementById('inp-code').value.trim();
+    const name = document.getElementById('inp-name').value.trim();
+    const qty  = parseInt(document.getElementById('inp-qty').value) || 1;
+    let url    = document.getElementById('inp-url').value.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const anexoInput = document.getElementById('inp-anexo');
+    const anexoFile = anexoInput.files[0] || null;
+
+    if (!name) {
+        document.getElementById('inp-name').focus();
+        return;
+    }
+
+    items.push({ code, name, qty, url, anexoFile });
+    renderList();
+
+    document.getElementById('inp-code').value = '';
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-qty').value  = '1';
+    document.getElementById('inp-url').value  = '';
+    anexoInput.value = '';
+    document.getElementById('inp-name').focus();
+}
+
+function removeItem(index) {
+    items.splice(index, 1);
+    renderList();
+}
+
+function editItem(index) {
+    const item = items[index];
+    document.getElementById('inp-code').value = item.code;
+    document.getElementById('inp-name').value = item.name;
+    document.getElementById('inp-qty').value  = item.qty;
+    document.getElementById('inp-url').value  = item.url || '';
+
+    const anexoInput = document.getElementById('inp-anexo');
+    anexoInput.value = '';
+    if (item.anexoFile) {
+        const dt = new DataTransfer();
+        dt.items.add(item.anexoFile);
+        anexoInput.files = dt.files;
+    }
+
+    items.splice(index, 1);
+    renderList();
+    document.getElementById('inp-name').focus();
+}
+
+function renderList() {
+    const body   = document.getElementById('products-body');
+    const hidden = document.getElementById('hidden-inputs');
+
+    body.innerHTML = '';
+    hidden.innerHTML = '';
+
+    if (items.length === 0) {
+        body.innerHTML = '<div id="empty-msg" style="padding:24px; text-align:center; color:#94a3b8; font-size:13px;">Nenhum produto adicionado. Preencha os campos acima e clique em <strong>+ Adicionar Item</strong>.</div>';
+        return;
+    }
+
+    items.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'cr-prod-row';
+        row.style.cssText = 'display:grid; grid-template-columns:120px 1fr 80px 44px 44px; align-items:center; border-bottom:1px solid #f1f5f9; padding:8px 14px; background:' + (i % 2 === 0 ? '#ffffff' : '#fafafa') + ';';
+        row.innerHTML = `
+            <span class="col-code" style="font-size:13px; color:#64748b; font-family:monospace;">${item.code || '—'}</span>
+            <div style="font-size:13.5px; color:#0f172a; font-weight:500;">
+                ${item.name}
+                ${item.url ? '<a href="' + item.url + '" target="_blank" style="display:inline-block; margin-left:6px; font-size:11.5px; color:#2563eb; text-decoration:none;">🔗 Link</a>' : ''}
+                ${item.anexoFile ? '<span style="display:inline-block; margin-left:6px; font-size:11.5px; color:#64748b;">📎 ' + item.anexoFile.name + '</span>' : ''}
+            </div>
+            <span style="font-size:13.5px; text-align:center; font-weight:700; color:#0f172a;">${item.qty}</span>
+            <button type="button" onclick="editItem(${i})" title="Editar" style="border:none; background:transparent; color:#64748b; font-size:13px; cursor:pointer; padding:4px;">✏️</button>
+            <button type="button" onclick="removeItem(${i})" title="Remover" style="border:none; background:transparent; color:#94a3b8; font-size:16px; cursor:pointer; padding:4px;">✕</button>
+        `;
+        body.appendChild(row);
+
+        const inpCode = document.createElement('input');
+        inpCode.type = 'hidden';
+        inpCode.name = `products[${i}][product_code]`;
+        inpCode.value = item.code;
+        hidden.appendChild(inpCode);
+
+        const inpName = document.createElement('input');
+        inpName.type = 'hidden';
+        inpName.name = `products[${i}][product_name]`;
+        inpName.value = item.name;
+        hidden.appendChild(inpName);
+
+        const inpQty = document.createElement('input');
+        inpQty.type = 'hidden';
+        inpQty.name = `products[${i}][quantity]`;
+        inpQty.value = item.qty;
+        hidden.appendChild(inpQty);
+
+        if (item.url) {
+            const inpUrl = document.createElement('input');
+            inpUrl.type = 'hidden';
+            inpUrl.name = `products[${i}][product_url]`;
+            inpUrl.value = item.url;
+            hidden.appendChild(inpUrl);
+        }
+
+        if (item.anexoFile) {
+            const inpAnexo = document.createElement('input');
+            inpAnexo.type = 'file';
+            inpAnexo.name = `products[${i}][anexo]`;
+            inpAnexo.style.display = 'none';
+            const dt = new DataTransfer();
+            dt.items.add(item.anexoFile);
+            inpAnexo.files = dt.files;
+            hidden.appendChild(inpAnexo);
+        }
+    });
+}
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (items.length === 0) {
+        e.preventDefault();
+        document.getElementById('inp-name').focus();
+        alert('Adicione pelo menos um item à requisição antes de enviar.');
+    }
+});
+</script>
 
 @endsection

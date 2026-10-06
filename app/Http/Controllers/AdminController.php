@@ -56,7 +56,7 @@ class AdminController extends Controller
         $grupoComItemNaoFinalizado = $this->subqueryGrupoNaoFinalizado();
         $query->whereIn('grupo_id', $grupoComItemNaoFinalizado);
 
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user'])->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'fotosConferencia'])->withQueryString();
 
         $stats = [
             'total'       => PurchaseRequest::count(),
@@ -144,6 +144,7 @@ class AdminController extends Controller
             'preco_caixa'       => 'nullable|numeric|min:0',
             'valor'             => 'nullable|numeric|min:0',
             'data_compra'       => 'nullable|date',
+            'empresa'           => 'nullable|string|max:100',
             'condicao_pagamento' => 'nullable|in:a_vista,parcelado',
             'parcelas'          => 'required_if:condicao_pagamento,parcelado|nullable|integer|min:2|max:36',
             'primeiro_vencimento' => 'nullable|date',
@@ -209,6 +210,11 @@ class AdminController extends Controller
             if ($caminhoAntigo && !$purchaseRequest->arquivoUsadoPorOutro('anexo_path', $caminhoAntigo)) {
                 \App\Support\LixeiraDeArquivos::descartar(self::DISCO_PEDIDO_COMPRA, $caminhoAntigo);
             }
+        }
+
+        // Só mexe na empresa quando o campo veio no envio (formulários antigos não apagam o que já está salvo).
+        if ($request->has('empresa')) {
+            $atualizacao['empresa'] = PurchaseRequest::nomeCanonicoEmpresa($request->empresa);
         }
 
         $jaEstavaAprovado = $purchaseRequest->status === 'aprovado';

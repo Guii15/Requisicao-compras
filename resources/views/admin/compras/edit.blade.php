@@ -93,6 +93,7 @@
                 </div>
 
                 @include('admin._condicao-pagamento', ['item' => $item, 'sufixo' => 'edit', 'modo' => 'pagina', 'obrigatorio' => true])
+                @include('admin._empresa-compra', ['item' => $item, 'modo' => 'pagina'])
 
                 <div style="margin-top:16px;">
                     <label style="{{ $labelStyle }}">Pedido de compra (PDF ou imagem, até 10 MB)</label>

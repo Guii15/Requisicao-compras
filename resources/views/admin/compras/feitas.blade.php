@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Listagem usa a largura toda da tela (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 
 <div style="padding: 8px 0;">
@@ -99,7 +102,7 @@
                                     </div>
                                 </div>
                                 @unless($todosComDados)
-                                    <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDados ? 'Sem dados' : 'Parcial' }}</span>
+                                    <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDados ? 'Sem dados' : 'Parcial' }}</span>
                                 @endunless
                                 <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeita }}')"
                                         style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
@@ -120,7 +123,10 @@
                             @endif
                         </td>
                         <td style="padding:10px 14px;">{{ $item->quantity }}</td>
-                        <td style="padding:10px 14px;">{{ $item->supplier ?: '—' }}</td>
+                        <td style="padding:10px 14px;">
+                            {{ $item->supplier ?: '—' }}
+                            @if($item->empresa)<div style="color:#6b7280; font-size:12px;">Empresa: {{ $item->empresa }}</div>@endif
+                        </td>
                         <td style="padding:10px 14px; white-space:nowrap;">{{ $item->data_compra?->format('d/m/Y') ?? '—' }}</td>
                         <td style="padding:10px 14px; text-align:right; white-space:nowrap;">{{ $item->preco_unitario !== null ? 'R$ ' . number_format($item->preco_unitario, 2, ',', '.') : '—' }}</td>
                         <td style="padding:10px 14px; text-align:right; white-space:nowrap; font-weight:600;">{{ $item->valor ? 'R$ ' . number_format($item->valor, 2, ',', '.') : '—' }}</td>
@@ -144,7 +150,7 @@
                     @if($item->obs)
                     <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6; background:#f9fafb;">
                         <td colspan="11" style="padding:12px 14px;">
-                            <div style="padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                            <div style="padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                                 <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                                 <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $item->obs }}</div>
                             </div>
@@ -186,7 +192,7 @@
                 <div class="m-card-topo">
                     <div class="m-card-titulo">Requisição #{{ $primeiroFeitaM->id }}</div>
                     @unless($todosComDadosM)
-                        <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDadosM ? 'Sem dados' : 'Parcial' }}</span>
+                        <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDadosM ? 'Sem dados' : 'Parcial' }}</span>
                     @endunless
                 </div>
                 <div style="font-size:13px; color:#6b7280;">{{ $primeiroFeitaM->requester_name ?? 'Não informado' }} · {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>

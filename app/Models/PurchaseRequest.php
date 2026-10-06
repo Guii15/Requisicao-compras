@@ -50,6 +50,46 @@ class PurchaseRequest extends Model
             ->where(fn ($q) => $q->whereNull('approved_at')->orWhere('approved_at', '<', self::inicioComprasFeitas()));
     }
 
+    /** Empresa que sempre aparece nas sugestões do campo "Empresa que fez a compra". */
+    public const EMPRESAS_PADRAO = ['Binário'];
+
+    /** Empresas já usadas nas compras (mais a padrão), sem repetir o mesmo nome escrito de formas diferentes. */
+    public static function empresasUsadas(): array
+    {
+        $usadas = static::query()->whereNotNull('empresa')->where('empresa', '!=', '')->distinct()->pluck('empresa')->all();
+        sort($usadas, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $lista = [];
+        foreach (array_merge(self::EMPRESAS_PADRAO, $usadas) as $nome) {
+            $chave = \App\Support\RankingPorNome::chave($nome);
+            if ($chave !== '' && !isset($lista[$chave])) {
+                $lista[$chave] = $nome;
+            }
+        }
+
+        return array_values($lista);
+    }
+
+    /** Limpa o que foi digitado e reaproveita a grafia da empresa que já existe ("binario" vira "Binário"). */
+    public static function nomeCanonicoEmpresa(?string $digitado): ?string
+    {
+        $nome = trim(preg_replace('/\s+/u', ' ', (string) $digitado));
+
+        if ($nome === '') {
+            return null;
+        }
+
+        $chave = \App\Support\RankingPorNome::chave($nome);
+
+        foreach (self::empresasUsadas() as $existente) {
+            if (\App\Support\RankingPorNome::chave($existente) === $chave) {
+                return $existente;
+            }
+        }
+
+        return $nome;
+    }
+
     public function scopeHistorico($query)
     {
         return $query->withoutGlobalScope('apenasFluxoAtivo')
@@ -66,6 +106,7 @@ class PurchaseRequest extends Model
         'anexo_path',
         'anexo_nome',
         'supplier',
+        'empresa',
         'fornecedor_id',
         'supplier_original',
         'quantity',

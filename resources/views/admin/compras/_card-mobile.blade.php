@@ -7,6 +7,7 @@
         'Vendedor' => $item->requester_name,
         'Cód. fornecedor' => $item->codigo_fornecedor,
         'Fornecedor' => $item->supplier,
+        'Empresa' => $item->empresa,
         'Quantidade' => $item->quantity,
         'Compra' => $item->data_compra?->format('d/m/Y'),
         'Unitário' => $real($item->preco_unitario),
@@ -21,7 +22,7 @@
     </x-slot:badge>
 
     @if($item->obs)
-        <div style="margin-top:8px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+        <div style="margin-top:8px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
             <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
             <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $item->obs }}</div>
         </div>

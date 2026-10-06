@@ -19,14 +19,16 @@ class FinanceiroController extends Controller
 {
     private const POR_PAGINA = 25;
 
-    public function index(PainelFinanceiro $painel)
+    public function index(Request $request, PainelFinanceiro $painel)
     {
-        return view('financeiro.index', ['d' => $painel->dados()]);
+        $d = $painel->dados(null, $request->query('empresa'));
+
+        return view('financeiro.index', ['d' => $d, 'empresas' => collect($d['empresas']), 'empresaSel' => $d['empresa']]);
     }
 
     public function aguardando(Request $request, SaldoFornecedores $saldos)
     {
-        $linhas = $saldos->linhas()
+        $linhas = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))
             ->where('aberto', '>', 0)
             ->sortBy(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
             ->values();
@@ -36,7 +38,7 @@ class FinanceiroController extends Controller
 
     public function pagos(Request $request, SaldoFornecedores $saldos)
     {
-        $linhas = $saldos->linhas()
+        $linhas = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))
             ->where('aberto', '<=', 0)
             ->sortByDesc(fn ($l) => ($l['ultimo_pagamento']?->format('Ymd') ?? '0') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
             ->values();
@@ -46,7 +48,10 @@ class FinanceiroController extends Controller
 
     public function fornecedores(Request $request, SaldoFornecedores $saldos)
     {
-        $fornecedores = $saldos->resumo();
+        $todas = $saldos->linhas();
+        $empresas = $saldos->empresas($todas);
+        $empresaSel = $this->empresaEscolhida($request);
+        $fornecedores = $saldos->resumo($saldos->somenteEmpresa($todas, $empresaSel));
 
         $totais = [
             'comprado' => round($fornecedores->sum('comprado'), 2),
@@ -61,14 +66,23 @@ class FinanceiroController extends Controller
                 ->values();
         }
 
-        return view('financeiro.fornecedores', compact('fornecedores', 'totais', 'q'));
+        return view('financeiro.fornecedores', compact('fornecedores', 'totais', 'q', 'empresas', 'empresaSel'));
     }
 
-    public function fornecedor(string $chave, SaldoFornecedores $saldos)
+    public function fornecedor(Request $request, string $chave, SaldoFornecedores $saldos)
     {
-        $compras = $saldos->comprasDoFornecedor($chave);
+        $todas = $saldos->linhas();
+        $empresas = $saldos->empresas($todas);
+        $empresaSel = $this->empresaEscolhida($request);
+        $compras = $saldos->comprasDoFornecedor($chave, $empresaSel, $todas);
 
-        abort_if($compras->isEmpty(), 404);
+        if ($compras->isEmpty()) {
+            // O fornecedor existe, mas não comprou nessa empresa: volta para a lista em vez de dar erro.
+            abort_if($empresaSel === null || $saldos->comprasDoFornecedor($chave, null, $todas)->isEmpty(), 404);
+
+            return redirect()->route('financeiro.fornecedores', ['empresa' => $empresaSel])
+                ->with('aviso', 'Este fornecedor não tem compras nessa empresa.');
+        }
 
         $nome = $compras->first()['fornecedor'];
         $totais = [
@@ -77,7 +91,7 @@ class FinanceiroController extends Controller
             'saldo' => round($compras->sum('aberto'), 2),
         ];
 
-        return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais'));
+        return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel'));
     }
 
     public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos)
@@ -157,6 +171,8 @@ class FinanceiroController extends Controller
     private function lista(Request $request, Collection $linhas, string $modo)
     {
         $q = trim((string) $request->query('q', ''));
+        $empresaSel = $this->empresaEscolhida($request);
+        $empresas = app(SaldoFornecedores::class)->empresas(app(SaldoFornecedores::class)->linhas());
 
         if ($q !== '') {
             $linhas = $linhas->filter(fn ($l) => $this->contem($l['fornecedor'], $q)
@@ -176,7 +192,15 @@ class FinanceiroController extends Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
 
-        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total'));
+        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total', 'empresas', 'empresaSel'));
+    }
+
+    /** A empresa escolhida no filtro (a chave), ou null para "todas". */
+    private function empresaEscolhida(Request $request): ?string
+    {
+        $empresa = trim((string) $request->query('empresa', ''));
+
+        return $empresa === '' ? null : $empresa;
     }
 
     /** Busca sem diferenciar maiúsculas, acentos ou espaços nas pontas. */

@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Listagem usa a largura toda da tela (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 
 @php $podeConferir = Auth::user()->isConferente(); @endphp
@@ -103,16 +106,16 @@
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
-                    <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Vendedor</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Fornecedor</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd Solicitada</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Tipo de Entrega</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Aprovado em</th>
-                        <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">{{ $aba === 'conferidos' ? 'Resultado' : 'Ação' }}</th>
+                    <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Vendedor</th>
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Produto</th>
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Fornecedor</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Qtd Solicitada</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Tipo de Entrega</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Aprovado em</th>
+                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{{ $aba === 'conferidos' ? 'Resultado' : 'Ação' }}</th>
                         @if($aba === 'conferidos')
-                        <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Conferido por</th>
+                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Conferido por</th>
                         @endif
                     </tr>
                 </thead>
@@ -131,13 +134,13 @@
                                 $rotuloConf = 'Parcial';
                             }
                             $corsGrupoConf = [
-                                'aguardando'           => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                                'conferido_ok'          => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                                'divergente'            => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
-                                'avancado_mesmo_assim'  => ['barra' => '#2563eb', 'bg' => '#dbeafe', 'texto' => '#1d4ed8'],
-                                'cancelado'             => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                                'aguardando'           => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                                'conferido_ok'          => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
+                                'divergente'            => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
+                                'avancado_mesmo_assim'  => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
+                                'cancelado'             => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
                                 'legado'                => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
-                                'parcial'               => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                                'parcial'               => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                             ][$statusChaveConf];
                             $produtosResumoConf = $grupo->pluck('product_name')->filter()->implode(', ');
                             if (mb_strlen($produtosResumoConf) > 60) {
@@ -179,21 +182,21 @@
                             <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->tipo_entrega === 'entrega_direta')
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Venda Casada</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Venda Casada</span>
                                 @else
-                                    <span style="background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Estoque</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Estoque</span>
                                 @endif
                             </td>
                             <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->approved_at?->timezone('America/Sao_Paulo')->format('d/m/Y H:i') ?? '—' }}</td>
                             <td style="padding:12px 16px; text-align:center;">
                                 @if($req->status_conferencia === 'conferido_ok')
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
                                 @elseif($req->status_conferencia === 'divergente')
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
+                                    <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
                                 @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                                    <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
                                 @elseif($req->status_conferencia === 'cancelado')
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
+                                    <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                                 @elseif($podeConferir)
                                     <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
                                             style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
@@ -223,7 +226,7 @@
                         @if($req->obs)
                         <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="8" style="padding:12px 16px;">
-                                <div style="padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                                <div style="padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                                     <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                                     <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                                 </div>
@@ -249,7 +252,7 @@
                         @if($req->admin_note)
                         <tr class="grupo-item-{{ $chaveConf }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
                             <td colspan="8" style="padding:12px 16px;">
-                                <div style="padding:10px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;">
+                                <div style="padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                                     <span style="font-size:11px; font-weight:700; color:#1d4ed8; text-transform:uppercase;">Obs (Admin):</span>
                                     <div style="margin-top:4px; font-size:13px; color:#1e3a8a; line-height:1.5; white-space:pre-line;">{{ $req->admin_note }}</div>
                                 </div>
@@ -331,7 +334,7 @@
                                             Cancelar
                                         </button>
                                         <button type="submit" onclick="document.getElementById('campo-acao-{{ $req->id }}').value='salvar'"
-                                                style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                                style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                             Salvar
                                         </button>
                                         @if($req->tipo_entrega === 'entrega_direta')
@@ -404,13 +407,13 @@
                     $rotuloConfM = 'Parcial';
                 }
                 $corsGrupoConfM = [
-                    'aguardando'           => ['barra' => '#f59e0b', 'bg' => '#fef3c7', 'texto' => '#b45309'],
-                    'conferido_ok'          => ['barra' => '#16a34a', 'bg' => '#dcfce7', 'texto' => '#15803d'],
-                    'divergente'            => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
-                    'avancado_mesmo_assim'  => ['barra' => '#2563eb', 'bg' => '#dbeafe', 'texto' => '#1d4ed8'],
-                    'cancelado'             => ['barra' => '#dc2626', 'bg' => '#fee2e2', 'texto' => '#b91c1c'],
+                    'aguardando'           => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
+                    'conferido_ok'          => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
+                    'divergente'            => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
+                    'avancado_mesmo_assim'  => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
+                    'cancelado'             => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
                     'legado'                => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
-                    'parcial'               => ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'],
+                    'parcial'               => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                 ][$statusChaveConfM];
                 $produtosResumoConfM = $grupo->pluck('product_name')->filter()->implode(', ');
                 if (mb_strlen($produtosResumoConfM) > 60) {
@@ -449,9 +452,9 @@
                         @endif
                     </div>
                     @if($req->tipo_entrega === 'entrega_direta')
-                        <span style="background:#fef3c7; color:#d97706; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Venda Casada</span>
+                        <span style="background:#f3f4f6; color:#374151; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Venda Casada</span>
                     @else
-                        <span style="background:#e0e7ff; color:#3730a3; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Estoque</span>
+                        <span style="background:#f3f4f6; color:#374151; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Estoque</span>
                     @endif
                 </div>
 
@@ -486,7 +489,7 @@
                 @endif
 
                 @if($req->obs)
-                <div style="margin-bottom:12px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+                <div style="margin-bottom:12px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                     <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
                     <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
                 </div>
@@ -498,7 +501,7 @@
                 <x-obs-entrada :item="$req" />
 
                 @if($req->admin_note)
-                <div style="margin-bottom:12px; padding:10px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;">
+                <div style="margin-bottom:12px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
                     <span style="font-size:11px; font-weight:700; color:#1d4ed8; text-transform:uppercase;">Obs (Admin):</span>
                     <div style="margin-top:4px; font-size:13px; color:#1e3a8a; line-height:1.5; white-space:pre-line;">{{ $req->admin_note }}</div>
                 </div>
@@ -506,13 +509,13 @@
 
                 <div style="display:flex; justify-content:flex-end;">
                     @if($req->status_conferencia === 'conferido_ok')
-                        <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
+                        <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">OK</span>
                     @elseif($req->status_conferencia === 'divergente')
-                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
+                        <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Divergente</span>
                     @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                        <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
+                        <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Avançado Mesmo Assim</span>
                     @elseif($req->status_conferencia === 'cancelado')
-                        <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
+                        <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Cancelado</span>
                     @elseif($podeConferir)
                         <button class="m-botao" onclick="document.getElementById('modal-conferir-m-{{ $req->id }}').style.display='flex'"
                                 style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
@@ -592,7 +595,7 @@
                                 Cancelar
                             </button>
                             <button type="submit" onclick="document.getElementById('campo-acao-m-{{ $req->id }}').value='salvar'"
-                                    style="padding:9px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#b40000); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                    style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                 Salvar
                             </button>
                             @if($req->tipo_entrega === 'entrega_direta')
@@ -652,7 +655,7 @@
             @foreach(['aguardando' => ['emoji' => '⏳', 'label' => 'Aguardando'], 'coletado' => ['emoji' => '✅', 'label' => 'Coletados'], 'atraso' => ['emoji' => '⚠️', 'label' => 'Atraso']] as $valor => $config)
                 <a href="{{ route('conferencia.index', array_filter(['aba' => 'coleta', 'resultado' => $valor])) }}" @class(['ativo' => $resultado === $valor])
                    style="padding:12px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:8px; transition:all 0.2s;
-                          background:{{ $resultado === $valor ? 'linear-gradient(135deg,#05018D,#1d4ed8)' : '#f3f4f6' }};
+                          background:{{ $resultado === $valor ? '#05018D' : '#f3f4f6' }};
                           color:{{ $resultado === $valor ? '#fff' : '#374151' }};
                           border:{{ $resultado === $valor ? '2px solid #05018D' : '2px solid transparent' }};
                           box-shadow:{{ $resultado === $valor ? '0 4px 12px rgba(5, 1, 141, 0.2)' : 'none' }};">
@@ -665,13 +668,13 @@
             <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse;">
                     <thead>
-                        <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
-                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Vendedor</th>
-                            <th style="padding:13px 16px; text-align:left; color:#fff; font-size:13px; font-weight:600;">Produto</th>
-                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Qtd</th>
-                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Status</th>
-                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Data Coleta</th>
-                            <th style="padding:13px 16px; text-align:center; color:#fff; font-size:13px; font-weight:600;">Ação</th>
+                        <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                            <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Vendedor</th>
+                            <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Produto</th>
+                            <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Qtd</th>
+                            <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Status</th>
+                            <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Data Coleta</th>
+                            <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Ação</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -683,11 +686,11 @@
                                 <td style="padding:12px 16px; text-align:center; font-size:14px; font-weight:600; color:#374151;">{{ $req->quantity }}</td>
                                 <td style="padding:12px 16px; text-align:center;">
                                     @if($req->status_coleta === 'coletado')
-                                        <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Coletado</span>
+                                        <span style="background:#f3f4f6; color:#374151; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Coletado</span>
                                     @elseif($req->status_coleta === 'atraso')
-                                        <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Atraso</span>
+                                        <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Atraso</span>
                                     @else
-                                        <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Aguardando</span>
+                                        <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Aguardando</span>
                                     @endif
                                 </td>
                                 <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">
@@ -736,11 +739,11 @@
                     ]">
                         <x-slot:badge>
                             @if($req->status_coleta === 'coletado')
-                                <span style="background:#dcfce7; color:#16a34a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Coletado</span>
+                                <span style="background:#f3f4f6; color:#374151; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Coletado</span>
                             @elseif($req->status_coleta === 'atraso')
-                                <span style="background:#fee2e2; color:#dc2626; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Atraso</span>
+                                <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Atraso</span>
                             @else
-                                <span style="background:#fef3c7; color:#b45309; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Aguardando</span>
+                                <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">Aguardando</span>
                             @endif
                         </x-slot:badge>
                         <div style="margin-top:8px;">
@@ -804,7 +807,7 @@
                                 Cancelar
                             </button>
                             <button type="submit"
-                                    style="padding:10px 24px; border-radius:8px; background:linear-gradient(90deg,#05018D,#1d4ed8); color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                    style="padding:10px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
                                 Confirmar Coleta
                             </button>
                         </div>
