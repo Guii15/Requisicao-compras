@@ -113,9 +113,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        $empresaList = \App\Support\EmpresaCompradora::sugestoes();
-
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList', 'empresaList'));
+        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     private const DISCO_PEDIDO_COMPRA = 'local';
@@ -134,9 +132,6 @@ class AdminController extends Controller
             $request->merge(['valor' => $this->decimalBrasileiro($request->input('valor'))]);
         }
 
-        // Só espaços conta como vazio (assim o required_if abaixo pega).
-        $request->merge(['empresa_compradora' => \App\Support\EmpresaCompradora::limpar($request->input('empresa_compradora'))]);
-
         // Se algo falhar, a tela reabre o modal deste item para mostrar o erro.
         session()->flash('modal_aberto', $purchaseRequest->id);
 
@@ -145,7 +140,6 @@ class AdminController extends Controller
             'admin_note'        => 'nullable|string|max:2000',
             'supplier'          => 'nullable|string|max:255',
             'codigo_fornecedor' => 'nullable|string|max:255',
-            'empresa_compradora' => 'required_if:status,aprovado|nullable|string|max:255',
             'preco_unitario'    => 'nullable|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
             'valor'             => 'nullable|numeric|min:0',
@@ -158,7 +152,6 @@ class AdminController extends Controller
         ], [
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
-            'empresa_compradora.required_if' => 'Informe qual empresa comprou (Binário, Mamuth, Ninja...) para aprovar.',
             'parcelas.required_if'       => 'Informe em quantas parcelas.',
             'parcelas.integer'           => 'O número de parcelas precisa ser um número inteiro.',
             'parcelas.min'               => 'Parcelado precisa ter pelo menos 2 parcelas.',
@@ -179,7 +172,6 @@ class AdminController extends Controller
             'fornecedor_id'      => $fornecedor?->id,
             'supplier_original'  => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: $digitado),
             'codigo_fornecedor'  => $request->codigo_fornecedor ?: null,
-            'empresa_compradora' => \App\Support\EmpresaCompradora::canonica($request->empresa_compradora, $purchaseRequest->id),
             'preco_unitario'     => $request->preco_unitario ?: null,
             'preco_caixa'        => $request->preco_caixa ?: null,
             'valor'              => $request->valor ?: null,

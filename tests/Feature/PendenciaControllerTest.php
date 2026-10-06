@@ -242,7 +242,6 @@ class PendenciaControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->patch(route('admin.requests.update', $req), [
             'status'     => 'aprovado',
-            'empresa_compradora' => 'Binário',
             'admin_note' => $notaFinal,
             'supplier'   => 'Novo Fornecedor',
         ]);

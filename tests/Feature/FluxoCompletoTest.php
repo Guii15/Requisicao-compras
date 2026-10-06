@@ -59,7 +59,7 @@ class FluxoCompletoTest extends TestCase
     private function adminMudaStatus(PurchaseRequest $item, string $status): void
     {
         $this->actingAs($this->admin)
-            ->patch(route('admin.requests.update', $item), ['status' => $status, 'empresa_compradora' => 'Binário'])
+            ->patch(route('admin.requests.update', $item), ['status' => $status])
             ->assertSessionHasNoErrors();
     }
 

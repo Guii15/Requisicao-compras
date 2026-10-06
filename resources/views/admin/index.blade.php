@@ -324,13 +324,6 @@
         @endforeach
     </datalist>
 
-    {{-- Sugestões das empresas compradoras já usadas (o campo continua livre) --}}
-    <datalist id="empresa-options">
-        @foreach($empresaList as $e)
-            <option value="{{ $e }}">
-        @endforeach
-    </datalist>
-
     @if(session('modal_aberto') && $errors->any())
         {{-- Salvar falhou: reabre o modal do item para mostrar o erro (versão mobile em telas pequenas). --}}
         <script>
@@ -490,12 +483,6 @@
                                             <div style="margin-bottom:14px;">
                                                 <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Fornecedor <span style="font-weight:400; color:#94a3b8;">(onde foi comprado)</span></label>
                                                 <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
-                                                       style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
-                                            </div>
-
-                                            <div style="margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px; white-space:nowrap;">Empresa compradora <span style="font-weight:400; color:#94a3b8;">(obrigatória para aprovar)</span></label>
-                                                <input type="text" name="empresa_compradora" value="{{ $req->empresa_compradora }}" placeholder="Ex: Binário, Mamuth, Ninja..." list="empresa-options" maxlength="255"
                                                        style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                                             </div>
 
@@ -776,11 +763,6 @@
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fornecedor <span style="color:#9ca3af; font-weight:400; text-transform:none;">(onde foi comprado)</span></label>
                             <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
-                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
-                        </div>
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Empresa compradora <span style="color:#9ca3af; font-weight:400; text-transform:none;">(quem comprou; obrigatória para aprovar)</span></label>
-                            <input type="text" name="empresa_compradora" value="{{ $req->empresa_compradora }}" placeholder="Ex: Binário, Mamuth, Ninja..." list="empresa-options" maxlength="255"
                                    style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
                         </div>
                         <div style="margin-bottom:16px;">
