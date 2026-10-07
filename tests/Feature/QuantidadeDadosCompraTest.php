@@ -109,20 +109,44 @@ class QuantidadeDadosCompraTest extends TestCase
     {
         $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 50]);
 
-        $this->actingAs($this->admin)->get(route('admin.compras.edit', $item))
+        $html = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $item->id]))
             ->assertOk()
+            ->assertSee('id="janela-compra"', false)
             ->assertSee('name="quantity"', false)
-            ->assertSee('value="50"', false);
+            ->getContent();
+
+        // a janela é preenchida pelo botão do item: a quantidade atual vai nos dados dele, sem trava
+        $dados = $this->dadosDaJanelaDeCompra($html, $item->id);
+        $this->assertSame(50, $dados['quantity']);
+        $this->assertSame('', $dados['travada']);
+        $this->assertStringContainsString("campo('quantity').value = d.quantity;", $html);
     }
 
     public function test_formulario_de_item_conferido_mostra_o_campo_travado(): void
     {
         $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 50, 'status_conferencia' => 'conferido_ok', 'quantidade_recebida' => 50]);
 
-        $this->actingAs($this->admin)->get(route('admin.compras.edit', $item))
+        $html = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $item->id]))
+            ->assertOk()
             ->assertSee('name="quantity"', false)
-            ->assertSee('readonly', false)
-            ->assertSee('já foi conferido');
+            ->getContent();
+
+        $dados = $this->dadosDaJanelaDeCompra($html, $item->id);
+        $this->assertSame(50, $dados['quantity']);
+        $this->assertSame('conferido', $dados['travada']);
+        // a janela trava o campo e explica o motivo quando o item vem marcado
+        $this->assertStringContainsString("qtd.readOnly = d.travada !== '';", $html);
+        $this->assertStringContainsString('Este item já foi conferido; a quantidade não pode mais ser alterada.', $html);
+    }
+
+    public function test_formulario_de_item_de_recebimento_parcial_tambem_vem_travado(): void
+    {
+        $item = PurchaseRequest::factory()->aprovado()->create(['quantity' => 20, 'quantidade_original' => 100]);
+
+        $html = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $item->id]))->assertOk()->getContent();
+
+        $this->assertSame('parcial', $this->dadosDaJanelaDeCompra($html, $item->id)['travada']);
+        $this->assertStringContainsString('Recebimento parcial: ajuste a quantidade pelo botão Editar da Conferência.', $html);
     }
 
     public function test_mudar_a_quantidade_atualiza_o_custo_quando_nao_ha_total_digitado(): void

@@ -25,7 +25,7 @@ class ObsAdminVisivelTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => 'entrada']))
             ->get(route('entrada.index'))
-            ->assertSee('Obs (Admin)')
+            ->assertSee('>ADMIN</span>', false) // etiqueta da nota do admin no cartão do item
             ->assertSee('Comprar so da loja X, urgente');
     }
 
@@ -45,7 +45,9 @@ class ObsAdminVisivelTest extends TestCase
         $this->itemComObsAdmin(['user_id' => $vendedor->id, 'admin_note' => null]);
 
         $this->actingAs($vendedor)->get(route('requests.index'))->assertDontSee('Obs (Admin)');
-        $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index'))->assertDontSee('Obs (Admin)');
+        $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index'))
+            ->assertDontSee('Obs (Admin)')
+            ->assertDontSee('>ADMIN</span>', false);
     }
 
     public function test_quadro_dar_entrada_mostra_a_observacao_do_admin(): void
@@ -54,8 +56,10 @@ class ObsAdminVisivelTest extends TestCase
 
         $html = $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index'))->getContent();
 
-        // tabela + card do celular + quadro "Dar Entrada" do desktop + quadro do celular
-        $this->assertSame(4, substr_count($html, 'Comprar so da loja X, urgente'));
+        // cartão do item + janela "Dar Entrada" (uma marcação só para PC e celular)
+        $this->assertSame(2, substr_count($html, 'Comprar so da loja X, urgente'));
+        $this->assertSame(2, substr_count($html, '>ADMIN</span>'));
+        $this->assertStringNotContainsString('modal-entrada-m-', $html); // a janela do celular saiu
     }
 
     public function test_vendedor_nao_tem_mais_o_ver_obs_nem_o_modal_do_compras(): void

@@ -470,17 +470,23 @@ class ConferenciaControllerTest extends TestCase
         $response->assertDontSee('capture="environment"', false);
     }
 
-    public function test_mobile_cards_block_present_with_correct_toggle_classes(): void
+    // Desktop e celular agora são UMA marcação: a tabela "lista-resp" vira cartões no celular pelo CSS do layout.
+    public function test_single_responsive_list_replaces_separate_mobile_cards_block(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
-        PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto Mobile']);
+        $req = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'product_name' => 'Produto Mobile']);
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('conf-desktop-table', false);
-        $response->assertSee('conf-mobile-cards', false);
+        $response->assertSee('class="lista-resp"', false);
+        $response->assertSee('class="grupo-cabecalho"', false);
+        $response->assertSee('class="grupo-item-' . $req->grupo_id . '"', false);
+        $response->assertSee('data-rotulo="Vendedor"', false);
         $response->assertSee('Produto Mobile');
         $response->assertSee('@media (max-width: 768px)', false);
+        $response->assertSee('.lista-resp tr.grupo-cabecalho > td[data-rotulo]::before', false);
+        $response->assertDontSee('conf-desktop-table', false);
+        $response->assertDontSee('conf-mobile-cards', false);
     }
 
     public function test_mobile_card_shows_tipo_entrega_badge_and_data_grid(): void
@@ -496,7 +502,10 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
         $html = $response->getContent();
-        $mobileSection = substr($html, strpos($html, 'conf-mobile-cards'));
+        // O cartão do item (o mesmo no PC e no celular) vem depois da linha da requisição.
+        $inicioCartao = strpos($html, 'class="grupo-item-');
+        $this->assertNotFalse($inicioCartao);
+        $mobileSection = substr($html, $inicioCartao);
 
         $this->assertStringContainsString('Venda Casada', $mobileSection);
         $this->assertStringContainsString('Vendedor Mobile Teste', $mobileSection);
@@ -510,25 +519,33 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $html = $response->getContent();
-        $mobileSection = substr($html, strpos($html, 'conf-mobile-cards'));
+        // A linha da requisição (que vira o cartão no celular) traz o produto e o selo do resultado.
+        $inicioLinha = strpos($html, 'class="grupo-cabecalho"');
+        $this->assertNotFalse($inicioLinha);
+        $mobileSection = substr($html, $inicioLinha);
 
         $this->assertStringContainsString('Produto Conferido Mobile', $mobileSection);
         $this->assertStringContainsString('>OK<', $mobileSection);
     }
 
-    public function test_mobile_modal_has_unique_ids_not_colliding_with_desktop_modal(): void
+    // Uma janela "Conferir Item" só por item: a do celular saiu, então os ids não podem se repetir.
+    public function test_single_conferir_modal_has_unique_ids_and_no_mobile_copy(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
         $req = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null]);
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('modal-conferir-m-' . $req->id, false);
-        $response->assertSee('form-conferir-m-' . $req->id, false);
+        $response->assertDontSee('modal-conferir-m-' . $req->id, false);
+        $response->assertDontSee('form-conferir-m-' . $req->id, false);
 
         $html = $response->getContent();
         $this->assertSame(1, substr_count($html, 'id="modal-conferir-' . $req->id . '"'));
-        $this->assertSame(1, substr_count($html, 'id="modal-conferir-m-' . $req->id . '"'));
+        $this->assertSame(1, substr_count($html, 'id="form-conferir-' . $req->id . '"'));
+        $this->assertSame(1, substr_count($html, 'id="campo-qtd-' . $req->id . '"'));
+        $this->assertSame(1, substr_count($html, 'id="campo-resultado-' . $req->id . '"'));
+        // o botão Conferir do cartão abre essa mesma janela
+        $this->assertStringContainsString("document.getElementById('modal-conferir-" . $req->id . "').style.display='flex'", $html);
     }
 
     public function test_mobile_modal_not_rendered_on_conferidos_tab(): void
@@ -539,9 +556,10 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $response->assertDontSee('modal-conferir-m-' . $req->id, false);
+        $response->assertDontSee('id="modal-conferir-' . $req->id . '"', false); // item já conferido não tem a janela Conferir Item
     }
 
-    public function test_mobile_modal_avancar_button_only_for_entrega_direta(): void
+    public function test_single_modal_avancar_button_only_for_entrega_direta(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
         $dropship = PurchaseRequest::factory()->create(['status' => 'aprovado', 'status_conferencia' => null, 'tipo_entrega' => 'entrega_direta']);
@@ -549,8 +567,9 @@ class ConferenciaControllerTest extends TestCase
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('<button type="submit" id="btn-avancar-m-' . $dropship->id . '"', false);
-        $response->assertDontSee('id="btn-avancar-m-' . $estoque->id . '"', false);
+        $response->assertSee('<button type="submit" id="btn-avancar-' . $dropship->id . '"', false);
+        $response->assertDontSee('id="btn-avancar-' . $estoque->id . '"', false);
+        $response->assertDontSee('btn-avancar-m-', false);
     }
 
     public function test_search_filters_by_product_name(): void
@@ -633,10 +652,12 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
         $response->assertSee('id="aviso-divergencia-' . $req->id . '"', false);
-        $response->assertSee('id="aviso-divergencia-m-' . $req->id . '"', false);
         $response->assertSee('function verificaDivergencia' . $req->id . '(valor)', false);
-        $response->assertSee('function verificaDivergenciaMobile' . $req->id . '(valor)', false);
+        $response->assertSee('oninput="verificaDivergencia' . $req->id . '(this.value)"', false);
         $response->assertSee('pedido: 100', false);
+        // as cópias do celular saíram junto com a janela do celular
+        $response->assertDontSee('aviso-divergencia-m-', false);
+        $response->assertDontSee('verificaDivergenciaMobile', false);
     }
 
     public function test_index_conferidos_shows_cancelado_badge_not_avancado(): void
@@ -654,7 +675,7 @@ class ConferenciaControllerTest extends TestCase
         $response->assertDontSee('Avançado Mesmo Assim');
     }
 
-    public function test_index_conferidos_cancelado_appears_in_both_desktop_and_mobile_blocks(): void
+    public function test_index_conferidos_cancelado_appears_in_group_row_and_item_card(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
         PurchaseRequest::factory()->create([
@@ -666,7 +687,8 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $html = $response->getContent();
-        $this->assertSame(4, substr_count($html, '>Cancelado<'));
+        // selo da linha da requisição + etiqueta no cartão do item (a mesma marcação serve PC e celular)
+        $this->assertSame(2, substr_count($html, '>Cancelado<'));
     }
 
     public function test_index_conferidos_still_shows_avancado_mesmo_assim_correctly(): void

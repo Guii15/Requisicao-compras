@@ -5,14 +5,6 @@
 
 @section('content')
 
-<style>
-.entr-mobile-cards { display: none; }
-@media (max-width: 768px) {
-    .entr-desktop-table { display: none; }
-    .entr-mobile-cards  { display: block; }
-}
-</style>
-
 <div style="padding: 8px 0;">
 
     <div style="margin-bottom:20px;">
@@ -89,21 +81,22 @@
     @if($aba === 'divergencias')
         @include('entrada._divergencias')
     @else
-    <div class="entr-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+    <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
+                {{-- Mesmo desenho do painel do admin: uma linha por requisição; ao abrir, cada item é um cartão. --}}
                 <thead>
                     <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
-                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Produto</th>
-                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</th>
-                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Fornecedor</th>
-                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</th>
-                        <th style="padding:13px 16px; text-align:right; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Preço Unit.</th>
-                        <th style="padding:13px 16px; text-align:right; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Preço Total</th>
-                        <th style="padding:13px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Pedido</th>
-                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Foto</th>
-                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Atraso</th>
-                        <th style="padding:13px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{{ $aba === 'concluidas' ? 'Data da Entrada' : 'Ação' }}</th>
+                        @php $thEntr = 'padding:12px 16px; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;'; @endphp
+                        <th style="{{ $thEntr }} text-align:left;">Nº</th>
+                        <th style="{{ $thEntr }} text-align:left;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</th>
+                        <th style="{{ $thEntr }} text-align:left;">Itens</th>
+                        <th style="{{ $thEntr }} text-align:left;">Fornecedor</th>
+                        <th style="{{ $thEntr }} text-align:right;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</th>
+                        <th style="{{ $thEntr }} text-align:right;">Total</th>
+                        <th style="{{ $thEntr }} text-align:left;">Coleta</th>
+                        <th style="{{ $thEntr }} text-align:left;">Situação</th>
+                        <th style="{{ $thEntr }} text-align:right;">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,164 +118,132 @@
                                 'parcial'    => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                             ][$statusChaveEntr];
                             $produtosResumoEntr = $grupo->pluck('product_name')->filter()->implode(', ');
-                            if (mb_strlen($produtosResumoEntr) > 60) {
-                                $produtosResumoEntr = mb_substr($produtosResumoEntr, 0, 60) . '…';
+                            if (mb_strlen($produtosResumoEntr) > 80) {
+                                $produtosResumoEntr = mb_substr($produtosResumoEntr, 0, 80) . '…';
                             }
+                            // O mesmo fornecedor escrito de formas diferentes conta como um só.
+                            $fornecedoresEntr = $grupo->pluck('supplier')->filter()->unique(fn ($f) => \App\Support\RankingPorNome::chave($f));
+                            $fornecedorEntr = $fornecedoresEntr->count() === 0 ? '—' : ($fornecedoresEntr->count() === 1 ? $fornecedoresEntr->first() : $fornecedoresEntr->count() . ' fornecedores');
+                            $qtdPedidaEntr = $grupo->sum('quantity');
+                            $qtdChegouEntr = $grupo->sum(fn ($r) => (int) ($r->entrada_concluida_em ? $r->quantidade_entrada : $r->quantidade_recebida));
+                            $totalEntr = (float) $grupo->sum(fn ($r) => $r->preco_unitario ? $r->preco_unitario * $r->quantity : 0);
+                            $tdEntr = 'padding:12px 16px; font-size:14px; color:#374151; vertical-align:middle;';
                         @endphp
-                        <tr class="grupo-cabecalho" style="border-bottom:0.5px solid #e5e7eb; cursor:pointer;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
-                            <td colspan="10" style="padding:0;">
-                                <div style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0;">
-                                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoEntr['barra'] }};"></div>
-                                    <div style="flex:1; min-width:0;">
-                                        <div style="font-size:13.5px; line-height:1.4;">
-                                            <span style="color:#111827; font-weight:700;">Requisição #{{ $primeiroEntr->id }}</span>
-                                            <span style="color:#9ca3af; font-weight:500;"> — {{ ($aba === 'concluidas' ? $primeiroEntr->vendedor_destino : $primeiroEntr->requester_name) ?? 'Não informado' }}</span>
-                                        </div>
-                                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoEntr }}
-                                        </div>
-                                    </div>
-                                    <span style="background:{{ $corsGrupoEntr['bg'] }}; color:{{ $corsGrupoEntr['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloEntr }}</span>
-                                    <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntr }}')"
-                                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
-                                        <span id="seta-grupo-{{ $chaveEntr }}">Ver itens</span>
-                                    </button>
-                                </div>
+                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #eef0f3; cursor:pointer;" onmouseover="this.style.background='#f7f8fa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveEntr }}')">
+                            <td class="lr-num" style="{{ $tdEntr }} font-weight:700; color:#111827; white-space:nowrap;">#{{ $primeiroEntr->id }}</td>
+                            <td data-rotulo="{{ $aba === 'concluidas' ? 'Vendedor destino' : 'Vendedor' }}" style="{{ $tdEntr }}">{{ ($aba === 'concluidas' ? $primeiroEntr->vendedor_destino : $primeiroEntr->requester_name) ?? 'Não informado' }}</td>
+                            <td class="lr-larga" data-rotulo="Itens" style="{{ $tdEntr }} max-width:380px;">
+                                <div style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoEntr }}</div>
+                                <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
+                            </td>
+                            <td data-rotulo="Fornecedor" style="{{ $tdEntr }}">{{ $fornecedorEntr }}</td>
+                            <td data-rotulo="Qtd solic. / {{ $aba === 'concluidas' ? 'entrada' : 'receb.' }}" style="{{ $tdEntr }} text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">{{ $qtdPedidaEntr }} / <strong style="color:{{ $qtdChegouEntr === $qtdPedidaEntr ? '#111827' : '#b8301a' }};">{{ $qtdChegouEntr }}</strong></td>
+                            <td data-rotulo="Total" style="{{ $tdEntr }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalEntr > 0 ? 'R$ ' . number_format($totalEntr, 2, ',', '.') : '—' }}</td>
+                            <td data-rotulo="Coleta" style="{{ $tdEntr }} font-size:13px; white-space:nowrap;">
+                                @if($grupo->contains('status_coleta', 'atraso'))
+                                    <strong style="color:#b8301a;">Atrasada</strong>
+                                @else
+                                    <span style="color:#6b7280;">No prazo</span>
+                                @endif
+                            </td>
+                            <td data-rotulo="Situação" style="{{ $tdEntr }}">
+                                <span style="background:{{ $corsGrupoEntr['bg'] }}; color:{{ $corsGrupoEntr['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloEntr }}</span>
+                            </td>
+                            <td class="lr-acao" style="{{ $tdEntr }} text-align:right;">
+                                <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntr }}')"
+                                        style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:7px 16px; border-radius:9999px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                    <span id="seta-grupo-{{ $chaveEntr }}">Ver itens</span>
+                                </button>
                             </td>
                         </tr>
                     @foreach($grupo as $req)
-                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6;">
-                            <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">
-                                {{ $req->product_name }}
-                                <x-parcial-info :item="$req" />
-                                @if($req->status_conferencia === 'avancado_mesmo_assim')
-                                    <span style="display:block; margin-top:4px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; width:fit-content;">⚠ Avançado Mesmo Assim</span>
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ ($req->entrada_concluida_em ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $req->supplier ?? '—' }}</td>
-                            <td style="padding:12px 16px; text-align:center; font-size:14px; color:#374151;">{{ $req->quantity }} / {{ $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida }}</td>
-                            <td style="padding:12px 16px; text-align:right; font-size:14px; color:#374151;">{{ $req->preco_unitario ? 'R$ ' . number_format($req->preco_unitario, 2, ',', '.') : '—' }}</td>
-                            <td style="padding:12px 16px; text-align:right; font-size:14px; color:#374151; font-weight:600;">
-                                @if($req->preco_unitario)
-                                    R$ {{ number_format($req->preco_unitario * $req->quantity, 2, ',', '.') }}
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">
-                                @if($req->pedido_compra_path)
-                                    <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline; font-size:13px;">📎 Pedido de compra</a>
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td style="padding:12px 16px; text-align:center;">
-                                <x-fotos-conferencia :item="$req" vazio="—" />
-                            </td>
-                            <td style="padding:12px 16px; text-align:center;">
-                                @if($req->status_coleta === 'atraso')
-                                    <span style="background:#b8301a; color:#fff; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Sim</span>
-                                @else
-                                    <span style="color:#9ca3af; font-size:13px;">Não</span>
-                                @endif
-                            </td>
-                            @php
-                                $elegivelEntradaEntr = $req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
-                            @endphp
-                            @if($req->entrada_concluida_em)
-                            <td style="padding:12px 16px; text-align:center; font-size:13px; color:#6b7280;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</td>
-                            @elseif($elegivelEntradaEntr)
-                            <td style="padding:12px 16px; text-align:center;">
-                                <button onclick="document.getElementById('modal-entrada-{{ $req->id }}').style.display='flex'"
-                                        style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">
-                                    Dar Entrada
-                                </button>
-                            </td>
-                            @else
-                            <td style="padding:12px 16px; text-align:center; font-size:12px; color:#9ca3af;">Aguardando conferência</td>
-                            @endif
-                        </tr>
-
-                        @if($req->admin_note)
-                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
-                            <td colspan="10" style="padding:8px 16px;"><x-obs-admin :item="$req" margem="0" /></td>
-                        </tr>
-                        @endif
-
-                        @if($req->obs_entrada)
-                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
-                            <td colspan="10" style="padding:8px 16px;"><x-obs-entrada :item="$req" margem="0" /></td>
-                        </tr>
-                        @endif
-
-                        @if(filled($req->reason) || filled($req->justification) || filled($req->observacao_conferencia))
-                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
-                            <td colspan="10" style="padding:8px 16px;">
-                                <x-obs-vendedor :item="$req" margem="8px" />
-                                <x-obs-divergencia :item="$req" margem="0" />
+                        @php
+                            $elegivelEntradaEntr = $req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
+                            $chegouEntr = $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida;
+                        @endphp
+                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; background:#f7f8fa;">
+                            <td colspan="9" style="padding:{{ $loop->first ? '14px' : '0' }} 20px {{ $loop->last ? '18px' : '10px' }} 20px; {{ $loop->last ? 'border-bottom:1px solid #e5e7eb;' : '' }}">
+                                <x-item-requisicao :req="$req">
+                                    <span style="align-self:center; font-size:12.5px; color:#6b7280;">Pedido / {{ $req->entrada_concluida_em ? 'entrada' : 'recebido' }}: <strong style="color:#111827;">{{ $req->quantity }} / {{ $chegouEntr ?? '—' }}</strong></span>
+                                    @if($req->entrada_concluida_em)
+                                        <span style="align-self:center; font-size:12.5px; color:#6b7280;">Destino: <strong style="color:#374151;">{{ $req->vendedor_destino ?? '—' }}</strong></span>
+                                    @elseif($elegivelEntradaEntr)
+                                        <button onclick="document.getElementById('modal-entrada-{{ $req->id }}').style.display='flex'"
+                                                style="background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                            Dar Entrada
+                                        </button>
+                                    @else
+                                        <span style="align-self:center; color:#9ca3af; font-size:12px;">Aguardando conferência</span>
+                                    @endif
+                                </x-item-requisicao>
                             </td>
                         </tr>
-                        @endif
-
-                        @if($req->obs)
-                        <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; border-bottom:1px solid #f3f4f6; background:#f9fafb;">
-                            <td colspan="10" style="padding:0;">
-                                <div style="padding:14px 16px; background:#f8fafc; border-bottom:1px solid #e5e7eb; margin:8px 0;">
-                                    <span style="font-size:10px; font-weight:700; color:#15803d; text-transform:uppercase; letter-spacing:0.5px;">📝 Obs (Conferente):</span>
-                                    <div style="margin-top:6px; font-size:13px; color:#166534; line-height:1.6;">{{ $req->obs }}</div>
-                                </div>
-                            </td>
-                        </tr>
-                        @endif
 
                         @if(!$req->entrada_concluida_em && $elegivelEntradaEntr)
-                        <div id="modal-entrada-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                            <div style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px;">
-                                <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
-                                <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
-
-                                @if($req->obs)
-                                <div style="margin-bottom:16px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
-                                    <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
-                                    <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
+                        {{-- Janela Dar Entrada (desktop): mesmo modelo largo da janela do admin, com as notas ao lado. --}}
+                        <div id="modal-entrada-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(3px); z-index:1000; align-items:center; justify-content:center; padding:16px;">
+                            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; width:100%; max-width:900px; max-height:94vh; display:flex; flex-direction:column; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); overflow:hidden; text-align:left;">
+                                <div style="padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; background:#f8fafc;">
+                                    <div>
+                                        <h3 style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:400; color:#0f172a; letter-spacing:0.01em;">Dar Entrada</h3>
+                                        <div style="margin-top:4px; font-size:13px; color:#64748b; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                            <span style="font-weight:600; color:#1e293b;">{{ $req->product_name }}</span>
+                                            <span>·</span>
+                                            <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
+                                            <span>·</span>
+                                            <span>Pedido / recebido: <strong>{{ $req->quantity }} / {{ $req->quantidade_recebida ?? '—' }}</strong></span>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="document.getElementById('modal-entrada-{{ $req->id }}').style.display='none'" aria-label="Fechar"
+                                            style="border:none; background:transparent; color:#94a3b8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px; line-height:1;">✕</button>
                                 </div>
-                                @endif
 
-                                <x-obs-admin :item="$req" margem="16px" />
-                                <x-obs-vendedor :item="$req" margem="16px" />
-                                <x-obs-divergencia :item="$req" margem="16px" />
-
-                                <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
+                                <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
                                     @csrf
                                     @method('PATCH')
 
-                                    <div style="margin-bottom:16px;">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Vendedor Destino</label>
-                                        <input type="text" name="vendedor_destino" value="{{ $req->requester_name }}" required
-                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                                    <div class="jan-corpo" style="padding:22px 24px; display:grid; grid-template-columns:1.2fr 1fr; gap:28px; flex:1; min-height:0; overflow-y:auto;">
+                                        <div style="display:grid; grid-template-columns:1.6fr 1fr; column-gap:12px; align-content:start;">
+                                            <div style="grid-column:1 / -1; font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Entrada</div>
+
+                                            <div style="margin-bottom:14px;">
+                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Vendedor destino</label>
+                                                <input type="text" name="vendedor_destino" value="{{ $req->requester_name }}" required style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
+                                            </div>
+                                            <div style="margin-bottom:14px;">
+                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Quantidade dada entrada</label>
+                                                <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" readonly style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#f1f5f9; color:#64748b; font-weight:700;">
+                                            </div>
+                                            <div style="grid-column:1 / -1; margin:-6px 0 14px; font-size:12px; color:#64748b;">Entrada precisa ser da quantidade cheia recebida na conferência ({{ $req->quantidade_recebida ?? $req->quantity }}). Se faltou unidade, resolva na conferência.</div>
+
+                                            <div style="grid-column:1 / -1;">
+                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Observação <span style="font-weight:400; color:#94a3b8;">(opcional — o admin e o vendedor veem)</span></label>
+                                                <textarea name="obs_entrada" rows="3" maxlength="500" placeholder="Ex: caixa amassada, veio sem manual..." style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Notas e ocorrências</div>
+                                            @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
+                                                <x-obs-todas :item="$req" margem="0" :plano="true" />
+                                            @else
+                                                <div style="font-size:13px; color:#64748b;">Nenhuma nota.</div>
+                                            @endif
+                                            @if($req->pedido_compra_path)
+                                                <div style="margin-top:14px; font-size:13px;">
+                                                    <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; text-decoration:underline;">📎 Pedido de compra{{ $req->pedido_compra_nome ? ': ' . $req->pedido_compra_nome : '' }}</a>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <div style="margin-bottom:16px;">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Dada Entrada</label>
-                                        <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" readonly
-                                               style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; background:#f3f4f6; color:#6b7280;">
-                                        <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Entrada precisa ser da quantidade cheia recebida na conferência ({{ $req->quantidade_recebida ?? $req->quantity }}). Se faltou unidade, resolva na conferência.</div>
-                                    </div>
-
-                                    <div style="margin-bottom:16px;">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — o admin e o vendedor veem)</span></label>
-                                        <textarea name="obs_entrada" rows="3" maxlength="500" placeholder="Ex: caixa amassada, veio sem manual..."
-                                                  style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
-                                    </div>
-
-                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                    <div style="padding:16px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:flex-end; gap:10px;">
                                         <button type="button" onclick="document.getElementById('modal-entrada-{{ $req->id }}').style.display='none'"
-                                                style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
+                                                style="padding:8px 18px; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:600; cursor:pointer;">
                                             Cancelar
                                         </button>
                                         <button type="submit"
-                                                style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
+                                                style="padding:8px 22px; border-radius:6px; background:#05018D; color:#ffffff; font-size:13px; font-weight:600; border:none; cursor:pointer;">
                                             Confirmar
                                         </button>
                                     </div>
@@ -293,7 +254,7 @@
                     @endforeach
                     @empty
                         <tr>
-                            <td colspan="10" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="9" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 {{ $aba === 'concluidas' ? 'Nenhum item com entrada registrada ainda.' : 'Nenhum item liberado aguardando entrada.' }}
                             </td>
                         </tr>
@@ -308,199 +269,6 @@
         @endif
     </div>
 
-    <div class="entr-mobile-cards">
-        @forelse($requests as $grupo)
-            @php
-                $primeiroEntrM = $grupo->first();
-                $chaveEntrM = $primeiroEntrM->grupo_id;
-                $statusEntrUnicosM = $grupo->map(fn($r) => $r->entrada_concluida_em ? 'concluida' : 'aguardando')->unique();
-                if ($statusEntrUnicosM->count() === 1) {
-                    $statusChaveEntrM = $statusEntrUnicosM->first();
-                    $rotuloEntrM = $statusChaveEntrM === 'concluida' ? 'Entrada Realizada' : 'Aguardando';
-                } else {
-                    $statusChaveEntrM = 'parcial';
-                    $rotuloEntrM = 'Parcial';
-                }
-                $corsGrupoEntrM = [
-                    'aguardando' => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
-                    'concluida'  => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
-                    'parcial'    => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
-                ][$statusChaveEntrM];
-                $produtosResumoEntrM = $grupo->pluck('product_name')->filter()->implode(', ');
-                if (mb_strlen($produtosResumoEntrM) > 60) {
-                    $produtosResumoEntrM = mb_substr($produtosResumoEntrM, 0, 60) . '…';
-                }
-            @endphp
-            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
-                 onclick="toggleGrupoRequisicao('{{ $chaveEntrM }}')">
-                <div style="display:flex; align-items:stretch; gap:10px;">
-                    <div style="width:4px; background:{{ $corsGrupoEntrM['barra'] }};"></div>
-                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroEntrM->id }}</div>
-                            <span style="background:{{ $corsGrupoEntrM['bg'] }}; color:{{ $corsGrupoEntrM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloEntrM }}</span>
-                        </div>
-                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ ($aba === 'concluidas' ? $primeiroEntrM->vendedor_destino : $primeiroEntrM->requester_name) ?? 'Não informado' }}</div>
-                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoEntrM }}
-                        </div>
-                        <button type="button" class="m-botao" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveEntrM }}')"
-                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
-                            <span id="seta-grupo-{{ $chaveEntrM }}">Ver itens</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            @foreach($grupo as $req)
-            <div class="grupo-item-{{ $chaveEntrM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                <div style="font-size:15px; font-weight:700; color:#05018D; margin-bottom:6px;">{{ $req->product_name }}</div>
-                <x-parcial-info :item="$req" />
-                @if($req->status_conferencia === 'avancado_mesmo_assim')
-                    <span style="display:inline-block; margin-bottom:10px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">⚠ Avançado Mesmo Assim</span>
-                @endif
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; margin-bottom:10px;">
-                    <div>
-                        <span style="color:#9ca3af;">{{ $req->entrada_concluida_em ? 'Vendedor Destino' : 'Vendedor' }}</span>
-                        <div style="font-weight:600; color:#374151;">{{ ($req->entrada_concluida_em ? $req->vendedor_destino : $req->requester_name) ?? '—' }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Fornecedor</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Qtd Solic. / {{ $req->entrada_concluida_em ? 'Entrada' : 'Receb.' }}</span>
-                        <div style="font-weight:700; color:#374151;">{{ $req->quantity }} / {{ $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Preço Unit.</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->preco_unitario ? 'R$ ' . number_format($req->preco_unitario, 2, ',', '.') : '—' }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Preço Total</span>
-                        <div style="font-weight:700; color:#374151;">
-                            @if($req->preco_unitario)
-                                R$ {{ number_format($req->preco_unitario * $req->quantity, 2, ',', '.') }}
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Pedido</span>
-                        <div style="color:#374151;">
-                            @if($req->pedido_compra_path)
-                                <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline; font-size:13px;">📎 Pedido de compra</a>
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Foto</span>
-                        <div>
-                            <x-fotos-conferencia :item="$req" vazio="—" />
-                        </div>
-                    </div>
-                </div>
-
-                @if($req->obs)
-                <div style="margin-bottom:12px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
-                    <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
-                    <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
-                </div>
-                @endif
-
-                <x-obs-vendedor :item="$req" margem="12px" />
-                <x-obs-divergencia :item="$req" margem="12px" />
-                <x-obs-admin :item="$req" margem="12px" />
-                <x-obs-entrada :item="$req" />
-
-                @php
-                    $elegivelEntradaEntrM =$req->status === 'aprovado' && in_array($req->status_conferencia, ['conferido_ok', 'avancado_mesmo_assim'], true);
-                @endphp
-                @if($req->entrada_concluida_em)
-                <div style="text-align:right; font-size:12px; color:#6b7280;">
-                    Entrada em {{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}
-                </div>
-                @elseif($elegivelEntradaEntrM)
-                <div style="display:flex; justify-content:flex-end;">
-                    <button class="m-botao" onclick="document.getElementById('modal-entrada-m-{{ $req->id }}').style.display='flex'"
-                            style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:8px 18px; font-size:13px; font-weight:600; cursor:pointer;">
-                        Dar Entrada
-                    </button>
-                </div>
-                @else
-                <div style="text-align:right; font-size:12px; color:#9ca3af;">Aguardando conferência</div>
-                @endif
-            </div>
-
-            @if(!$req->entrada_concluida_em && $elegivelEntradaEntrM)
-            <div id="modal-entrada-m-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:20px; width:100%; max-width:440px; margin:16px; max-height:88vh; overflow-y:auto;">
-                    <h3 style="margin:0 0 4px; font-size:17px; font-weight:700; color:#05018D;">Dar Entrada</h3>
-                    <p style="margin:0 0 20px; font-size:13px; color:#9ca3af;">{{ $req->product_name }}</p>
-
-                    @if($req->obs)
-                    <div style="margin-bottom:16px; padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
-                        <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
-                        <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $req->obs }}</div>
-                    </div>
-                    @endif
-
-                    <x-obs-admin :item="$req" margem="16px" />
-                    <x-obs-vendedor :item="$req" margem="16px" />
-                    <x-obs-divergencia :item="$req" margem="16px" />
-
-                    <form method="POST" action="{{ route('entrada.darEntrada', $req) }}" id="form-entrada-m-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)">
-                        @csrf
-                        @method('PATCH')
-
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Vendedor Destino</label>
-                            <input type="text" name="vendedor_destino" value="{{ $req->requester_name }}" required
-                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
-                        </div>
-
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Quantidade Dada Entrada</label>
-                            <input type="number" name="quantidade_entrada" value="{{ $req->quantidade_recebida ?? $req->quantity }}" readonly
-                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; background:#f3f4f6; color:#6b7280;">
-                            <div style="margin-top:4px; font-size:11px; color:#9ca3af;">Entrada precisa ser da quantidade cheia recebida na conferência ({{ $req->quantidade_recebida ?? $req->quantity }}). Se faltou unidade, resolva na conferência.</div>
-                        </div>
-
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Observação <span style="color:#9ca3af; font-weight:400; text-transform:none;">(opcional — o admin e o vendedor veem)</span></label>
-                            <textarea name="obs_entrada" rows="3" maxlength="500" placeholder="Ex: caixa amassada, veio sem manual..."
-                                      style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
-                        </div>
-
-                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
-                            <button type="button" onclick="document.getElementById('modal-entrada-m-{{ $req->id }}').style.display='none'"
-                                    style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
-                                Cancelar
-                            </button>
-                            <button type="submit"
-                                    style="padding:9px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
-                                Confirmar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            @endif
-            @endforeach
-        @empty
-            <div style="text-align:center; padding:48px 16px;">
-                <p style="color:#6b7280; font-size:15px; margin:0;">{{ $aba === 'concluidas' ? 'Nenhum item com entrada registrada ainda.' : 'Nenhum item liberado aguardando entrada.' }}</p>
-            </div>
-        @endforelse
-        @if($requests->hasPages())
-            <div style="padding:16px 4px; display:flex; justify-content:center;">
-                {{ $requests->links() }}
-            </div>
-        @endif
-    </div>
     @endif
 
 </div>
@@ -511,9 +279,9 @@ function toggleGrupoRequisicao(chave) {
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
-        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+        linha.style.display = abrindo ? '' : 'none'; // '' devolve ao CSS: linha de tabela no PC, bloco no celular
     });
-    // Desktop e mobile têm um rótulo cada com o mesmo id; getElementById só achava o do desktop.
+    // querySelectorAll: se o mesmo rótulo aparecer mais de uma vez na página, todos mudam juntos.
     document.querySelectorAll('[id="seta-grupo-' + chave + '"]').forEach(function (seta) {
         seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
     });

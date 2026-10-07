@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 /**
  * Na aba Coleta da Conferência, cada item mostra as observações que acompanham a requisição
- * (principalmente a do admin), na linha, no card do celular e no quadro "Registrar Coleta".
+ * (principalmente a do admin), no cartão do item (o mesmo no PC e no celular) e no quadro "Registrar Coleta".
  */
 class ObsNaColetaTest extends TestCase
 {
@@ -46,10 +46,10 @@ class ObsNaColetaTest extends TestCase
         $this->assertStringContainsString('>ADMIN</span>', $html);
         $this->assertStringContainsString('>VENDEDOR</span>', $html);
         $this->assertStringContainsString('<strong>Motivo:</strong>', $html);
-        // linha do desktop + card do celular + quadro Registrar Coleta
-        $this->assertSame(3, substr_count($html, self::ADMIN));
-        $this->assertSame(3, substr_count($html, self::OBS));
-        $this->assertSame(3, substr_count($html, self::MOTIVO));
+        // cartão do item + quadro Registrar Coleta (uma marcação só para PC e celular)
+        $this->assertSame(2, substr_count($html, self::ADMIN));
+        $this->assertSame(2, substr_count($html, self::OBS));
+        $this->assertSame(2, substr_count($html, self::MOTIVO));
     }
 
     public function test_coleta_mostra_tambem_conferente_divergencia_e_entrada_quando_existem(): void
@@ -66,13 +66,15 @@ class ObsNaColetaTest extends TestCase
         $this->assertStringContainsString(self::ENTRADA, $html);
     }
 
-    public function test_aba_de_coletados_tambem_mostra_na_linha_e_no_card(): void
+    public function test_aba_de_coletados_tambem_mostra_no_cartao_do_item(): void
     {
         $this->item(['status_coleta' => 'coletado', 'data_coleta' => now()]);
 
         $html = $this->coleta('coletado');
 
-        $this->assertSame(2, substr_count($html, self::ADMIN)); // sem o quadro de coletar
+        $this->assertSame(1, substr_count($html, self::ADMIN)); // só o cartão do item, sem o quadro de coletar
+        $this->assertStringContainsString('>ADMIN</span>', $html);
+        $this->assertStringNotContainsString('id="modal-coleta-', $html);
     }
 
     public function test_quem_e_da_entrada_tambem_ve(): void
@@ -100,8 +102,9 @@ class ObsNaColetaTest extends TestCase
 
         $html = $this->coleta();
 
-        $this->assertSame(3, substr_count($html, 'Nota do item A'));
-        $this->assertSame(3, substr_count($html, 'Nota do item B'));
+        // cartão do item + quadro Registrar Coleta de cada um
+        $this->assertSame(2, substr_count($html, 'Nota do item A'));
+        $this->assertSame(2, substr_count($html, 'Nota do item B'));
     }
 
     public function test_so_com_a_obs_do_admin_aparece_so_ela(): void

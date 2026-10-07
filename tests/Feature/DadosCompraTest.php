@@ -32,9 +32,27 @@ class DadosCompraTest extends TestCase
     public function test_guest_e_vendedor_nao_acessam_fila_de_compras(): void
     {
         $this->get(route('admin.compras.index'))->assertRedirect(route('login'));
+        $this->get(route('admin.compras.feitas', ['situacao' => 'falta']))->assertRedirect(route('login'));
 
         $vendedor = User::factory()->create(['is_admin' => false, 'role' => null]);
         $this->actingAs($vendedor)->get(route('admin.compras.index'))->assertForbidden();
+        $this->actingAs($vendedor)->get(route('admin.compras.feitas', ['situacao' => 'falta']))->assertForbidden();
+    }
+
+    // As telas "Compras" e "Dados da compra" saíram: os endereços antigos levam para Compras Feitas.
+    public function test_enderecos_antigos_levam_para_compras_feitas(): void
+    {
+        $admin = $this->admin();
+        $item = PurchaseRequest::factory()->aprovado()->create();
+
+        $this->actingAs($admin)->get(route('admin.compras.index'))
+            ->assertRedirect(route('admin.compras.feitas', ['situacao' => 'falta']));
+        $this->actingAs($admin)->get(route('admin.compras.index', ['situacao' => 'sem_dados']))
+            ->assertRedirect(route('admin.compras.feitas', ['situacao' => 'falta']));
+        $this->actingAs($admin)->get(route('admin.compras.index', ['situacao' => 'com_dados']))
+            ->assertRedirect(route('admin.compras.feitas'));
+        $this->actingAs($admin)->get(route('admin.compras.edit', $item))
+            ->assertRedirect(route('admin.compras.feitas', ['abrir' => $item->id]));
     }
 
     public function test_fila_lista_so_requisicoes_aprovadas(): void
@@ -42,11 +60,15 @@ class DadosCompraTest extends TestCase
         $aprovada = PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Mouse Aprovado']);
         PurchaseRequest::factory()->create(['product_name' => 'Teclado Pendente']);
 
-        $this->actingAs($this->admin())
-            ->get(route('admin.compras.index'))
+        // a fila agora é o filtro "Falta registrar" de Compras Feitas
+        $html = $this->actingAs($this->admin())
+            ->get(route('admin.compras.feitas', ['situacao' => 'falta']))
             ->assertOk()
             ->assertSee('Mouse Aprovado')
-            ->assertDontSee('Teclado Pendente');
+            ->assertDontSee('Teclado Pendente')
+            ->getContent();
+
+        $this->assertStringContainsString('data-compra-id="' . $aprovada->id . '"', $html);
     }
 
     public function test_filtro_sem_dados_esconde_quem_ja_tem_dados_da_compra(): void
@@ -59,7 +81,8 @@ class DadosCompraTest extends TestCase
         ]);
 
         $this->actingAs($this->admin())
-            ->get(route('admin.compras.index', ['situacao' => 'sem_dados']))
+            ->get(route('admin.compras.feitas', ['situacao' => 'falta']))
+            ->assertOk()
             ->assertSee('Item Sem Dados')
             ->assertDontSee('Item Com Dados');
     }
@@ -67,11 +90,27 @@ class DadosCompraTest extends TestCase
     public function test_formulario_abre_para_requisicao_aprovada(): void
     {
         $item = PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Monitor 24']);
+        PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Outra Requisicao']);
+        $admin = $this->admin();
 
-        $this->actingAs($this->admin())
-            ->get(route('admin.compras.edit', $item))
+        // o endereço antigo do formulário abre a janela do item em Compras Feitas
+        $destino = route('admin.compras.feitas', ['abrir' => $item->id]);
+        $this->actingAs($admin)->get(route('admin.compras.edit', $item))->assertRedirect($destino);
+
+        $html = $this->actingAs($admin)->get($destino)
             ->assertOk()
-            ->assertSee('Monitor 24');
+            ->assertSee('Monitor 24')
+            ->assertSee('Mostrando só a requisição de')
+            ->assertDontSee('Outra Requisicao')
+            ->assertSee('id="janela-compra"', false)
+            ->getContent();
+
+        $dados = $this->dadosDaJanelaDeCompra($html, $item->id);
+        $this->assertSame('Monitor 24', $dados['produto']);
+        $this->assertSame(route('admin.compras.update', $item), $dados['url']);
+        // a janela abre sozinha para o item do atalho
+        $this->assertStringContainsString('document.querySelector(\'[data-compra-id="' . $item->id . '"]\')', $html);
+        $this->assertStringContainsString('abrirCompra(botaoDoAtalho)', $html);
     }
 
     public function test_nao_registra_compra_de_requisicao_nao_aprovada(): void

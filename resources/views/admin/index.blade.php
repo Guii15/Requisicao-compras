@@ -78,7 +78,7 @@
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Pendentes</h2>
         <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
             Requisições que ainda precisam de aprovação ou rejeição. Depois de decidido, o item sai daqui. Depois de aprovada, registre os dados da compra em
-            <a href="{{ route('admin.compras.index') }}" style="color:#05018D; font-weight:600;">Compras</a>.
+            <a href="{{ route('admin.compras.feitas', ['situacao' => 'falta']) }}" style="color:#05018D; font-weight:600;">Compras Feitas</a>.
         </p>
     </div>
 

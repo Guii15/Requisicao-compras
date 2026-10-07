@@ -80,8 +80,11 @@ class ObsEntradaTest extends TestCase
         ]);
         PurchaseRequest::factory()->create(['grupo_id' => $item->grupo_id, 'status' => 'pendente']);
 
-        foreach ([route('admin.index'), route('admin.compras.index'), route('admin.compras.feitas')] as $url) {
-            $this->actingAs($admin)->get($url)->assertSee('Obs (Entrada)')->assertSee('Veio sem nota fiscal');
+        $this->actingAs($admin)->get(route('admin.index'))->assertSee('Obs (Entrada)')->assertSee('Veio sem nota fiscal');
+
+        // A tela "Compras" saiu: tudo fica em Compras Feitas, onde a nota vem no cartão do item com a etiqueta ENTRADA.
+        foreach ([route('admin.compras.feitas'), route('admin.compras.feitas', ['abrir' => $item->id])] as $url) {
+            $this->actingAs($admin)->get($url)->assertOk()->assertSee('>ENTRADA</span>', false)->assertSee('Veio sem nota fiscal');
         }
     }
 

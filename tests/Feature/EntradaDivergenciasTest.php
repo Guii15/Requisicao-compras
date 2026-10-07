@@ -48,9 +48,10 @@ class EntradaDivergenciasTest extends TestCase
         $this->aba()
             ->assertSee('Cabo Divergente')
             ->assertSee(self::DIVERGENCIA)
-            ->assertSee('Divergência (Conferência)')
+            ->assertSee('>DIVERGÊNCIA</span>', false) // etiqueta da nota no cartão do item e na janela Dar Entrada
             ->assertSee(self::OBS)
-            ->assertSee('Obs (Vendedor)')
+            ->assertSee('>VENDEDOR</span>', false)
+            ->assertSee('<strong>Motivo:</strong> Reposição', false)
             ->assertSee('Carlos Conferente')
             ->assertSee('Kabum');
     }

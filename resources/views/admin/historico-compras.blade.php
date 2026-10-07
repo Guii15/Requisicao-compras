@@ -240,7 +240,7 @@
                                 <div style="font-size:11.5px; color:{{ $entradaCor }}; font-weight:600; margin-top:2px;">{{ $entradaLabel }}</div>
                             @endif
                             @if($itemHist->tipo_registro === 'requisicao' && $itemHist->status === 'aprovado')
-                                <a href="{{ route('admin.compras.edit', $itemHist->id) }}" style="font-size:12px; color:#05018D; font-weight:600;">
+                                <a href="{{ route('admin.compras.feitas', ['abrir' => $itemHist->id]) }}" style="font-size:12px; color:#05018D; font-weight:600;">
                                     {{ $itemHist->temDadosDaCompra() ? 'Ver dados da compra' : 'Registrar dados da compra' }}
                                 </a>
                             @endif

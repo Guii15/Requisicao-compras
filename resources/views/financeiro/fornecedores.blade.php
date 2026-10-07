@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+{{-- Mesma largura das outras listagens do sistema (o layout lê esta seção) --}}
+@section('tela_cheia', '1')
+
 @section('content')
 @php use App\Support\Dinheiro; @endphp
 

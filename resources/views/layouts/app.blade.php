@@ -211,7 +211,34 @@
             -webkit-text-fill-color: #e2e3e9 !important;
             caret-color: #e2e3e9 !important;
         }
-        </style>
+        
+        /* Listagens no celular: a MESMA tabela do PC vira cartões (cada linha de requisição é um bloco com rótulos). */
+        @media (max-width: 768px) {
+            .lista-resp { border: none !important; background: transparent !important; overflow: visible !important; }
+            .lista-resp > div { overflow: visible !important; }
+            .lista-resp table, .lista-resp tbody { display: block; width: 100%; }
+            .lista-resp thead { display: none; }
+            .lista-resp tr { display: block; }
+            .lista-resp tr.grupo-cabecalho { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; padding: 14px 16px; margin-top: 10px; background: #fff; border: 1px solid #e5e7eb !important; border-radius: 10px; }
+            .lista-resp tr.grupo-cabecalho > td { display: block; padding: 0 !important; text-align: left !important; max-width: none !important; white-space: normal !important; min-width: 0; }
+            .lista-resp tr.grupo-cabecalho > td[data-rotulo]::before { content: attr(data-rotulo); display: block; font-size: 10.5px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+            .lista-resp tr.grupo-cabecalho > td.lr-num { font-size: 16px !important; }
+            .lista-resp tr.grupo-cabecalho > td.lr-larga, .lista-resp tr.grupo-cabecalho > td.lr-acao { grid-column: 1 / -1; }
+            .lista-resp tr.grupo-cabecalho > td.lr-larga > div { white-space: normal !important; }
+            .lista-resp tr.grupo-cabecalho > td.lr-acao { display: flex; gap: 8px; }
+            .lista-resp tr.grupo-cabecalho > td.lr-acao > button { flex: 1; margin: 0 !important; min-height: 42px; }
+            .lista-resp tr[class*="grupo-item-"] { background: transparent !important; }
+            .lista-resp tr[class*="grupo-item-"] > td { display: block; padding: 8px 0 0 !important; border: none !important; }
+            .lista-resp tr:not(.grupo-cabecalho):not([class*="grupo-item-"]) > td { display: block; }
+            .ir-colunas { grid-template-columns: 1fr !important; }
+            .ir-colunas > div { border-left: none !important; border-top: 1px solid #eef0f3; }
+            .ir-colunas > div:first-child { border-top: none; }
+            .jan-corpo { grid-template-columns: 1fr !important; gap: 18px !important; padding: 16px !important; }
+            .jan-4 { grid-template-columns: 1fr 1fr !important; }
+        }
+        html.dark .lista-resp tr.grupo-cabecalho { border-color: var(--sl-line) !important; }
+        @media (max-width: 768px) { html.dark .lista-resp tr.grupo-cabecalho { background: var(--sl-card); } }
+    </style>
 
         <script>
         (function() {
@@ -241,7 +268,7 @@
                 </main>
             @else
                 <main class="py-6" style="flex:1;">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" @if(View::hasSection('tela_cheia')) style="max-width:none;" @endif>
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" @if(View::hasSection('tela_cheia')) style="max-width:1560px;" @endif>
                         @yield('content')
                     </div>
                 </main>
