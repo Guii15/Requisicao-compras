@@ -14,6 +14,8 @@ use App\Http\Middleware\ConferenciaVisualizacaoMiddleware;
 use App\Http\Middleware\EntradaMiddleware;
 use App\Http\Middleware\FinanceiroMiddleware;
 use App\Http\Controllers\FinanceiroController;
+use App\Http\Middleware\RmaMiddleware;
+use App\Http\Controllers\RmaController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\VendedorMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -48,6 +50,7 @@ Route::get('/dashboard', function () {
     return match (true) {
         $user->isAdmin()      => redirect()->route('admin.index'),
         $user->isFinanceiro() => redirect()->route('financeiro.index'),
+        $user->isRma()        => redirect()->route('rma.index'),
         $user->role === 'entrada' => redirect()->route('entrada.index'),
         $user->isConferente() => redirect()->route('conferencia.index'),
         $user->isEntrada()    => redirect()->route('entrada.index'),
@@ -124,6 +127,11 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::get('/fornecedor/{chave}', [FinanceiroController::class, 'fornecedor'])->name('fornecedor');
     Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
     Route::delete('/pagamentos/{pagamento}', [FinanceiroController::class, 'desfazer'])->middleware('throttle:60,1')->name('desfazer');
+});
+
+// Setor RMA: só leitura do que foi comprado e já chegou (sem valores em dinheiro).
+Route::middleware(['auth', RmaMiddleware::class])->prefix('rma')->name('rma.')->group(function () {
+    Route::get('/', [RmaController::class, 'index'])->name('index');
 });
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {
