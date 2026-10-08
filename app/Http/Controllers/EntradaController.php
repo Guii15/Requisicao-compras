@@ -32,7 +32,9 @@ class EntradaController extends Controller
             $ordenarPor = 'entrada_concluida_em';
         } else {
             $query->whereIn('status_conferencia', ['conferido_ok', 'avancado_mesmo_assim'])->whereNull('entrada_concluida_em');
-            $ordenarPor = 'created_at';
+            // O que acabou de ficar liberado (conferido, ou aceito em Pendências) vem primeiro. Ordenar pela criação
+            // escondia na página 2, 3... um item criado dias atrás e liberado hoje.
+            $ordenarPor = 'updated_at';
         }
 
         if ($q !== '') {
