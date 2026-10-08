@@ -118,7 +118,9 @@
         /* Elementos que o JS mexe (style.display etc.) perdem os seletores por atributo: usam classe */
         html.dark .jc-caixa { background: var(--sl-panel) !important; border-color: var(--sl-line) !important; color: var(--sl-fog) !important; }
         html.dark .jc-caixa a { color: var(--sl-copper) !important; }
-        .jan-corpo > * { min-width:0; overflow-wrap:anywhere; }
+        /* Texto sem espaço (nome de produto colado, link longo) quebra em vez de empurrar a tela para o lado */
+        body { overflow-wrap:anywhere; }
+        td, th, .lista-resp, .jan-corpo > * { min-width:0; }
         .cr-prod-row { border-bottom:1px solid #f1f5f9; background:#fff; }
         .cr-prod-row.par { background:#fafafa; }
         html.dark .cr-prod-row, html.dark .cr-prod-row.par { background: var(--sl-card) !important; border-bottom-color: var(--sl-line) !important; }
@@ -239,10 +241,10 @@
             .lista-resp tr[class*="grupo-item-"] { background: transparent !important; }
             .lista-resp tr[class*="grupo-item-"] > td { display: block; padding: 8px 0 0 !important; border: none !important; }
             .lista-resp tr:not(.grupo-cabecalho):not([class*="grupo-item-"]) > td { display: block; }
-            .ir-colunas { grid-template-columns: 1fr !important; }
+            .ir-colunas { grid-template-columns: minmax(0, 1fr) !important; }
             .ir-colunas > div { border-left: none !important; border-top: 1px solid #eef0f3; }
             .ir-colunas > div:first-child { border-top: none; }
-            .jan-corpo { grid-template-columns: 1fr !important; gap: 18px !important; padding: 16px !important; }
+            .jan-corpo { grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; padding: 16px !important; }
             .jan-4 { grid-template-columns: 1fr 1fr !important; }
         }
         html.dark .lista-resp tr.grupo-cabecalho { border-color: var(--sl-line) !important; }

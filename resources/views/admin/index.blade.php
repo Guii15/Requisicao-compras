@@ -12,8 +12,8 @@
 .campo-arquivo::file-selector-button:hover { border-color: #05018D; color: #05018D; }
 @media (max-width: 768px) {
     .adm-stats { grid-template-columns: 1fr 1fr !important; }
-    .adm-filters form { grid-template-columns: 1fr !important; }
-    .adm-charts-grid { grid-template-columns: 1fr !important; } /* no celular os mesmos gráficos, um embaixo do outro */
+    .adm-filters form { grid-template-columns: minmax(0, 1fr) !important; }
+    .adm-charts-grid { grid-template-columns: minmax(0, 1fr) !important; } /* no celular os mesmos gráficos, um embaixo do outro */
 }
 </style>
 

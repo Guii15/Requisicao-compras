@@ -4,7 +4,7 @@
 
 <style>
 @media (max-width: 640px) {
-    .edit-grid-2 { grid-template-columns: 1fr !important; }
+    .edit-grid-2 { grid-template-columns: minmax(0, 1fr) !important; }
 }
 </style>
 

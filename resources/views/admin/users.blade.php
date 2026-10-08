@@ -4,7 +4,7 @@
 
 <style>
 @media (max-width: 768px) {
-    .adm-users-grid { grid-template-columns: 1fr !important; }
+    .adm-users-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
 </style>
 

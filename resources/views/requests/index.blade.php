@@ -10,9 +10,9 @@
 @media (max-width: 768px) {
     .idx-header { flex-direction: column; align-items: flex-start !important; }
     .idx-nova-btn { width: 100%; justify-content: center; }
-    .idx-filters form { grid-template-columns: 1fr !important; }
+    .idx-filters form { grid-template-columns: minmax(0, 1fr) !important; }
     .idx-stats { grid-template-columns: 1fr 1fr !important; }
-    .idx-charts { grid-template-columns: 1fr !important; }
+    .idx-charts { grid-template-columns: minmax(0, 1fr) !important; }
 }
 </style>
 

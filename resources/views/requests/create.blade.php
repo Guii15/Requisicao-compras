@@ -54,8 +54,8 @@ html.dark .cr-section-title { color: var(--sl-bone); }
 html.dark .cr-section-title > span { background: var(--sl-panel) !important; color: var(--sl-fog) !important; }
 html.dark .cr-field-label { color: var(--sl-fog); }
 @media (max-width: 768px) {
-    .cr-grid-main { grid-template-columns: 1fr !important; }
-    .cr-prod-form { grid-template-columns: 1fr !important; }
+    .cr-grid-main { grid-template-columns: minmax(0, 1fr) !important; }
+    .cr-prod-form { grid-template-columns: minmax(0, 1fr) !important; }
     .cr-prod-row { grid-template-columns: 1fr 60px 40px 40px !important; }
     .col-code { display: none !important; }
 }
