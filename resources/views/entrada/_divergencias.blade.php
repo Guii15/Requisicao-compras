@@ -51,8 +51,8 @@
                                 <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
                             </td>
                             @php $datasCompra = $grupo->pluck('data_compra')->filter()->map(fn ($d) => $d->format('d/m/Y'))->unique()->values(); $dataCompra = $datasCompra->count() === 0 ? '—' : ($datasCompra->count() === 1 ? $datasCompra->first() : $datasCompra->first() . ' +'); @endphp
-                            <td data-rotulo="Data da compra" style="{{ $tdDiv }} white-space:nowrap;">{{ $dataCompra }}</td>
                             <td data-rotulo="Fornecedor" style="{{ $tdDiv }}">{{ $fornecedorDiv }}</td>
+                            <td data-rotulo="Data da compra" style="{{ $tdDiv }} white-space:nowrap;">{{ $dataCompra }}</td>
                             <td data-rotulo="Pedido / recebido" style="{{ $tdDiv }} text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">{{ $grupo->sum('quantity') }} / <strong style="color:#b8301a;">{{ $grupo->sum(fn ($r) => (int) $r->quantidade_recebida) }}</strong></td>
                             <td data-rotulo="Entrega" style="{{ $tdDiv }} font-size:13px; white-space:nowrap;">{{ $entregasDiv->count() === 1 ? $entregasDiv->first() : 'Mista' }}</td>
                             <td data-rotulo="Situação" style="{{ $tdDiv }}">

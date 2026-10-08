@@ -138,8 +138,8 @@
                                 <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
                             </td>
                             @php $datasCompra = $grupo->pluck('data_compra')->filter()->map(fn ($d) => $d->format('d/m/Y'))->unique()->values(); $dataCompra = $datasCompra->count() === 0 ? '—' : ($datasCompra->count() === 1 ? $datasCompra->first() : $datasCompra->first() . ' +'); @endphp
-                            <td data-rotulo="Data da compra" style="{{ $tdEntr }} white-space:nowrap;">{{ $dataCompra }}</td>
                             <td data-rotulo="Fornecedor" style="{{ $tdEntr }}">{{ $fornecedorEntr }}</td>
+                            <td data-rotulo="Data da compra" style="{{ $tdEntr }} white-space:nowrap;">{{ $dataCompra }}</td>
                             <td data-rotulo="Qtd solic. / {{ $aba === 'concluidas' ? 'entrada' : 'receb.' }}" style="{{ $tdEntr }} text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">{{ $qtdPedidaEntr }} / <strong style="color:{{ $qtdChegouEntr === $qtdPedidaEntr ? '#111827' : '#b8301a' }};">{{ $qtdChegouEntr }}</strong></td>
                             <td data-rotulo="Total" style="{{ $tdEntr }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalEntr > 0 ? 'R$ ' . number_format($totalEntr, 2, ',', '.') : '—' }}</td>
                             <td data-rotulo="Coleta" style="{{ $tdEntr }} font-size:13px; white-space:nowrap;">

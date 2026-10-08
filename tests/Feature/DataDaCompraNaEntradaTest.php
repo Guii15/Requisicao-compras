@@ -22,5 +22,7 @@ class DataDaCompraNaEntradaTest extends TestCase
             ->assertOk()->assertSee('Data da compra')->assertSee('17/09/2026')->getContent();
 
         $this->assertStringContainsString('Compra em:', $html);
+        // As células seguem a ordem dos cabeçalhos: Fornecedor, depois Data da compra.
+        $this->assertLessThan(strpos($html, 'data-rotulo="Data da compra"'), strpos($html, 'data-rotulo="Fornecedor"'));
     }
 }
