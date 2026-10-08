@@ -120,7 +120,12 @@
         html.dark .jc-caixa a { color: var(--sl-copper) !important; }
         /* Texto sem espaço (nome de produto colado, link longo) quebra em vez de empurrar a tela para o lado */
         body { overflow-wrap:anywhere; }
-        td, th, .lista-resp, .jan-corpo > * { min-width:0; }
+        /* Botões, pílulas e títulos de coluna nunca quebram no meio da palavra */
+        button, input[type="submit"], .menu-m-acao, th, [style*="border-radius:9999px"], [style*="border-radius:999px"], [style*="border-radius: 9999px"], span[style*="border-radius"][style*="padding"] { white-space:nowrap; overflow-wrap:normal; }
+        /* Em tabela (PC) a coluna não encolhe por causa de uma palavra: só quebra se não couber; no celular a linha vira cartão e quebra à vontade */
+        td { overflow-wrap:break-word; }
+        @media (max-width:768px) { td { overflow-wrap:anywhere; } }
+        .lista-resp, .jan-corpo > * { min-width:0; }
         .cr-prod-row { border-bottom:1px solid #f1f5f9; background:#fff; }
         .cr-prod-row.par { background:#fafafa; }
         html.dark .cr-prod-row, html.dark .cr-prod-row.par { background: var(--sl-card) !important; border-bottom-color: var(--sl-line) !important; }

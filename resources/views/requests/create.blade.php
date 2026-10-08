@@ -199,7 +199,7 @@ html.dark .cr-field-label { color: var(--sl-fog); }
                 <div style="display:grid; grid-template-columns:120px 1fr 80px 44px 44px; background:#f1f5f9; border-bottom:1px solid #e2e8f0; padding:9px 14px; font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">
                     <span class="col-code">Código</span>
                     <span>Item</span>
-                    <span style="text-align:center;">Qtd</span>
+                    <span style="text-align:center; white-space:nowrap;">Qtd</span>
                     <span></span>
                     <span></span>
                 </div>
