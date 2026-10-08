@@ -122,35 +122,49 @@
         </div>
     </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden" style="background:#000050; border-top:1px solid rgba(255,255,255,0.1);">
-        <div class="pt-2 pb-3 px-4">
-            @if(Auth::user()->isVendedor())
-            <a href="{{ route('requests.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px;">Minhas Requisições</a>
-            @endif
-            @if(Auth::user()->isAdmin())
-            <a href="{{ route('admin.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">⚙ Admin</a>
-            @endif
-            @if(Auth::user()->role === 'conferente' || Auth::user()->role === 'entrada')
-            <a href="{{ route('conferencia.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">🔍 Conferência</a>
-            @endif
-            @if(Auth::user()->role === 'entrada')
-            <a href="{{ route('entrada.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">📦 Entrada</a>
-            @endif
-            @if(Auth::user()->podeVerFinanceiro())
-            <a href="{{ route('financeiro.index') }}" style="display:block; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:14px; margin-top:2px;">💰 Financeiro</a>
-            @endif
-        </div>
-        <div style="padding:12px 16px; border-top:1px solid rgba(255,255,255,0.1);">
-            <div style="color:#fff; font-weight:600; font-size:15px;">{{ Auth::user()->name }}</div>
-            <div style="color:rgba(255,255,255,0.55); font-size:13px;">{{ Auth::user()->email }}</div>
-            <div class="mt-3">
-                <x-push-toggle variant="mobile" />
-                <a href="{{ route('profile.edit') }}" style="display:block; color:rgba(255,255,255,0.8); padding:8px 0; font-size:14px; text-decoration:none;">Meu Perfil</a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" style="background:none; border:none; color:rgba(255,255,255,0.8); padding:8px 0; font-size:14px; cursor:pointer; width:100%; text-align:left;">Sair</button>
-                </form>
-            </div>
+    {{-- Menu do celular: lista limpa, sem emoji; a página atual fica em azul com uma barra na lateral. --}}
+    <style>
+        .menu-m { background:#fff; border-top:1px solid #e5e7eb; }
+        .menu-m .menu-m-link { display:block; padding:14px 20px; font-size:15px; font-weight:600; color:#111827; text-decoration:none; border-bottom:1px solid #f1f5f9; }
+        .menu-m .menu-m-link.ativo { color:#05018D; box-shadow:inset 3px 0 0 #05018D; background:#f8fafc; }
+        .menu-m .menu-m-usuario { padding:16px 20px 20px; background:#f8fafc; }
+        .menu-m .menu-m-nome { font-size:15px; font-weight:700; color:#111827; overflow-wrap:anywhere; }
+        .menu-m .menu-m-email { font-size:13px; color:#6b7280; overflow-wrap:anywhere; margin-top:2px; }
+        .menu-m .menu-m-acao { display:flex; align-items:center; justify-content:center; width:100%; margin-top:10px; padding:10px 16px; border-radius:9999px; border:1px solid #cbd5e1; background:#fff; color:#374151; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer; box-sizing:border-box; }
+        html.dark .menu-m { background:var(--sl-card); border-top-color:var(--sl-line); }
+        html.dark .menu-m .menu-m-link { color:var(--sl-bone); border-bottom-color:var(--sl-line); }
+        html.dark .menu-m .menu-m-link.ativo { color:#fff; box-shadow:inset 3px 0 0 #fff; background:var(--sl-panel); }
+        html.dark .menu-m .menu-m-usuario { background:var(--sl-panel); }
+        html.dark .menu-m .menu-m-nome { color:var(--sl-bone); }
+        html.dark .menu-m .menu-m-email { color:var(--sl-fog); }
+        html.dark .menu-m .menu-m-acao { background:transparent; border-color:var(--sl-line-2); color:var(--sl-bone); }
+    </style>
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden menu-m">
+        @if(Auth::user()->isVendedor())
+            <a href="{{ route('requests.index') }}" class="menu-m-link {{ request()->routeIs('requests.*') ? 'ativo' : '' }}">Minhas Requisições</a>
+        @endif
+        @if(Auth::user()->isAdmin())
+            <a href="{{ route('admin.index') }}" class="menu-m-link {{ request()->routeIs('admin.*', 'pendencias.*') ? 'ativo' : '' }}">Admin</a>
+        @endif
+        @if(Auth::user()->role === 'conferente' || Auth::user()->role === 'entrada')
+            <a href="{{ route('conferencia.index') }}" class="menu-m-link {{ request()->routeIs('conferencia.*') ? 'ativo' : '' }}">Conferência</a>
+        @endif
+        @if(Auth::user()->role === 'entrada')
+            <a href="{{ route('entrada.index') }}" class="menu-m-link {{ request()->routeIs('entrada.*') ? 'ativo' : '' }}">Entrada</a>
+        @endif
+        @if(Auth::user()->podeVerFinanceiro())
+            <a href="{{ route('financeiro.index') }}" class="menu-m-link {{ request()->routeIs('financeiro.*') ? 'ativo' : '' }}">Financeiro</a>
+        @endif
+
+        <div class="menu-m-usuario">
+            <div class="menu-m-nome">{{ Auth::user()->name }}</div>
+            <div class="menu-m-email">{{ Auth::user()->email }}</div>
+            <x-push-toggle variant="mobile" />
+            <a href="{{ route('profile.edit') }}" class="menu-m-acao">Meu Perfil</a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="menu-m-acao">Sair</button>
+            </form>
         </div>
     </div>
 </nav>

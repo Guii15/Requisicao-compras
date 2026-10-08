@@ -61,7 +61,7 @@
                             <td class="lr-num" style="{{ $tdPend }} font-weight:700; color:#111827; white-space:nowrap;">#{{ $req->id }}</td>
                             <td data-rotulo="Vendedor" style="{{ $tdPend }}">{{ $req->requester_name ?? '—' }}</td>
                             <td class="lr-larga" data-rotulo="Produto" style="{{ $tdPend }} max-width:380px;">
-                                <div style="font-weight:600; color:#111827;">{{ $req->product_name }}</div>
+                                <div style="font-weight:600; color:#111827; overflow-wrap:anywhere;">{{ $req->product_name }}</div>
                                 @if($req->observacao_conferencia)
                                     <div style="font-size:12px; color:#7f1d1d; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $req->observacao_conferencia }}</div>
                                 @endif
@@ -98,7 +98,7 @@
                                     <div>
                                         <h3 style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:400; color:#0f172a; letter-spacing:0.01em;">Resolver Pendência</h3>
                                         <div style="margin-top:4px; font-size:13px; color:#64748b; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                            <span style="font-weight:600; color:#1e293b;">{{ $req->product_name }}</span>
+                                            <span style="font-weight:600; color:#1e293b; overflow-wrap:anywhere;">{{ $req->product_name }}</span>
                                             <span>·</span>
                                             <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
                                             <span>·</span>

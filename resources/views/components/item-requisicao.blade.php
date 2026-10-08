@@ -17,13 +17,13 @@
     $linkItem = 'display:block; font-size:13px; color:#05018D; text-decoration:underline; margin-top:6px; overflow-wrap:anywhere;';
 @endphp
 
-<div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; text-align:left;">
+<div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; text-align:left; min-width:0; max-width:100%;">
 
     {{-- Cabeçalho do item --}}
     <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 20px; padding:14px 20px; border-bottom:1px solid #eef0f3;">
-        <div style="min-width:0;">
-            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
-                <span style="font-size:16px; font-weight:700; color:#111827;">{{ $req->product_name }}</span>
+        <div style="min-width:0; max-width:100%;">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; min-width:0;">
+                <span style="font-size:16px; font-weight:700; color:#111827; overflow-wrap:anywhere; min-width:0; max-width:100%;">{{ $req->product_name }}</span>
                 <x-status-requisicao :status="$req->status" estilo="contorno" />
             </div>
             <x-parcial-info :item="$req" />

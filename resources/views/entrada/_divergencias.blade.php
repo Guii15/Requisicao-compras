@@ -91,7 +91,7 @@
                                     <div>
                                         <h3 style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:400; color:#0f172a; letter-spacing:0.01em;">Dar Entrada com divergência</h3>
                                         <div style="margin-top:4px; font-size:13px; color:#64748b; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                            <span style="font-weight:600; color:#1e293b;">{{ $req->product_name }}</span>
+                                            <span style="font-weight:600; color:#1e293b; overflow-wrap:anywhere;">{{ $req->product_name }}</span>
                                             <span>·</span>
                                             <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
                                             <span>·</span>

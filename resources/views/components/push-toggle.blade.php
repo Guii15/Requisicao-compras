@@ -3,7 +3,7 @@
 @if(config('services.webpush.public_key'))
     @if($variant === 'mobile')
         <button type="button" data-push-toggle data-subscribe-url="{{ route('push.subscribe') }}"
-                style="background:none; border:none; color:rgba(255,255,255,0.8); padding:8px 0; font-size:14px; cursor:pointer; width:100%; text-align:left;">
+                class="menu-m-acao" style="gap:6px;">
             <span data-push-icon>🔕</span> <span data-push-label>Ativar notificações</span>
         </button>
     @else
