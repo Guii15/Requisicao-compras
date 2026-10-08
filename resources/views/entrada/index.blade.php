@@ -12,25 +12,25 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'concluidas' ? 'Itens que já tiveram entrada registrada' : ($aba === 'divergencias' ? 'Itens que chegaram com divergência e ainda aguardam decisão' : 'Itens liberados pela conferência aguardando entrada') }}</p>
     </div>
 
-    <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+    <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; padding-bottom:8px; border-bottom:2px solid #e5e7eb;">
         <a href="{{ route('entrada.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0;
                   background:{{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }};
-                  border:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }};"
+                  border:2px solid transparent; border-bottom:2px solid transparent;"
            @if($aba !== 'aguardando') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Aguardando
         </a>
         <a href="{{ route('entrada.index', ['aba' => 'concluidas']) }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0;
                   background:{{ $aba === 'concluidas' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'concluidas' ? '#fff' : '#6b7280' }};
-                  border:2px solid {{ $aba === 'concluidas' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'concluidas' ? '#05018D' : 'transparent' }};"
+                  border:2px solid transparent; border-bottom:2px solid transparent;"
            @if($aba !== 'concluidas') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Entrada Realizada
         </a>
         <a href="{{ route('entrada.index', ['aba' => 'divergencias']) }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px; display:inline-flex; align-items:center; gap:8px;
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; display:inline-flex; align-items:center; gap:8px;
                   background:{{ $aba === 'divergencias' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'divergencias' ? '#fff' : '#6b7280' }};
-                  border:2px solid {{ $aba === 'divergencias' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'divergencias' ? '#05018D' : 'transparent' }};"
+                  border:2px solid transparent; border-bottom:2px solid transparent;"
            @if($aba !== 'divergencias') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Divergências
             @if($qtdDivergencias > 0)

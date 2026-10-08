@@ -6,11 +6,11 @@
         ['ativa' => request()->routeIs('financeiro.fornecedores', 'financeiro.fornecedor'), 'rota' => 'financeiro.fornecedores', 'rotulo' => 'Fornecedores'],
     ];
 @endphp
-<div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb; flex-wrap:wrap;">
+<div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; padding-bottom:8px; border-bottom:2px solid #e5e7eb; flex-wrap:wrap;">
     @foreach($abasFinanceiro as $aba)
         <a href="{{ route($aba['rota'], array_filter(['empresa' => request('empresa')])) }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px; display:inline-flex; align-items:center; gap:8px;
-                  {{ $aba['ativa'] ? 'background:#05018D; color:#fff; border:2px solid #05018D;' : 'background:transparent; color:#6b7280; border:2px solid transparent;' }}"
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; display:inline-flex; align-items:center; gap:8px;
+                  {{ $aba['ativa'] ? 'background:#05018D; color:#fff; border:2px solid transparent;' : 'background:transparent; color:#6b7280; border:2px solid transparent;' }}"
            @unless($aba['ativa']) onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endunless>
             {{ $aba['rotulo'] }}
             @if(($aba['contagem'] ?? null) !== null)

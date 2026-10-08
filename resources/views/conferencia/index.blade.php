@@ -14,25 +14,25 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">{{ $aba === 'conferidos' ? 'Requisições já conferidas' : ($aba === 'coleta' ? 'Requisições aprovadas aguardando coleta' : 'Requisições aprovadas aguardando conferência') }}</p>
     </div>
 
-    <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e5e7eb;">
+    <div class="m-rolagem" style="display:flex; gap:4px; margin-bottom:24px; padding-bottom:8px; border-bottom:2px solid #e5e7eb;">
         <a href="{{ route('conferencia.index') }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0;
                   background:{{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'aguardando' ? '#fff' : '#6b7280' }};
-                  border:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'aguardando' ? '#05018D' : 'transparent' }};"
+                  border:2px solid transparent; border-bottom:2px solid transparent;"
            @if($aba !== 'aguardando') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Aguardando
         </a>
         <a href="{{ route('conferencia.index', ['aba' => 'conferidos']) }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0;
                   background:{{ $aba === 'conferidos' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'conferidos' ? '#fff' : '#6b7280' }};
-                  border:2px solid {{ $aba === 'conferidos' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'conferidos' ? '#05018D' : 'transparent' }};"
+                  border:2px solid transparent; border-bottom:2px solid transparent;"
            @if($aba !== 'conferidos') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Conferidos
         </a>
         <a href="{{ route('conferencia.index', ['aba' => 'coleta']) }}"
-           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0; margin-bottom:-2px;
+           style="padding:9px 20px; font-size:14px; font-weight:600; text-decoration:none; border-radius:6px 6px 0 0;
                   background:{{ $aba === 'coleta' ? '#05018D' : 'transparent' }}; color:{{ $aba === 'coleta' ? '#fff' : '#6b7280' }};
-                  border:2px solid {{ $aba === 'coleta' ? '#05018D' : 'transparent' }}; border-bottom:2px solid {{ $aba === 'coleta' ? '#05018D' : 'transparent' }};"
+                  border:2px solid transparent; border-bottom:2px solid transparent;"
            @if($aba !== 'coleta') onmouseover="this.style.color='#05018D'" onmouseout="this.style.color='#6b7280'" @endif>
             Coleta
         </a>

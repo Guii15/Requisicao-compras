@@ -112,6 +112,7 @@
         /* Linhas de item expandido, divisórias dos cartões e trilha de etapas (componentes novos) */
         html.dark [style*="background:#f7f8fa"], html.dark tr[class*="grupo-item-"] { background-color: var(--sl-void) !important; }
         html.dark [style*="#eef0f3"] { border-color: var(--sl-line) !important; }
+        html.dark .m-rolagem[style*="border-bottom:2px solid #e5e7eb"] { border-bottom-color: var(--sl-line-2) !important; }
         html.dark [style*="background:#111827"] { background: var(--sl-bone) !important; }
         html.dark [style*="background:#111827"][style*="color:#fff"], html.dark [style*="background:#111827"][style*="color: #fff"] { color: var(--sl-void) !important; }
         /* Elementos que o JS mexe (style.display etc.) perdem os seletores por atributo: usam classe */
