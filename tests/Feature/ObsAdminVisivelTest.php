@@ -34,8 +34,9 @@ class ObsAdminVisivelTest extends TestCase
         $vendedor = User::factory()->create(['role' => null]);
         $this->itemComObsAdmin(['user_id' => $vendedor->id]);
 
+        // a nota do admin vem no cartão do item com a etiqueta ADMIN (uma marcação só para PC e celular)
         $this->actingAs($vendedor)->get(route('requests.index'))
-            ->assertSee('Obs (Admin)')
+            ->assertSee('>ADMIN</span>', false)
             ->assertSee('Comprar so da loja X, urgente');
     }
 
@@ -44,7 +45,9 @@ class ObsAdminVisivelTest extends TestCase
         $vendedor = User::factory()->create(['role' => null]);
         $this->itemComObsAdmin(['user_id' => $vendedor->id, 'admin_note' => null]);
 
-        $this->actingAs($vendedor)->get(route('requests.index'))->assertDontSee('Obs (Admin)');
+        $this->actingAs($vendedor)->get(route('requests.index'))
+            ->assertDontSee('Obs (Admin)')
+            ->assertDontSee('>ADMIN</span>', false);
         $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index'))
             ->assertDontSee('Obs (Admin)')
             ->assertDontSee('>ADMIN</span>', false);

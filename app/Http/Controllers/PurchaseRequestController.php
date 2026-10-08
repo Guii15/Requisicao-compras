@@ -52,10 +52,24 @@ class PurchaseRequestController extends Controller
             'total_gasto' => (float) PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->sum('valor'),
         ];
 
+        // Linha de tendência dos blocos do topo (só as requisições deste vendedor), pelo status de hoje.
+        $mesesTendencia = collect(range(5, 0))->map(fn ($atras) => now()->startOfMonth()->subMonths($atras));
+        $doMes = fn ($q, $mes) => $q->where('user_id', $userId)->whereYear('created_at', $mes->year)->whereMonth('created_at', $mes->month);
+        $criadasPorMes = fn (?string $status) => $mesesTendencia->map(
+            fn ($mes) => $doMes(PurchaseRequest::query(), $mes)->when($status, fn ($q) => $q->where('status', $status))->count()
+        )->all();
+        $tendencias = [
+            'total'     => $criadasPorMes(null),
+            'pendente'  => $criadasPorMes('pendente'),
+            'aprovado'  => $criadasPorMes('aprovado'),
+            'rejeitado' => $criadasPorMes('rejeitado'),
+            'gasto'     => $mesesTendencia->map(fn ($mes) => (float) $doMes(PurchaseRequest::query(), $mes)->where('status', 'aprovado')->sum('valor'))->all(),
+        ];
+
         $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
             return [
-                'label' => $date->translatedFormat('M/y'),
+                'label' => ucfirst($date->translatedFormat('M/y')), // Out/26
                 'total' => (float) PurchaseRequest::where('status', 'aprovado')
                     ->whereNotNull('valor')
                     ->whereYear('created_at', $date->year)
@@ -91,7 +105,7 @@ class PurchaseRequestController extends Controller
             fn ($nome) => \App\Models\Fornecedor::normalizar($nome)
         );
 
-        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
+        return view('requests.index', compact('requests', 'stats', 'tendencias', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
     }
 
     public function create()

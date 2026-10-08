@@ -46,7 +46,7 @@ class BarrasMaioresGastosTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count(array_filter($larguras, fn ($l) => $l === 3)), 'vendedor e fornecedor pequenos com 3%');
     }
 
-    public function test_admin_tambem_usa_o_minimo_visivel_nas_duas_versoes_da_tela(): void
+    public function test_admin_tambem_usa_o_minimo_visivel_nos_rankings(): void
     {
         $this->compra('Gigante', 'Forn A', 40000000);
         $this->compra('Pequeno', 'Forn B', 225000);
@@ -57,7 +57,9 @@ class BarrasMaioresGastosTest extends TestCase
 
         $this->assertNotContains(0, $larguras);
         $this->assertNotContains(1, $larguras);
-        $this->assertGreaterThanOrEqual(4, count(array_filter($larguras, fn ($l) => $l === 3)), 'desktop e celular, vendedor e fornecedor');
+        // uma marcação só para PC e celular: o carrossel de gráficos do celular saiu, então cada ranking aparece uma vez
+        $this->assertGreaterThanOrEqual(2, count(array_filter($larguras, fn ($l) => $l === 3)), 'vendedor e fornecedor pequenos com 3%');
+        $this->assertStringNotContainsString('adm-charts-carousel', $html);
     }
 
     public function test_sem_gasto_nao_desenha_barra_nenhuma(): void

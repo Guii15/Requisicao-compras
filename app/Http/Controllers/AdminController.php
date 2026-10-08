@@ -111,7 +111,7 @@ class AdminController extends Controller
         $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
             return [
-                'label' => $date->translatedFormat('M/y'),
+                'label' => ucfirst($date->translatedFormat('M/y')), // Out/26
                 'year'  => $date->year,
                 'month' => $date->month,
                 'total' => (float) PurchaseRequest::where('status', 'aprovado')

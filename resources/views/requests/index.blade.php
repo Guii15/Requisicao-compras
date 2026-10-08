@@ -6,11 +6,8 @@
 @section('content')
 
 <style>
-.idx-mobile-cards { display: none; }
 
 @media (max-width: 768px) {
-    .idx-desktop-table { display: none; }
-    .idx-mobile-cards  { display: block; }
     .idx-header { flex-direction: column; align-items: flex-start !important; }
     .idx-nova-btn { width: 100%; justify-content: center; }
     .idx-filters form { grid-template-columns: 1fr !important; }
@@ -46,28 +43,13 @@
         </div>
     @endif
 
-    {{-- Stats --}}
-    <div class="idx-stats" style="display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px;">
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; border-top:3px solid #6b7280;">
-            <p style="margin:0; font-size:26px; font-weight:800; color:#374151;">{{ $stats['total'] }}</p>
-            <p style="margin:4px 0 0; font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Total</p>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; border-top:3px solid #f59e0b;">
-            <p style="margin:0; font-size:26px; font-weight:800; color:#d97706;">{{ $stats['pendente'] }}</p>
-            <p style="margin:4px 0 0; font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Pendentes</p>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; border-top:3px solid #16a34a;">
-            <p style="margin:0; font-size:26px; font-weight:800; color:#16a34a;">{{ $stats['aprovado'] }}</p>
-            <p style="margin:4px 0 0; font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Aprovadas</p>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; border-top:3px solid #dc2626;">
-            <p style="margin:0; font-size:26px; font-weight:800; color:#dc2626;">{{ $stats['rejeitado'] }}</p>
-            <p style="margin:4px 0 0; font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Rejeitadas</p>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; border-top:3px solid #059669;">
-            <p style="margin:0; font-size:20px; font-weight:800; color:#059669;">R$ {{ number_format($stats['total_gasto'], 2, ',', '.') }}</p>
-            <p style="margin:4px 0 0; font-size:12px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Total Gasto</p>
-        </div>
+    {{-- Stats: faixa única com os cinco números e a tendência dos últimos 6 meses (igual ao painel do admin) --}}
+    <div class="idx-stats bm-faixa" style="display:grid; grid-template-columns:repeat(5,1fr); background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:20px; overflow:hidden;">
+        <x-bloco-metrica rotulo="Total de requisições" :valor="number_format($stats['total'], 0, ',', '.')" :serie="$tendencias['total']" />
+        <x-bloco-metrica rotulo="Pendentes" um="pendente" varios="pendentes" :valor="number_format($stats['pendente'], 0, ',', '.')" :serie="$tendencias['pendente']" />
+        <x-bloco-metrica rotulo="Aprovadas" um="aprovada" varios="aprovadas" :valor="number_format($stats['aprovado'], 0, ',', '.')" :serie="$tendencias['aprovado']" />
+        <x-bloco-metrica rotulo="Rejeitadas" um="rejeitada" varios="rejeitadas" :valor="number_format($stats['rejeitado'], 0, ',', '.')" :serie="$tendencias['rejeitado']" />
+        <x-bloco-metrica rotulo="Total gasto" :valor="'R$ ' . number_format($stats['total_gasto'], 2, ',', '.')" :serie="$tendencias['gasto']" formato="dinheiro" />
     </div>
 
     {{-- Gráficos --}}
@@ -159,7 +141,7 @@
 
     {{-- TABELA (desktop) --}}
     {{-- Uma linha por requisição; ao abrir, cada item vira um cartão (<x-item-requisicao>). --}}
-    <div class="idx-desktop-table" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+    <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
@@ -194,9 +176,9 @@
                             $tdReq = 'padding:12px 16px; font-size:14px; color:#374151; vertical-align:middle;';
                         @endphp
                         <tr class="grupo-cabecalho" style="border-bottom:1px solid #eef0f3; cursor:pointer;" onmouseover="this.style.background='#f7f8fa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoRequisicao('{{ $chaveGrupo }}')">
-                            <td style="{{ $tdReq }} font-weight:700; color:#111827; white-space:nowrap;">#{{ $primeiroDoGrupo->id }}</td>
-                            <td style="{{ $tdReq }}">{{ $primeiroDoGrupo->requester_name ?? 'Não informado' }}</td>
-                            <td style="{{ $tdReq }} max-width:420px;">
+                            <td class="lr-num" style="{{ $tdReq }} font-weight:700; color:#111827; white-space:nowrap;">#{{ $primeiroDoGrupo->id }}</td>
+                            <td data-rotulo="Vendedor" style="{{ $tdReq }}">{{ $primeiroDoGrupo->requester_name ?? 'Não informado' }}</td>
+                            <td class="lr-larga" data-rotulo="Itens" style="{{ $tdReq }} max-width:420px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <span style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoV }}</span>
                                     @if($grupoUrgenteV)
@@ -205,9 +187,9 @@
                                 </div>
                                 <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
                             </td>
-                            <td style="{{ $tdReq }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalGrupoV > 0 ? 'R$ ' . number_format($totalGrupoV, 2, ',', '.') : '—' }}</td>
-                            <td style="{{ $tdReq }}"><x-trilha-etapas :itens="$grupo" /></td>
-                            <td style="{{ $tdReq }} font-size:13px; white-space:nowrap;">
+                            <td data-rotulo="Total" style="{{ $tdReq }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalGrupoV > 0 ? 'R$ ' . number_format($totalGrupoV, 2, ',', '.') : '—' }}</td>
+                            <td data-rotulo="Etapa" style="{{ $tdReq }}"><x-trilha-etapas :itens="$grupo" /></td>
+                            <td data-rotulo="Coleta" style="{{ $tdReq }} font-size:13px; white-space:nowrap;">
                                 @if($grupoAtrasadoV)
                                     <strong style="color:#b8301a;">Atrasada</strong>
                                 @elseif($grupoTemAprovadoV)
@@ -216,12 +198,12 @@
                                     <span style="color:#9ca3af;">—</span>
                                 @endif
                             </td>
-                            <td style="{{ $tdReq }} font-size:13px; white-space:nowrap;">
+                            <td data-rotulo="Data" style="{{ $tdReq }} font-size:13px; white-space:nowrap;">
                                 {{ $primeiroDoGrupo->created_at->timezone('America/Sao_Paulo')->format('d/m/Y') }}
                                 <span style="display:block; font-size:12px; color:#6b7280;">{{ $primeiroDoGrupo->created_at->timezone('America/Sao_Paulo')->format('H:i') }}</span>
                             </td>
-                            <td style="{{ $tdReq }}"><x-status-requisicao :status="$statusChaveV" /></td>
-                            <td style="{{ $tdReq }} text-align:right;">
+                            <td data-rotulo="Status" style="{{ $tdReq }}"><x-status-requisicao :status="$statusChaveV" /></td>
+                            <td class="lr-acao" style="{{ $tdReq }} text-align:right;">
                                 <button type="button" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupo }}')"
                                         style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:7px 16px; border-radius:9999px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
                                     <span id="seta-grupo-{{ $chaveGrupo }}">Ver itens</span>
@@ -259,175 +241,6 @@
         </div>
     </div>
 
-    {{-- CARDS (mobile) --}}
-    <div class="idx-mobile-cards">
-        @forelse($requests as $grupo)
-            @php
-                $primeiroDoGrupoM = $grupo->first();
-                $chaveGrupoM = $primeiroDoGrupoM->grupo_id;
-                $statusUnicosM = $grupo->pluck('status')->unique();
-                if ($statusUnicosM->count() === 1) {
-                    $statusChaveVM = $statusUnicosM->first();
-                    $rotuloGrupoStatusM = ['aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado', 'pendente' => 'Pendente'][$statusChaveVM] ?? ucfirst($statusChaveVM);
-                } else {
-                    $statusChaveVM = 'parcial';
-                    $rotuloGrupoStatusM = 'Parcial';
-                }
-                $corsGrupoVM = [
-                    'pendente'  => ['barra' => '#e5e7eb', 'bg' => '#f4b728', 'texto' => '#2b1d00'],
-                    'aprovado'  => ['barra' => '#e5e7eb', 'bg' => '#17794a', 'texto' => '#ffffff'],
-                    'rejeitado' => ['barra' => '#e5e7eb', 'bg' => '#b8301a', 'texto' => '#ffffff'],
-                    'parcial'   => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
-                ][$statusChaveVM];
-                $produtosResumoVM = $grupo->pluck('product_name')->filter()->implode(', ');
-                if (mb_strlen($produtosResumoVM) > 60) {
-                    $produtosResumoVM = mb_substr($produtosResumoVM, 0, 60) . '…';
-                }
-            @endphp
-            <div style="background:#fff; border:0.5px solid #e5e7eb; border-radius:10px; margin-bottom:10px; cursor:pointer; overflow:hidden;"
-                 onclick="toggleGrupoRequisicao('{{ $chaveGrupoM }}')">
-                <div style="display:flex; align-items:stretch; gap:10px;">
-                    <div style="width:4px; background:{{ $corsGrupoVM['barra'] }};"></div>
-                    <div style="flex:1; min-width:0; padding:12px 12px 12px 0;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                            <div style="font-size:14px; font-weight:700; color:#111827;">Requisição #{{ $primeiroDoGrupoM->id }}</div>
-                            <span style="background:{{ $corsGrupoVM['bg'] }}; color:{{ $corsGrupoVM['texto'] }}; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoStatusM }}</span>
-                        </div>
-                        <div style="font-size:12.5px; color:#9ca3af; margin-top:2px;">{{ $primeiroDoGrupoM->requester_name ?? 'Não informado' }}</div>
-                        <div style="font-size:12px; color:#6b7280; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoVM }}
-                        </div>
-                        <button type="button" class="m-botao" onclick="event.stopPropagation(); toggleGrupoRequisicao('{{ $chaveGrupoM }}')"
-                                style="margin-top:8px; border:1px solid #d1d5db; background:#fff; color:#374151; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
-                            <span id="seta-grupo-{{ $chaveGrupoM }}">Ver itens</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            @foreach($grupo as $req)
-            <div class="grupo-item-{{ $chaveGrupoM }}" style="display:none; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:-6px 0 12px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-
-                {{-- Topo do card: produto + status --}}
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                    <div>
-                        <div style="font-size:15px; font-weight:700; color:#1e3a8a;">{{ $req->product_name }}</div>
-                        <x-parcial-info :item="$req" />
-                        @if($req->product_code)
-                            <div style="font-size:12px; color:#9ca3af; margin-top:2px;">Cód: {{ $req->product_code }}</div>
-                        @endif
-                        @if($req->product_url)
-                            <a href="{{ $req->product_url }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">Ver link</a>
-                        @endif
-                        @if($req->anexo_path)
-                            <a href="{{ route('requests.anexo', $req) }}" target="_blank" style="display:block; font-size:11px; color:#1e3a8a; text-decoration:underline; margin-top:2px;">📎 {{ $req->anexo_nome }}</a>
-                        @endif
-                        @if($req->entrada_concluida_em)
-                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Entrada Realizada</span>
-                            <span style="display:block; margin-top:2px; font-size:11px; color:#9ca3af;">{{ $req->entrada_concluida_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</span>
-                        @elseif($req->status_conferencia === 'conferido_ok')
-                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido ✓ OK</span>
-                        @elseif($req->status_conferencia === 'divergente')
-                            <span style="display:inline-block; margin-top:4px; background:#fff; color:#b8301a; border:1px solid #b8301a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Divergente</span>
-                        @elseif($req->status_conferencia === 'avancado_mesmo_assim')
-                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#374151; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Conferido — Avançado Mesmo Assim</span>
-                        @elseif($req->status_conferencia === 'cancelado')
-                            <span style="display:inline-block; margin-top:4px; background:#fff; color:#b8301a; border:1px solid #b8301a; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Cancelado</span>
-                        @elseif($req->status_conferencia === 'legado')
-                        @elseif($req->status === 'aprovado')
-                            <span style="display:inline-block; margin-top:4px; background:#f3f4f6; color:#6b7280; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600;">Aguardando conferência</span>
-                        @endif
-                        @if($req->fotosConferencia->isNotEmpty())
-                            <a href="javascript:void(0)" onclick="document.getElementById('foto-{{ $req->id }}').style.display='flex'" title="Ver foto da conferência">
-                                <img src="{{ Storage::url($req->fotosConferencia->first()->caminho_arquivo) }}" alt="Foto da conferência"
-                                     style="width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:block; margin-top:4px;">
-                            </a>
-                        @endif
-                    </div>
-                    @if($req->status=='aprovado')
-                        <span style="background:#fff; color:#17794a; border:1px solid #17794a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Aprovado</span>
-                    @elseif($req->status=='rejeitado')
-                        <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Rejeitado</span>
-                    @else
-                        <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">Pendente</span>
-                    @endif
-                </div>
-
-                {{-- Detalhes --}}
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
-                    <div>
-                        <span style="color:#9ca3af;">Vendedor</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->requester_name ?? '—' }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Fornecedor</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->supplier ?? '—' }}</div>
-                        @if($req->temDadosDaCompra())
-                            <div style="font-size:11px; color:#6b7280; margin-top:3px; line-height:1.5;">
-                                Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}
-                                @if($req->valor)
-                                    <br>Total: <strong style="color:#05018D;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong>
-                                @endif
-                                @if($req->data_compra)
-                                    <br>Compra: {{ $req->data_compra->format('d/m/Y') }}
-                                @endif
-                                @if($req->data_coleta)
-                                    <br>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}
-                                @endif
-                                @if($req->pedido_compra_path)
-                                    <br><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#1e3a8a; text-decoration:underline;">📎 Pedido de compra</a>
-                                @endif
-                            </div>
-                        @endif
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Quantidade</span>
-                        <div style="font-weight:700; color:#374151; font-size:15px;">{{ $req->quantity }}</div>
-                    </div>
-                    <div>
-                        <span style="color:#9ca3af;">Data</span>
-                        <div style="font-weight:600; color:#374151;">{{ $req->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</div>
-                    </div>
-                </div>
-
-                <x-obs-admin :item="$req" margem="10px" />
-                <x-obs-entrada :item="$req" margem="10px" />
-
-                {{-- Rodapé do card: urgência + exportar --}}
-                <div class="m-coluna" style="margin-top:10px; padding-top:10px; border-top:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:12px; color:#9ca3af;">Urgência:</span>
-                        @if($req->urgency=='alta')
-                            <span style="background:#fff; color:#b8301a; border:1px solid #b8301a; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Alta</span>
-                        @elseif($req->urgency=='media')
-                            <span style="background:#f3f4f6; color:#374151; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Média</span>
-                        @else
-                            <span style="background:#f3f4f6; color:#374151; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600;">Baixa</span>
-                        @endif
-                    </div>
-                    <div class="m-card-acao" style="display:flex; gap:6px;">
-                        @if($req->status === 'pendente')
-                        <a href="{{ route('requests.edit', $req) }}"
-                           style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
-                            Editar
-                        </a>
-                        @endif
-                        <a href="{{ route('requests.export', $req) }}" target="_blank"
-                           style="background:#fff; color:#05018D; border:1px solid #c7c6ea; border-radius:7px; padding:7px 14px; font-size:13px; font-weight:600; text-decoration:none;">
-                            Exportar
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-            @endforeach
-        @empty
-            <div style="text-align:center; padding:48px 16px;">
-                <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhuma requisição encontrada</p>
-                <p style="color:#9ca3af; font-size:13px; margin:0;">Clique em "Nova Requisição" para criar a primeira</p>
-            </div>
-        @endforelse
-    </div>
-
     {{-- Paginação --}}
     @if($requests->hasPages())
         <div style="margin-top:20px; display:flex; justify-content:center;">
@@ -437,37 +250,13 @@
 
 </div>
 
-{{-- Modais de foto da conferência --}}
-@foreach($requests as $grupo)
-    @foreach($grupo as $req)
-        @if($req->fotosConferencia->isNotEmpty())
-            <div id="foto-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:440px; margin:16px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-                    <h3 style="margin:0 0 4px; font-size:16px; font-weight:700; color:#1e3a8a;">Foto da Conferência</h3>
-                    <p style="margin:0 0 16px; font-size:12px; color:#9ca3af;">{{ $req->product_name }}</p>
-                    @foreach($req->fotosConferencia as $fotoQuadro)
-                        <img src="{{ Storage::url($fotoQuadro->caminho_arquivo) }}" alt="Foto da conferência"
-                             style="width:100%; border-radius:8px; margin-bottom:12px; display:block;">
-                    @endforeach
-                    <div class="m-modal-acoes" style="text-align:right;">
-                        <button onclick="document.getElementById('foto-{{ $req->id }}').style.display='none'"
-                                style="padding:9px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
-                            Fechar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @endif
-    @endforeach
-@endforeach
-
 <script>
 function toggleGrupoRequisicao(chave) {
     var linhas = document.querySelectorAll('.grupo-item-' + CSS.escape(chave));
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
-        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+        linha.style.display = abrindo ? '' : 'none'; // '' devolve ao CSS: linha de tabela no PC, bloco no celular
     });
     // Desktop e mobile têm um rótulo cada com o mesmo id; getElementById só achava o do desktop.
     document.querySelectorAll('[id="seta-grupo-' + chave + '"]').forEach(function (seta) {

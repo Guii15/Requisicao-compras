@@ -30,27 +30,12 @@
         </div>
     @endif
 
-    {{-- Totais --}}
-    <div class="m-empilhar" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; min-width:180px;">
-            <div style="font-size:12px; color:#6b7280; font-weight:600;">Total no histórico</div>
-            <div style="font-size:22px; font-weight:700; color:#111827; margin-top:2px;">{{ $totalGeral }}</div>
-            <div style="font-size:11.5px; color:#9ca3af; margin-top:2px;">{{ $totalFluxoAtivo }} do fluxo · {{ $totalPlanilha }} da planilha</div>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; min-width:160px;">
-            <div style="font-size:12px; color:#6b7280; font-weight:600;">Valor total</div>
-            <div style="font-size:22px; font-weight:700; color:#111827; margin-top:2px;">R$ {{ number_format($valorTotal, 2, ',', '.') }}</div>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 18px; flex:1; min-width:240px;">
-            <div style="font-size:12px; color:#6b7280; font-weight:600; margin-bottom:6px;">Por aba da planilha</div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px 14px;">
-                @forelse($totaisPorAba as $linha)
-                    <span style="font-size:12.5px; color:#374151;">{{ $linha->aba_origem }}: <strong>{{ $linha->total }}</strong></span>
-                @empty
-                    <span style="font-size:12.5px; color:#9ca3af;">Nenhum registro da planilha ainda.</span>
-                @endforelse
-            </div>
-        </div>
+    {{-- Totais: mesma faixa de números das outras telas --}}
+    <div class="idx-stats bm-faixa" style="display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:20px; overflow:hidden;">
+        <x-bloco-metrica rotulo="Total no histórico" :valor="number_format($totalGeral, 0, ',', '.')" :sem-linha="true" :nota="$totalFluxoAtivo . ' do fluxo · ' . $totalPlanilha . ' da planilha'" />
+        <x-bloco-metrica rotulo="Valor total" :valor="'R$ ' . number_format($valorTotal, 2, ',', '.')" :sem-linha="true" />
+        <x-bloco-metrica rotulo="Por aba da planilha" :valor="$totaisPorAba->count() ? $totaisPorAba->count() . ($totaisPorAba->count() === 1 ? ' aba' : ' abas') : '—'" :sem-linha="true"
+                         :nota="$totaisPorAba->isEmpty() ? 'Nenhum registro da planilha ainda.' : $totaisPorAba->map(fn ($l) => $l->aba_origem . ': ' . $l->total)->implode(' · ')" />
     </div>
 
     {{-- Filtros --}}
@@ -118,7 +103,24 @@
         ];
     @endphp
 
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+    {{-- Mesmo desenho das outras listagens: uma linha por requisição (ou lote da planilha); ao abrir, os itens. --}}
+    <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+        <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                    @php $thHist = 'padding:12px 16px; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;'; @endphp
+                    <th style="{{ $thHist }} text-align:left;">Origem</th>
+                    <th style="{{ $thHist }} text-align:left;">Vendedor</th>
+                    <th style="{{ $thHist }} text-align:left;">Itens</th>
+                    <th style="{{ $thHist }} text-align:left;">Fornecedor</th>
+                    <th style="{{ $thHist }} text-align:left;">Data</th>
+                    <th style="{{ $thHist }} text-align:right;">Total</th>
+                    <th style="{{ $thHist }} text-align:left;">Situação</th>
+                    <th style="{{ $thHist }} text-align:right;">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
         @forelse($requests as $grupo)
             @php
                 $primeiroHist = $grupo->first();
@@ -143,40 +145,47 @@
                     'parcial'   => ['barra' => '#e5e7eb', 'bg' => '#475569', 'texto' => '#ffffff'],
                 ][$tipoChaveHist] ?? ['barra' => '#64748b', 'bg' => '#e2e8f0', 'texto' => '#475569'];
                 $produtosResumoHist = $grupo->pluck('product_name')->filter()->implode(', ');
-                if (mb_strlen($produtosResumoHist) > 60) {
-                    $produtosResumoHist = mb_substr($produtosResumoHist, 0, 60) . '…';
+                if (mb_strlen($produtosResumoHist) > 80) {
+                    $produtosResumoHist = mb_substr($produtosResumoHist, 0, 80) . '…';
                 }
                 $valorGrupoHist = $grupo->sum('valor');
                 $origemLabel = $primeiroHist->aba_origem
                     ? $primeiroHist->aba_origem . ($primeiroHist->mes_origem ? ' · ' . $primeiroHist->mes_origem : '')
                     : 'Requisição #' . $primeiroHist->id;
+                // O mesmo fornecedor escrito de formas diferentes conta como um só.
+                $fornecedoresHist = $grupo->pluck('supplier')->filter()->unique(fn ($f) => \App\Support\RankingPorNome::chave($f));
+                $fornecedorHist = $fornecedoresHist->count() === 0 ? '—' : ($fornecedoresHist->count() === 1 ? $fornecedoresHist->first() : $fornecedoresHist->count() . ' fornecedores');
+                $tdHist = 'padding:12px 16px; font-size:14px; color:#374151; vertical-align:middle;';
                 $dataGrupoHist = $primeiroHist->data_compra?->format('d/m/Y')
                     ?? ($primeiroHist->tipo_registro === 'requisicao' ? $primeiroHist->created_at->format('d/m/Y') : 'Sem data');
             @endphp
-            <div style="border-bottom:0.5px solid #e5e7eb;">
-                <div class="m-grupo-cab" style="display:flex; align-items:center; gap:12px; min-height:52px; padding:8px 16px 8px 0; cursor:pointer;"
-                     onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='transparent'"
-                     onclick="toggleGrupoHistorico('{{ $chaveHist }}')">
-                    <div style="width:4px; align-self:stretch; border-radius:2px; background:{{ $corsGrupoHist['barra'] }}; margin-left:16px;"></div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:13.5px; line-height:1.4;">
-                            <span style="color:#111827; font-weight:700;">{{ $origemLabel }}</span>
-                            <span style="color:#9ca3af; font-weight:500;"> — {{ $dataGrupoHist }}</span>
-                        </div>
-                        <div style="font-size:12px; color:#6b7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoHist }}
-                            @if($valorGrupoHist > 0)
-                                · R$ {{ number_format($valorGrupoHist, 2, ',', '.') }}
-                            @endif
-                        </div>
-                    </div>
-                    <span style="background:{{ $corsGrupoHist['bg'] }}; color:{{ $corsGrupoHist['texto'] }}; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $rotuloGrupoHist }}</span>
+            <tr class="grupo-cabecalho" style="border-bottom:1px solid #eef0f3; cursor:pointer;" onmouseover="this.style.background='#f7f8fa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoHistorico('{{ $chaveHist }}')">
+                <td class="lr-num" style="{{ $tdHist }} font-weight:700; color:#111827; white-space:nowrap;">{{ $origemLabel }}</td>
+                <td data-rotulo="Vendedor" style="{{ $tdHist }}">{{ $primeiroHist->requester_name ?: '—' }}</td>
+                <td class="lr-larga" data-rotulo="Itens" style="{{ $tdHist }} max-width:380px;">
+                    <div style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoHist }}</div>
+                    <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
+                </td>
+                <td data-rotulo="Fornecedor" style="{{ $tdHist }}">{{ $fornecedorHist }}</td>
+                <td data-rotulo="Data" style="{{ $tdHist }} font-size:13px; white-space:nowrap;">{{ $dataGrupoHist }}</td>
+                <td data-rotulo="Total" style="{{ $tdHist }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $valorGrupoHist > 0 ? 'R$ ' . number_format($valorGrupoHist, 2, ',', '.') : '—' }}</td>
+                <td data-rotulo="Situação" style="{{ $tdHist }}">
+                    @if($tipoChaveHist === 'cotacao')
+                        <span style="display:inline-block; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:9999px; font-size:12px; font-weight:700; white-space:nowrap;">Cotação</span>
+                    @else
+                        <x-status-requisicao :status="$tipoChaveHist" />
+                    @endif
+                </td>
+                <td class="lr-acao" style="{{ $tdHist }} text-align:right;">
                     <button type="button" onclick="event.stopPropagation(); toggleGrupoHistorico('{{ $chaveHist }}')"
-                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; margin-right:16px;">
+                            style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:7px 16px; border-radius:9999px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
                         <span id="seta-hist-{{ $chaveHist }}">Ver itens</span>
                     </button>
-                </div>
-                <div id="itens-hist-{{ $chaveHist }}" style="display:none; padding:4px 16px 14px 44px; background:#fafafa;">
+                </td>
+            </tr>
+            <tr id="itens-hist-{{ $chaveHist }}" class="grupo-item-hist" style="display:none; background:#f7f8fa;">
+                <td colspan="8" style="padding:14px 20px 18px; border-bottom:1px solid #e5e7eb;">
+                    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:4px 20px;">
                     @foreach($grupo as $itemHist)
                         @php
                             $dadosItem = $itemHist->dados_importacao ?? [];
@@ -217,7 +226,7 @@
                                 }
                             }
                         @endphp
-                        <div style="padding:8px 0; border-bottom:0.5px solid #eee;">
+                        <div style="padding:12px 0; border-bottom:1px solid #f1f2f4;">
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; color:#374151;">
                                 <span>
                                     <strong>{{ $itemHist->product_name }}</strong>
@@ -270,14 +279,18 @@
                             @endif
                         </div>
                     @endforeach
-                </div>
-            </div>
+                    </div>
+                </td>
+            </tr>
         @empty
-            <div style="padding:48px 16px; text-align:center;">
+            <tr><td colspan="8" style="padding:48px 16px; text-align:center;">
                 <p style="color:#6b7280; font-size:15px; margin:0 0 4px;">Nenhum registro no histórico ainda</p>
                 <p style="color:#9ca3af; font-size:13px; margin:0;">Requisições aparecem aqui assim que criadas. Rode <code>php artisan compras:importar-historico</code> para trazer o histórico da planilha.</p>
-            </div>
+            </td></tr>
         @endforelse
+            </tbody>
+        </table>
+        </div>
     </div>
 
     @if($requests->hasPages())
@@ -292,7 +305,7 @@ function toggleGrupoHistorico(id) {
     var seta = document.getElementById('seta-hist-' + id);
     if (!bloco) return;
     var abrindo = bloco.style.display === 'none';
-    bloco.style.display = abrindo ? 'block' : 'none';
+    bloco.style.display = abrindo ? '' : 'none'; // '' devolve ao CSS (linha no PC, bloco no celular)
     if (seta) seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
 }
 

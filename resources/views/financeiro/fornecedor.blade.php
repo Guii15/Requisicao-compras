@@ -6,11 +6,13 @@
 @section('content')
 @php
     use App\Support\Dinheiro;
+    // Selos em contorno, como o status dos itens nas outras telas: a cor só marca a situação.
     $cores = [
-        'Em aberto' => ['bg' => '#fee2e2', 'texto' => '#dc2626'],
-        'Parcial'   => ['bg' => '#fef3c7', 'texto' => '#b45309'],
-        'Pago'      => ['bg' => '#dcfce7', 'texto' => '#16a34a'],
+        'Em aberto' => 'color:#b8301a; border:1px solid #b8301a;',
+        'Parcial'   => 'color:#7a4f00; border:1px solid #c98a00;',
+        'Pago'      => 'color:#17794a; border:1px solid #17794a;',
     ];
+    $selo = fn ($situacao) => '<span style="display:inline-block; background:#fff; ' . $cores[$situacao] . ' padding:3px 12px; border-radius:9999px; font-size:12px; font-weight:700; white-space:nowrap;">' . e($situacao) . '</span>';
 @endphp
 
 <div style="padding: 8px 0;">
@@ -38,23 +40,15 @@
         </div>
     @endif
 
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
-        <div style="background:#fff; border:1px solid #fca5a5; border-radius:12px; padding:16px;">
-            <div style="font-size:11.5px; font-weight:700; color:#6b7280; text-transform:uppercase;">Saldo devedor</div>
-            <div style="margin-top:6px; font-size:24px; font-weight:800; color:{{ $totais['saldo'] > 0 ? '#dc2626' : '#16a34a' }};">{{ Dinheiro::brl($totais['saldo']) }}</div>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px;">
-            <div style="font-size:11.5px; font-weight:700; color:#6b7280; text-transform:uppercase;">Comprado</div>
-            <div style="margin-top:6px; font-size:20px; font-weight:700; color:#111827;">{{ Dinheiro::brl($totais['comprado']) }}</div>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px;">
-            <div style="font-size:11.5px; font-weight:700; color:#6b7280; text-transform:uppercase;">Pago</div>
-            <div style="margin-top:6px; font-size:20px; font-weight:700; color:#16a34a;">{{ Dinheiro::brl($totais['pago']) }}</div>
-        </div>
+    {{-- Mesma faixa de números das outras telas --}}
+    <div class="idx-stats bm-faixa" style="display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:20px; overflow:hidden;">
+        <x-bloco-metrica rotulo="Saldo devedor" :valor="$totais['saldo'] > 0 ? Dinheiro::brl($totais['saldo']) : 'Quitado'" :sem-linha="true" />
+        <x-bloco-metrica rotulo="Comprado" :valor="Dinheiro::brl($totais['comprado'])" :sem-linha="true" />
+        <x-bloco-metrica rotulo="Pago" :valor="Dinheiro::brl($totais['pago'])" :sem-linha="true" />
     </div>
 
-    {{-- Desktop --}}
-    <div class="m-desktop" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow-x:auto; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    {{-- Uma marcação só: no celular a tabela vira cartões (CSS .lista-resp no layout) --}}
+    <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:13px;">
             <thead>
                 <tr style="background:#f9fafb; color:#6b7280; text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px;">
@@ -72,11 +66,11 @@
             </thead>
             <tbody>
                 @foreach($compras as $linha)
-                    @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
-                    <tr style="border-top:1px solid #f3f4f6;">
-                        <td style="padding:12px 14px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}</td>
-                        <td style="padding:12px 14px;">#{{ $c->id }}</td>
-                        <td style="padding:12px 14px; font-weight:600; color:#111827;">
+                    @php $c = $linha['compra']; @endphp
+                    <tr class="grupo-cabecalho" style="border-top:1px solid #f3f4f6;">
+                        <td data-rotulo="Compra" style="padding:12px 14px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}</td>
+                        <td data-rotulo="Requisição" style="padding:12px 14px;">#{{ $c->id }}</td>
+                        <td class="lr-larga" data-rotulo="Produto" style="padding:12px 14px; font-weight:600; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af; font-weight:400;">× {{ $c->quantity }}</span>
                             @if($linha['condicao'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">{{ $linha['condicao'] }}</div>@endif
                             @if($linha['empresa'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">Empresa: {{ $linha['empresa'] }}</div>@endif
@@ -84,16 +78,16 @@
                                 <a href="{{ route('admin.compras.pedido', $c) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; font-weight:400;">📎 Pedido de compra</a>
                             @endif
                         </td>
-                        <td style="padding:12px 14px;">{{ $c->requester_name ?? '—' }}</td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}</td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap; color:#16a34a;">{{ Dinheiro::brl($linha['pago']) }}</td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700;">{{ Dinheiro::brl($linha['aberto']) }}</td>
-                        <td style="padding:12px 14px; text-align:center; white-space:nowrap;">
+                        <td data-rotulo="Comprador" style="padding:12px 14px;">{{ $c->requester_name ?? '—' }}</td>
+                        <td data-rotulo="Valor" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}</td>
+                        <td data-rotulo="Pago" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['pago']) }}</td>
+                        <td data-rotulo="Em aberto" style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700;">{{ Dinheiro::brl($linha['aberto']) }}</td>
+                        <td data-rotulo="Vencimento" style="padding:12px 14px; text-align:center; white-space:nowrap;">
                             @if($linha['aberto'] > 0)
                                 @if($linha['proximo_vencimento'])
                                 <div style="font-weight:600; color:#111827;">{{ $linha['proximo_vencimento']->format('d/m/Y') }}</div>
                                 @if($linha['vencida'])
-                                    <span style="background:#fee2e2; color:#dc2626; padding:1px 8px; border-radius:20px; font-size:11.5px; font-weight:700;">Vencida · {{ Dinheiro::brl($linha['vencido']) }}</span>
+                                    <div style="font-size:11.5px; color:#b8301a; font-weight:700;">Vencida · {{ Dinheiro::brl($linha['vencido']) }}</div>
                                 @else
                                     <div style="font-size:11.5px; color:#9ca3af;">{{ $linha['dias_ate_vencimento'] === 0 ? 'vence hoje' : 'em ' . $linha['dias_ate_vencimento'] . ' ' . ($linha['dias_ate_vencimento'] === 1 ? 'dia' : 'dias') }}</div>
                                 @endif
@@ -104,18 +98,16 @@
                                 —
                             @endif
                         </td>
-                        <td style="padding:12px 14px; text-align:center;">
-                            <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap;">{{ $linha['situacao'] }}</span>
-                        </td>
-                        <td style="padding:12px 14px; text-align:center;">
+                        <td data-rotulo="Situação" style="padding:12px 14px; text-align:center;">{!! $selo($linha['situacao']) !!}</td>
+                        <td class="lr-acao" style="padding:12px 14px; text-align:center;">
                             @if($linha['aberto'] > 0)
                                 <button type="button" onclick="document.getElementById('modal-pagar-{{ $c->id }}').style.display='flex'"
-                                        style="background:#05018D; color:#fff; border:none; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Pagar</button>
+                                        style="background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; cursor:pointer;">Pagar</button>
                             @endif
                         </td>
                     </tr>
                     @if($c->pagamentos->isNotEmpty())
-                        <tr style="background:#f9fafb;">
+                        <tr class="grupo-item-pagamentos" style="background:#f9fafb;">
                             <td colspan="10" style="padding:8px 14px 10px 40px;">@include('financeiro._pagamentos', ['compra' => $c])</td>
                         </tr>
                     @endif
@@ -124,31 +116,9 @@
         </table>
     </div>
 
-    {{-- Mobile --}}
-    <div class="m-cards">
-        @foreach($compras as $linha)
-            @php $c = $linha['compra']; $cor = $cores[$linha['situacao']]; @endphp
-            <x-mobile-card :titulo="$c->product_name . ' × ' . $c->quantity"
-                           :campos="['Compra' => $c->data_compra->format('d/m/Y'), 'Requisição' => '#' . $c->id, 'Empresa' => $linha['empresa'], 'Comprador' => $c->requester_name, 'Condição' => $linha['condicao'], 'Vencimento' => $linha['aberto'] > 0 ? ($linha['proximo_vencimento']?->format('d/m/Y') . ($linha['vencida'] ? ' (vencida)' : '')) : null, 'Valor' => Dinheiro::brl($linha['custo']), 'Pago' => Dinheiro::brl($linha['pago']), 'Em aberto' => Dinheiro::brl($linha['aberto'])]">
-                <x-slot:badge>
-                    <span style="background:{{ $cor['bg'] }}; color:{{ $cor['texto'] }}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $linha['situacao'] }}</span>
-                </x-slot:badge>
-                @if($c->pagamentos->isNotEmpty())
-                    <div style="margin-top:8px;">@include('financeiro._pagamentos', ['compra' => $c])</div>
-                @endif
-                @if($linha['aberto'] > 0)
-                    <x-slot:acao>
-                        <button type="button" onclick="document.getElementById('modal-pagar-{{ $c->id }}').style.display='flex'"
-                                style="background:#05018D; color:#fff; border:none; border-radius:8px; padding:8px 18px; font-size:14px; font-weight:600; cursor:pointer;">Pagar</button>
-                    </x-slot:acao>
-                @endif
-            </x-mobile-card>
-        @endforeach
-    </div>
-
 </div>
 
-{{-- Quadros de pagamento (um por compra em aberto, usados pelo desktop e pelo celular) --}}
+{{-- Quadros de pagamento (um por compra em aberto; a mesma janela no PC e no celular) --}}
 @foreach($compras as $linha)
     @include('financeiro._modal-pagar', ['linha' => $linha])
 @endforeach

@@ -212,11 +212,16 @@ class RemoverAnexoTest extends TestCase
     public function test_quadro_de_atualizar_requisicao_mostra_os_dois_botoes(): void
     {
         // o painel de Requisições lista as que têm algo pendente
-        $this->requisicao(['status' => 'pendente', 'pedido_compra_path' => 'pedidos-compra/p.pdf', 'pedido_compra_nome' => 'p.pdf']);
+        $item = $this->requisicao(['status' => 'pendente', 'pedido_compra_path' => 'pedidos-compra/p.pdf', 'pedido_compra_nome' => 'p.pdf']);
 
         $html = $this->actingAs($this->admin)->get(route('admin.index'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Remover anexo', $html);
-        $this->assertStringContainsString('Remover pedido de compra', $html);
+        // os dois botões "Remover" da janela apontam para os formulários escondidos de cada anexo
+        $this->assertStringContainsString('form="rm-anexo-' . $item->id . '"', $html);
+        $this->assertStringContainsString('form="rm-pedido-' . $item->id . '"', $html);
+        $this->assertStringContainsString("confirm('Remover o anexo do vendedor?')", $html);
+        $this->assertStringContainsString("confirm('Remover o pedido de compra anexado?')", $html);
+        $this->assertStringContainsString('id="rm-anexo-' . $item->id . '" method="POST" action="' . route('admin.requests.anexo.remover', $item) . '"', $html);
+        $this->assertStringContainsString('id="rm-pedido-' . $item->id . '" method="POST" action="' . route('admin.compras.pedido.remover', $item) . '"', $html);
     }
 }

@@ -45,11 +45,13 @@ class ObsVendedorEDivergenciaTest extends TestCase
 
         $html = $this->actingAs($this->admin())->get(route('admin.index'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Motivo (Vendedor)', $html);
-        $this->assertStringContainsString('Obs (Vendedor)', $html);
-        // linha do desktop + card do celular + quadro Atualizar do desktop + quadro do celular
-        $this->assertSame(4, $this->conta($html, self::OBS));
-        $this->assertSame(4, $this->conta($html, self::MOTIVO));
+        // cartão do item + janela Atualizar (uma marcação só para PC e celular), as notas vêm com etiquetas
+        $this->assertSame(2, $this->conta($html, '>VENDEDOR</span>'));
+        $this->assertSame(2, $this->conta($html, '<strong>Motivo:</strong>'));
+        $this->assertSame(2, $this->conta($html, self::OBS));
+        $this->assertSame(2, $this->conta($html, self::MOTIVO));
+        $this->assertStringNotContainsString('adm-mobile-cards', $html);
+        $this->assertStringNotContainsString('id="modal-m-', $html);
     }
 
     public function test_painel_do_admin_mostra_a_divergencia(): void
@@ -59,8 +61,9 @@ class ObsVendedorEDivergenciaTest extends TestCase
 
         $html = $this->actingAs($this->admin())->get(route('admin.index'))->getContent();
 
-        $this->assertStringContainsString('Divergência (Conferência)', $html);
-        $this->assertSame(4, $this->conta($html, self::DIVERGENCIA));
+        // cartão do item + janela Atualizar (uma marcação só para PC e celular)
+        $this->assertSame(2, $this->conta($html, '>DIVERGÊNCIA</span>'));
+        $this->assertSame(2, $this->conta($html, self::DIVERGENCIA));
     }
 
     public function test_compras_feitas_mostra_motivo_obs_e_divergencia_tambem_no_filtro_falta_registrar(): void
@@ -174,7 +177,9 @@ class ObsVendedorEDivergenciaTest extends TestCase
 
         $html = $this->actingAs($this->admin())->get(route('admin.index'))->getContent();
 
-        $this->assertStringContainsString('Motivo (Vendedor)', $html);
-        $this->assertStringNotContainsString('Obs (Vendedor)', $html);
+        // a nota do vendedor traz só o motivo, sem o separador nem a obs
+        $this->assertSame(2, $this->conta($html, '>VENDEDOR</span>'));
+        $this->assertSame(2, preg_match_all('/<strong>Motivo:<\/strong> ' . preg_quote(self::MOTIVO, '/') . '\s*<\/div>/u', $html));
+        $this->assertStringNotContainsString(self::OBS, $html);
     }
 }

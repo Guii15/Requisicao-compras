@@ -2,8 +2,10 @@
     Bloco de métrica do topo dos painéis: rótulo, número grande e uma linha de tendência dos últimos meses.
     $serie é a lista de valores por mês, do mais antigo para o atual; $formato 'numero' ou 'dinheiro' (legenda).
     $um / $varios: o nome do que está sendo contado, para a legenda ("2 pendentes a mais que no mês passado").
+    $semLinha=true: só rótulo, número e $nota (blocos sem série por mês, ex.: totais do Financeiro e do Histórico).
+    $destaque: 'alerta' deixa o número em vermelho (só para o que pede atenção, ex.: valor vencido).
 --}}
-@props(['rotulo', 'valor', 'serie' => [], 'formato' => 'numero', 'um' => 'requisição', 'varios' => 'requisições'])
+@props(['rotulo', 'valor', 'serie' => [], 'formato' => 'numero', 'um' => 'requisição', 'varios' => 'requisições', 'semLinha' => false, 'nota' => null, 'destaque' => null])
 @php
     use App\Support\Dinheiro;
 
@@ -57,13 +59,24 @@
     html.dark .bm-area { fill: #e2e3e9; }
     html.dark .bm-ponto { fill: #e2e3e9; stroke: #040406; }
     html.dark .bm-base { stroke: #2e3038; }
-    @media (max-width: 768px) { .bm + .bm { border-left: none; } .bm { border-top: 1px solid #eef0f3; } }
+    /* Celular: duas colunas; o último bloco sozinho ocupa a linha toda; número um pouco menor e sem cortar */
+    @media (max-width: 768px) {
+        .bm-faixa { grid-template-columns: 1fr 1fr !important; }
+        .bm-faixa > .bm:last-child:nth-child(odd) { grid-column: 1 / -1; }
+        .bm { border-left: none !important; border-top: 1px solid #eef0f3; padding: 14px 16px 12px; }
+        .bm:nth-child(-n+2) { border-top: none; }
+        .bm:nth-child(even) { border-left: 1px solid #eef0f3 !important; }
+        .bm-valor { font-size: 18px; white-space: nowrap; overflow: visible; letter-spacing: -0.2px; }
+    }
 </style>
 @endonce
 
 <div class="bm">
     <p class="bm-rotulo">{{ $rotulo }}</p>
-    <p class="bm-valor">{{ $valor }}</p>
+    <p class="bm-valor" @if($destaque === 'alerta') style="color:#b8301a;" @endif>{{ $valor }}</p>
+    @if($semLinha)
+        @if($nota)<p class="bm-legenda">{{ $nota }}</p>@endif
+    @else
     <svg class="bm-svg" viewBox="0 0 {{ $W }} {{ $H }}" preserveAspectRatio="none" role="img" aria-label="Tendência de {{ $rotulo }} nos últimos {{ $n }} meses">
         @if($vazia)
             <line class="bm-base" x1="{{ $pad }}" x2="{{ $W - $pad }}" y1="{{ $H - $pad }}" y2="{{ $H - $pad }}" />
@@ -72,5 +85,6 @@
             <polyline class="bm-linha" points="{{ $linha }}" />
         @endif
     </svg>
-    <p class="bm-legenda">{{ $legenda }}</p>
+    <p class="bm-legenda">{{ $nota ?? $legenda }}</p>
+    @endif
 </div>

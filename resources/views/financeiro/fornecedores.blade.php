@@ -23,22 +23,14 @@
         <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">⚠️ {{ session('aviso') }}</div>
     @endif
 
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:20px;">
-        <div style="background:#fff; border:1px solid #fca5a5; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-            <div style="font-size:11.5px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.4px;">Saldo devedor total</div>
-            <div style="margin-top:6px; font-size:26px; font-weight:800; color:#dc2626;">{{ Dinheiro::brl($totais['saldo']) }}</div>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-            <div style="font-size:11.5px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.4px;">Total comprado</div>
-            <div style="margin-top:6px; font-size:22px; font-weight:700; color:#111827;">{{ Dinheiro::brl($totais['comprado']) }}</div>
-        </div>
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-            <div style="font-size:11.5px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.4px;">Total pago</div>
-            <div style="margin-top:6px; font-size:22px; font-weight:700; color:#16a34a;">{{ Dinheiro::brl($totais['pago']) }}</div>
-        </div>
+    {{-- Mesma faixa de números das outras telas --}}
+    <div class="idx-stats bm-faixa" style="display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:20px; overflow:hidden;">
+        <x-bloco-metrica rotulo="Saldo devedor total" :valor="Dinheiro::brl($totais['saldo'])" :sem-linha="true" />
+        <x-bloco-metrica rotulo="Total comprado" :valor="Dinheiro::brl($totais['comprado'])" :sem-linha="true" />
+        <x-bloco-metrica rotulo="Total pago" :valor="Dinheiro::brl($totais['pago'])" :sem-linha="true" />
     </div>
 
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 16px; margin-bottom:16px;">
         <form method="GET" action="{{ route('financeiro.fornecedores') }}" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
             @if(request('empresa'))<input type="hidden" name="empresa" value="{{ request('empresa') }}">@endif
             <div style="flex:1; min-width:200px;">
@@ -53,7 +45,8 @@
         </form>
     </div>
 
-    <div class="m-desktop" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow-x:auto; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    {{-- Uma marcação só: no celular a tabela vira cartões (CSS .lista-resp no layout) --}}
+    <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:13px;">
             <thead>
                 <tr style="background:#f9fafb; color:#6b7280; text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px;">
@@ -67,15 +60,15 @@
             </thead>
             <tbody>
                 @forelse($fornecedores as $f)
-                    <tr style="border-top:1px solid #f3f4f6;">
-                        <td style="padding:12px 14px; font-weight:600; color:#111827;">{{ $f['nome'] }}</td>
-                        <td style="padding:12px 14px; text-align:center; color:#6b7280;">{{ $f['compras'] }}</td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($f['comprado']) }}</td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap; color:#16a34a;">{{ Dinheiro::brl($f['pago']) }}</td>
-                        <td style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700; color:{{ $f['saldo'] > 0 ? '#dc2626' : '#16a34a' }};">{{ Dinheiro::brl($f['saldo']) }}</td>
-                        <td style="padding:12px 14px; text-align:center;">
+                    <tr class="grupo-cabecalho" style="border-top:1px solid #f3f4f6;">
+                        <td class="lr-num" style="padding:12px 14px; font-weight:600; color:#111827;">{{ $f['nome'] }}</td>
+                        <td data-rotulo="Compras" style="padding:12px 14px; text-align:center; color:#6b7280;">{{ $f['compras'] }}</td>
+                        <td data-rotulo="Comprado" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($f['comprado']) }}</td>
+                        <td data-rotulo="Pago" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($f['pago']) }}</td>
+                        <td data-rotulo="Saldo devedor" style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700; color:#111827;">{{ $f['saldo'] > 0 ? Dinheiro::brl($f['saldo']) : 'Quitado' }}</td>
+                        <td class="lr-acao" style="padding:12px 14px; text-align:center;">
                             <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $f['chave'], 'empresa' => request('empresa')])) }}"
-                               style="background:#05018D; color:#fff; border-radius:7px; padding:6px 14px; font-size:12px; font-weight:600; text-decoration:none;">Abrir</a>
+                               style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap;">Abrir</a>
                         </td>
                     </tr>
                 @empty
@@ -83,19 +76,6 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
-
-    <div class="m-cards">
-        @forelse($fornecedores as $f)
-            <x-mobile-card :titulo="$f['nome']" :campos="['Compras' => $f['compras'], 'Comprado' => Dinheiro::brl($f['comprado']), 'Pago' => Dinheiro::brl($f['pago']), 'Saldo devedor' => Dinheiro::brl($f['saldo'])]">
-                <x-slot:acao>
-                    <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $f['chave'], 'empresa' => request('empresa')])) }}"
-                       style="background:#05018D; color:#fff; border-radius:8px; padding:8px 18px; font-size:14px; font-weight:600; text-decoration:none;">Abrir</a>
-                </x-slot:acao>
-            </x-mobile-card>
-        @empty
-            <div style="padding:40px 16px; text-align:center; color:#9ca3af;">Nenhuma compra com fornecedor registrada ainda.</div>
-        @endforelse
     </div>
 
 </div>

@@ -1,13 +1,13 @@
-{{-- Cores e regras dos gráficos do painel (claro e escuro). Paleta categórica validada: azul e laranja; rampa azul para ordem (idade). --}}
+{{-- Cores e regras dos gráficos do painel (claro e escuro). Azul da Binário: comprado escuro, pago claro; rampa do mesmo azul para ordem (idade). --}}
 <style>
     .fin-viz {
-        --fin-s1: #2a78d6; --fin-s2: #eb6834;
-        --fin-r1: #86b6ef; --fin-r2: #3987e5; --fin-r3: #1c5cab; --fin-r4: #0d366b;
-        --fin-grid: #e5e7eb; --fin-ink: #111827; --fin-muted: #6b7280; --fin-track: #e8f0fb; --fin-surface: #ffffff;
+        --fin-s1: #05018D; --fin-s2: #8b89d4;
+        --fin-r1: #c9c8ee; --fin-r2: #8b89d4; --fin-r3: #4a47b3; --fin-r4: #05018D;
+        --fin-grid: #e5e7eb; --fin-ink: #111827; --fin-muted: #6b7280; --fin-track: #ececf7; --fin-surface: #ffffff;
     }
     html.dark .fin-viz {
-        --fin-s1: #3987e5; --fin-s2: #d95926;
-        --fin-r1: #86b6ef; --fin-r2: #5598e7; --fin-r3: #2a78d6; --fin-r4: #184f95;
+        --fin-s1: #e2e3e9; --fin-s2: #6f72a8;
+        --fin-r1: #3a3d55; --fin-r2: #5e6190; --fin-r3: #9a9cc8; --fin-r4: #e2e3e9;
         --fin-grid: #334155; --fin-ink: #e2e8f0; --fin-muted: #94a3b8; --fin-track: #1e3a5f; --fin-surface: #1e293b;
     }
 
@@ -18,12 +18,12 @@
     .fin-span2 { grid-column: span 2; }
     @media (max-width: 900px) { .fin-span2 { grid-column: auto; } }
 
-    .fin-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .fin-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 20px; }
     .fin-card h2 { margin: 0; font-size: 15px; font-weight: 700; color: #111827; }
     .fin-card .fin-sub { margin: 3px 0 14px; font-size: 12.5px; color: #6b7280; }
 
     .fin-rotulo { font-size: 11.5px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; }
-    .fin-hero { margin-top: 6px; font-size: 40px; line-height: 1.05; font-weight: 800; color: #111827; letter-spacing: -0.5px; }
+    .fin-hero { margin-top: 6px; font-size: 28px; line-height: 1.1; font-weight: 700; color: #111827; }
     .fin-num { margin-top: 6px; font-size: 24px; font-weight: 700; color: #111827; }
     .fin-nota { margin-top: 4px; font-size: 12.5px; color: #6b7280; }
 
