@@ -153,7 +153,7 @@ class AdminController extends Controller
         $request->validate([
             'status'            => 'required|in:pendente,aprovado,rejeitado',
             'admin_note'        => 'nullable|string|max:2000',
-            'supplier'          => 'nullable|string|max:255',
+            'supplier'          => 'required_if:status,aprovado|nullable|string|max:255',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'preco_unitario'    => 'nullable|numeric|min:0',
             'preco_caixa'       => 'nullable|numeric|min:0',
@@ -166,6 +166,7 @@ class AdminController extends Controller
             'pedido_compra'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
             'anexo'             => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
+            'supplier.required_if'       => 'Informe o fornecedor para aprovar a compra.',
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
             'parcelas.required_if'       => 'Informe em quantas parcelas.',

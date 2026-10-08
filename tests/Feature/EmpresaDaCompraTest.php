@@ -92,7 +92,7 @@ class EmpresaDaCompraTest extends TestCase
     {
         $item = PurchaseRequest::factory()->create(['status' => 'pendente']);
 
-        $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => 'aprovado', 'empresa' => 'binario'])
+        $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => 'aprovado', 'supplier' => 'Fornecedor Teste', 'empresa' => 'binario'])
             ->assertSessionHasNoErrors();
 
         $this->assertSame('Binário', $item->fresh()->empresa);

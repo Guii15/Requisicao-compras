@@ -303,7 +303,7 @@
                                             <div style="margin-bottom:14px;">
                                                 <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Status do Pedido</label>
                                                 @php $corStatusModal = ['pendente' => '#f4b728', 'aprovado' => '#17794a', 'rejeitado' => '#b8301a'][$req->status] ?? '#cbd5e1'; @endphp
-                                                <select name="status" onchange="this.style.borderLeftColor = ({pendente:'#f4b728', aprovado:'#17794a', rejeitado:'#b8301a'})[this.value] || '#cbd5e1'"
+                                                <select name="status" onchange="this.style.borderLeftColor = ({pendente:'#f4b728', aprovado:'#17794a', rejeitado:'#b8301a'})[this.value] || '#cbd5e1'; this.form.elements['supplier'].required = (this.value === 'aprovado')"
                                                         style="width:100%; border:1px solid #cbd5e1; border-left:6px solid {{ $corStatusModal }}; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; background-color:#fff; outline:none;">
                                                     <option value="pendente"  {{ $req->status=='pendente'  ? 'selected' : '' }}>Pendente de Aprovação</option>
                                                     <option value="aprovado"  {{ $req->status=='aprovado'  ? 'selected' : '' }}>Aprovado para Compra</option>
@@ -312,8 +312,8 @@
                                             </div>
 
                                             <div style="margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Fornecedor <span style="font-weight:400; color:#94a3b8;">(onde foi comprado)</span></label>
-                                                <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options"
+                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Fornecedor <span style="color:#b8301a;">*</span> <span style="font-weight:400; color:#94a3b8;">(onde foi comprado; obrigatório para aprovar)</span></label>
+                                                <input type="text" name="supplier" value="{{ $req->supplier }}" placeholder="Ex: Bomvink, GPJ..." list="supplier-options" {{ $req->status === 'aprovado' ? 'required' : '' }}
                                                        style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                                             </div>
 

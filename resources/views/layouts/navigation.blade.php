@@ -50,7 +50,7 @@
                         📦 Entrada
                     </a>
                     @endif
-                    @if(Auth::user()->podeVerFinanceiro())
+                    @if(Auth::user()->isFinanceiro())
                     <a href="{{ route('financeiro.index') }}"
                        style="color: {{ request()->routeIs('financeiro.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
                               background: {{ request()->routeIs('financeiro.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
@@ -152,7 +152,7 @@
         @if(Auth::user()->role === 'entrada')
             <a href="{{ route('entrada.index') }}" class="menu-m-link {{ request()->routeIs('entrada.*') ? 'ativo' : '' }}">Entrada</a>
         @endif
-        @if(Auth::user()->podeVerFinanceiro())
+        @if(Auth::user()->isFinanceiro())
             <a href="{{ route('financeiro.index') }}" class="menu-m-link {{ request()->routeIs('financeiro.*') ? 'ativo' : '' }}">Financeiro</a>
         @endif
 

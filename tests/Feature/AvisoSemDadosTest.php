@@ -60,7 +60,7 @@ class AvisoSemDadosTest extends TestCase
         $item = PurchaseRequest::factory()->create(['status' => 'pendente', 'product_name' => 'Item Recem Aprovado']);
         $this->assertStringNotContainsString('Item Recem Aprovado', $this->feitas());
 
-        $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => 'aprovado'])->assertSessionHasNoErrors();
+        $this->actingAs($this->admin)->patch(route('admin.requests.update', $item), ['status' => 'aprovado', 'supplier' => 'Fornecedor Teste'])->assertSessionHasNoErrors();
 
         $this->assertStringContainsString('Item Recem Aprovado', $this->feitas());
     }

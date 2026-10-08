@@ -28,7 +28,7 @@ class FornecedorLigacaoTest extends TestCase
     private function atualizar(PurchaseRequest $item, array $dados)
     {
         return $this->actingAs($this->admin)
-            ->patch(route('admin.requests.update', $item), array_merge(['status' => 'aprovado'], $dados));
+            ->patch(route('admin.requests.update', $item), array_merge(['status' => 'aprovado', 'supplier' => 'Fornecedor Teste'], $dados));
     }
 
     public function test_admin_digita_nome_igual_depois_de_normalizar_e_liga_ao_cadastrado(): void
@@ -85,7 +85,7 @@ class FornecedorLigacaoTest extends TestCase
         $joyce = Fornecedor::create(['nome' => 'JOYCE INFORMÁTICA']);
         $item = PurchaseRequest::factory()->create(['supplier' => 'JOYCE INFORMÁTICA', 'fornecedor_id' => $joyce->id]);
 
-        $this->atualizar($item, ['supplier' => ''])->assertSessionHasNoErrors();
+        $this->atualizar($item, ['status' => 'pendente', 'supplier' => ''])->assertSessionHasNoErrors();
 
         $this->assertNull($item->fresh()->fornecedor_id);
         $this->assertNull($item->fresh()->supplier);

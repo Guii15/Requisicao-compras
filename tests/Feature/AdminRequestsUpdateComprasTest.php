@@ -101,6 +101,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status'        => 'aprovado',
+            'supplier' => 'kabum',
             'pedido_compra' => UploadedFile::fake()->create('pedido 4512.pdf', 200, 'application/pdf'),
         ]);
 
@@ -123,6 +124,7 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), [
             'status' => 'aprovado',
+            'supplier' => 'kabum',
             'anexo'  => UploadedFile::fake()->create('orcamento.pdf', 200, 'application/pdf'),
         ]);
 
@@ -146,16 +148,36 @@ class AdminRequestsUpdateComprasTest extends TestCase
 
         $this->actingAs($admin)->patch(route('admin.requests.update', $item), [
             'status'        => 'aprovado',
+            'supplier' => 'kabum',
             'pedido_compra' => UploadedFile::fake()->create('antigo.pdf', 10, 'application/pdf'),
         ]);
         $caminhoAntigo = $item->refresh()->pedido_compra_path;
 
         $this->actingAs($admin)->patch(route('admin.requests.update', $item), [
             'status'        => 'aprovado',
+            'supplier' => 'kabum',
             'pedido_compra' => UploadedFile::fake()->create('novo.pdf', 10, 'application/pdf'),
         ]);
 
         Storage::disk('local')->assertMissing($caminhoAntigo);
         $this->assertSame('novo.pdf', $item->refresh()->pedido_compra_nome);
+    }
+
+    public function test_aprovar_exige_o_fornecedor(): void
+    {
+        $item = PurchaseRequest::factory()->create();
+
+        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), ['status' => 'aprovado'])
+            ->assertSessionHasErrors(['supplier' => 'Informe o fornecedor para aprovar a compra.']);
+
+        $this->assertSame('pendente', $item->fresh()->status);
+    }
+
+    public function test_rejeitar_ou_manter_pendente_nao_exige_fornecedor(): void
+    {
+        $item = PurchaseRequest::factory()->create();
+
+        $this->actingAs($this->admin())->patch(route('admin.requests.update', $item), ['status' => 'rejeitado'])
+            ->assertSessionDoesntHaveErrors();
     }
 }
