@@ -477,47 +477,63 @@
         @forelse($requests as $grupo)
             @foreach($grupo as $req)
             @if($podeConferir && $req->status_coleta !== 'coletado')
-            <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
-                <div class="m-modal-caixa" style="background:#fff; border-radius:12px; padding:28px; width:100%; max-width:480px; margin:16px; box-shadow:0 20px 25px rgba(0,0,0,0.15);">
-                    <h3 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#05018D;">Registrar Coleta</h3>
-                    <p style="margin:0 0 14px; font-size:14px; color:#6b7280;">Requisição #{{ $req->id }} - {{ $req->product_name }}</p>
+            <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(3px); z-index:2000; align-items:center; justify-content:center; padding:16px;">
+                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; width:100%; max-width:980px; max-height:94vh; display:flex; flex-direction:column; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;">
+                    <div style="padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; background:#f8fafc;">
+                        <div style="min-width:0;">
+                            <h3 style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:400; color:#0f172a; letter-spacing:0.01em;">Registrar Coleta</h3>
+                            <div style="margin-top:4px; font-size:13px; color:#64748b; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;">
+                                <span style="font-weight:600; color:#1e293b; overflow-wrap:anywhere;">{{ $req->product_name }}</span>
+                                <span>·</span>
+                                <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
+                                <span>·</span>
+                                <span>Qtd: <strong>{{ $req->quantity }}</strong></span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="fecharModalColeta({{ $req->id }})" aria-label="Fechar"
+                                style="border:none; background:transparent; color:#94a3b8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px; line-height:1;">✕</button>
+                    </div>
 
-                    <x-obs-todas :item="$req" margem="12px" />
-
-                    <form method="POST" action="{{ route('conferencia.coleta', $req) }}" id="form-coleta-{{ $req->id }}" onsubmit="return validarColeta({{ $req->id }})">
+                    <form method="POST" action="{{ route('conferencia.coleta', $req) }}" id="form-coleta-{{ $req->id }}" onsubmit="return validarColeta({{ $req->id }})" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
                         @csrf
                         @method('PATCH')
+                        <div class="jan-corpo" style="padding:22px 24px; display:grid; grid-template-columns:1fr 1.1fr; gap:28px; flex:1; min-height:0; overflow-y:auto;">
+                            <div>
+                                <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Coleta</div>
+                                <div style="margin-bottom:16px;">
+                                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Data da coleta <span style="color:#dc2626;">*</span></label>
+                                    <input type="datetime-local" name="data_coleta" id="data-coleta-{{ $req->id }}" required
+                                           value="{{ now()->format('Y-m-d\TH:i') }}"
+                                           style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Marcar como <span style="color:#dc2626;">*</span></label>
+                                    <div style="display:flex; gap:18px; flex-wrap:wrap;">
+                                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13.5px; color:#334155; cursor:pointer;">
+                                            <input type="radio" name="status_coleta" value="coletado" checked> Coletado
+                                        </label>
+                                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13.5px; color:#b8301a; cursor:pointer;">
+                                            <input type="radio" name="status_coleta" value="atraso"> Atraso
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:6px; text-transform:uppercase;">Data da Coleta *</label>
-                            <input type="datetime-local" name="data_coleta" id="data-coleta-{{ $req->id }}" required
-                                   value="{{ now()->format('Y-m-d\TH:i') }}"
-                                   style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
-                        </div>
-
-                        <div style="margin-bottom:20px;">
-                            <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:6px; text-transform:uppercase;">Marcar como *</label>
-                            <div style="display:flex; gap:8px;">
-                                <label style="flex:1;">
-                                    <input type="radio" name="status_coleta" value="coletado" checked style="margin-right:6px;">
-                                    <span style="font-size:14px; color:#374151;">✓ Coletado</span>
-                                </label>
-                                <label style="flex:1;">
-                                    <input type="radio" name="status_coleta" value="atraso" style="margin-right:6px;">
-                                    <span style="font-size:14px; color:#dc2626;">⚠️ Atraso</span>
-                                </label>
+                            <div style="min-width:0;">
+                                <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Notas e ocorrências</div>
+                                @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
+                                    <x-obs-todas :item="$req" margem="0" :plano="true" />
+                                @else
+                                    <div style="font-size:13px; color:#64748b;">Nenhuma nota.</div>
+                                @endif
                             </div>
                         </div>
 
-                        <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end;">
+                        <div style="padding:16px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:flex-end; gap:10px;">
                             <button type="button" onclick="fecharModalColeta({{ $req->id }})"
-                                    style="padding:10px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">
-                                Cancelar
-                            </button>
+                                    style="padding:8px 18px; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:600; cursor:pointer;">Cancelar</button>
                             <button type="submit"
-                                    style="padding:10px 24px; border-radius:8px; background:#05018D; color:#fff; font-size:14px; font-weight:700; border:none; cursor:pointer;">
-                                Confirmar Coleta
-                            </button>
+                                    style="padding:8px 22px; border-radius:6px; background:#05018D; color:#ffffff; font-size:13px; font-weight:600; border:none; cursor:pointer;">Confirmar Coleta</button>
                         </div>
                     </form>
                 </div>

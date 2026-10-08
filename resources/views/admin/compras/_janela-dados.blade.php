@@ -102,7 +102,7 @@
 
                 <div>
                     <div style="{{ $secao }}">Pedido de compra</div>
-                    <div id="jc-pedido-atual" style="display:none; align-items:center; gap:8px; margin-bottom:8px; background:#f1f5f9; padding:6px 10px; border-radius:6px; font-size:12.5px;">
+                    <div id="jc-pedido-atual" class="jc-caixa" style="display:none; align-items:center; gap:8px; margin-bottom:8px; background:#f1f5f9; padding:6px 10px; border-radius:6px; font-size:12.5px;">
                         <a id="jc-pedido-link" href="#" target="_blank" style="color:#05018D; font-weight:600; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></a>
                         <button type="submit" form="jc-remover-pedido" onclick="return confirm('Remover o pedido de compra anexado?')" style="background:none; border:none; color:#dc2626; font-size:11.5px; text-decoration:underline; cursor:pointer; margin-left:auto;">Remover</button>
                     </div>
@@ -116,7 +116,7 @@
                         <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9;"><span style="color:#64748b;">Conferência</span><span id="jc-conferencia"></span></div>
                         <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="color:#64748b;">Entrada</span><span id="jc-entrada"></span></div>
                     </div>
-                    <p id="jc-nota" style="display:none; margin:12px 0 0; padding:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#475569; font-size:13px; white-space:pre-line;"></p>
+                    <p id="jc-nota" class="jc-caixa" style="display:none; margin:12px 0 0; padding:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#475569; font-size:13px; white-space:pre-line;"></p>
                 </div>
             </div>
 

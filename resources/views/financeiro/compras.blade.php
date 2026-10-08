@@ -23,7 +23,7 @@
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Financeiro</h1>
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">
-            {{ $aguardando ? 'Compras que ainda têm algo a pagar, das mais antigas para as mais novas.' : 'Compras já quitadas, das pagas mais recentemente para as mais antigas.' }}
+            {{ $aguardando ? 'Compras que ainda têm algo a pagar, das mais novas para as mais antigas.' : 'Compras já quitadas, das pagas mais recentemente para as mais antigas.' }}
         </p>
     </div>
 
@@ -85,7 +85,7 @@
                     @php $c = $linha['compra']; @endphp
                     <tr class="grupo-cabecalho" style="border-top:1px solid #f3f4f6;">
                         <td data-rotulo="Compra" style="padding:12px 9px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}@if($aguardando)<div style="font-size:11.5px; color:#9ca3af;">há {{ $dias($c) }} {{ $dias($c) === 1 ? 'dia' : 'dias' }}</div>@endif</td>
-                        <td class="lr-num" style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a>@if($linha['empresa'])<div style="font-size:11.5px; font-weight:400; color:#9ca3af;">Empresa: {{ $linha['empresa'] }}</div>@endif</td>
+                        <td class="lr-num" style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a></td>
                         <td class="lr-larga" data-rotulo="Produto" style="padding:12px 9px; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span>
                             <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>

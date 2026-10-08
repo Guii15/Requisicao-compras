@@ -82,7 +82,7 @@
         html.dark [style*="box-shadow"] { box-shadow: none !important; }
 
         /* Campos */
-        html.dark input[type="text"], html.dark input[type="date"], html.dark input[type="email"],
+        html.dark input[type="text"], html.dark input[type="date"], html.dark input[type="datetime-local"], html.dark input[type="time"], html.dark input[type="month"], html.dark input[type="tel"], html.dark input[type="search"], html.dark input[type="email"],
         html.dark input[type="password"], html.dark input[type="number"], html.dark input[type="url"],
         html.dark textarea, html.dark select, html.dark .cr-input {
             background-color: var(--sl-panel) !important; color: var(--sl-bone) !important;
@@ -113,6 +113,14 @@
         html.dark [style*="background:#f7f8fa"], html.dark tr[class*="grupo-item-"] { background-color: var(--sl-void) !important; }
         html.dark [style*="#eef0f3"] { border-color: var(--sl-line) !important; }
         html.dark [style*="background:#111827"] { background: var(--sl-bone) !important; }
+        html.dark [style*="background:#111827"][style*="color:#fff"], html.dark [style*="background:#111827"][style*="color: #fff"] { color: var(--sl-void) !important; }
+        /* Elementos que o JS mexe (style.display etc.) perdem os seletores por atributo: usam classe */
+        html.dark .jc-caixa { background: var(--sl-panel) !important; border-color: var(--sl-line) !important; color: var(--sl-fog) !important; }
+        html.dark .jc-caixa a { color: var(--sl-copper) !important; }
+        .jan-corpo > * { min-width:0; overflow-wrap:anywhere; }
+        .cr-prod-row { border-bottom:1px solid #f1f5f9; background:#fff; }
+        .cr-prod-row.par { background:#fafafa; }
+        html.dark .cr-prod-row, html.dark .cr-prod-row.par { background: var(--sl-card) !important; border-bottom-color: var(--sl-line) !important; }
         html.dark [style*="background:#d7dbe2"] { background: var(--sl-line-2) !important; }
         html.dark [style*="border:2px solid #c5cbd6"] { border-color: var(--sl-steel) !important; }
 

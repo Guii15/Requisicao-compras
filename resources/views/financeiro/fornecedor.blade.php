@@ -73,7 +73,7 @@
                         <td class="lr-larga" data-rotulo="Produto" style="padding:12px 14px; font-weight:600; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af; font-weight:400;">× {{ $c->quantity }}</span>
                             @if($linha['condicao'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">{{ $linha['condicao'] }}</div>@endif
-                            @if($linha['empresa'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">Empresa: {{ $linha['empresa'] }}</div>@endif
+                            
                             @if($c->pedido_compra_path)
                                 <a href="{{ route('admin.compras.pedido', $c) }}" target="_blank" style="display:block; font-size:11px; color:#05018D; text-decoration:underline; font-weight:400;">📎 Pedido de compra</a>
                             @endif

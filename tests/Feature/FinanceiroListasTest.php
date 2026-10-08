@@ -34,7 +34,7 @@ class FinanceiroListasTest extends TestCase
         PagamentoCompra::create(['purchase_request_id' => $c->id, 'valor' => $valor, 'forma' => 'parcelado', 'data_pagamento' => $data, 'user_id' => $this->fin->id]);
     }
 
-    public function test_aguardando_lista_so_o_que_falta_pagar_da_mais_antiga_para_a_mais_nova(): void
+    public function test_aguardando_lista_so_o_que_falta_pagar_da_mais_nova_para_a_mais_antiga(): void
     {
         $this->compra('Joyce', 100, ['product_name' => 'Item Novo', 'data_compra' => '2026-10-10']);
         $this->compra('Kabum', 100, ['product_name' => 'Item Antigo', 'data_compra' => '2026-08-01']);
@@ -45,7 +45,7 @@ class FinanceiroListasTest extends TestCase
 
         $this->actingAs($this->fin)->get(route('financeiro.aguardando'))
             ->assertOk()
-            ->assertSeeInOrder(['Item Antigo', 'Item Parcial', 'Item Novo'])
+            ->assertSeeInOrder(['Item Novo', 'Item Parcial', 'Item Antigo'])
             ->assertDontSee('Item Quitado')
             ->assertSee('R$ 600,00');
     }
@@ -84,8 +84,8 @@ class FinanceiroListasTest extends TestCase
 
         $this->actingAs($this->fin);
 
-        $this->get(route('financeiro.aguardando'))->assertSee('Produto 01')->assertDontSee('Produto 30');
-        $this->get(route('financeiro.aguardando', ['page' => 2]))->assertSee('Produto 30')->assertDontSee('Produto 01');
+        $this->get(route('financeiro.aguardando'))->assertSee('Produto 30')->assertDontSee('Produto 01');
+        $this->get(route('financeiro.aguardando', ['page' => 2]))->assertSee('Produto 01')->assertDontSee('Produto 30');
     }
 
     public function test_abas_mostram_a_quantidade_aguardando(): void

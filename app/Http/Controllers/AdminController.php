@@ -59,10 +59,10 @@ class AdminController extends Controller
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'fotosConferencia'])->withQueryString();
 
         $stats = [
-            'total'       => PurchaseRequest::count(),
-            'pendente'    => PurchaseRequest::where('status', 'pendente')->count(),
-            'aprovado'    => PurchaseRequest::where('status', 'aprovado')->count(),
-            'rejeitado'   => PurchaseRequest::where('status', 'rejeitado')->count(),
+            'total'       => PurchaseRequest::numRequisicoes(),
+            'pendente'    => PurchaseRequest::where('status', 'pendente')->numRequisicoes(),
+            'aprovado'    => PurchaseRequest::where('status', 'aprovado')->numRequisicoes(),
+            'rejeitado'   => PurchaseRequest::where('status', 'rejeitado')->numRequisicoes(),
             'total_gasto' => (float) PurchaseRequest::where('status', 'aprovado')->sum('valor'),
         ];
 
@@ -72,7 +72,7 @@ class AdminController extends Controller
             fn ($mes) => PurchaseRequest::when($status, fn ($q) => $q->where('status', $status))
                 ->whereYear('created_at', $mes->year)
                 ->whereMonth('created_at', $mes->month)
-                ->count()
+                ->numRequisicoes()
         )->all();
         $tendencias = [
             'total'     => $criadasPorMes(null),

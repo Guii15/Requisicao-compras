@@ -30,7 +30,7 @@ class FinanceiroController extends Controller
     {
         $linhas = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))
             ->where('aberto', '>', 0)
-            ->sortBy(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+            ->sortByDesc(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
             ->values();
 
         return $this->lista($request, $linhas, 'aguardando');

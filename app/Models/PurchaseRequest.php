@@ -34,6 +34,12 @@ class PurchaseRequest extends Model
     }
 
     /** O que aparece em Compras Feitas: aprovadas com data e preço, ou aprovadas a partir do dia de corte. */
+    /** Conta requisições (um grupo de itens = 1), não itens soltos. */
+    public function scopeNumRequisicoes($query): int
+    {
+        return (int) $query->toBase()->distinct()->count(\Illuminate\Support\Facades\DB::raw('COALESCE(grupo_id, id)'));
+    }
+
     public function scopeNaListaDeComprasFeitas($query)
     {
         return $query->where('status', 'aprovado')->where(function ($q) {

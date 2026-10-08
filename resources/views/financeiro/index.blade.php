@@ -33,7 +33,7 @@
         <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">⚠️ {{ session('aviso') }}</div>
     @endif
 
-    @if($empresaSel !== null)
+    @if(false)
         @php $nomeFiltrada = collect($d['empresas'])->firstWhere('chave', $empresaSel)['nome'] ?? $empresaSel; @endphp
         <div style="background:#fff; color:#374151; border:1px solid #e5e7eb; border-left:4px solid #05018D; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:13px;">
             Mostrando só as compras de <strong>{{ $nomeFiltrada }}</strong>.
@@ -66,7 +66,7 @@
         </div>
     @endif
 
-    @if($empresaSel === null && count($d['empresas']) >= 2)
+    @if(false)
         <div class="fin-card" style="margin-bottom:16px;">
             <h2>Saldo devedor por empresa</h2>
             <p class="fin-sub">Quanto cada empresa ainda deve. Clique numa empresa para ver só as compras dela.</p>

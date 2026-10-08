@@ -217,11 +217,11 @@ class FinanceiroEmpresaTest extends TestCase
         $this->assertCount(3, $d['empresas']);
     }
 
-    public function test_painel_mostra_o_bloco_saldo_por_empresa_quando_ha_mais_de_uma(): void
+    public function test_painel_nao_mostra_mais_o_bloco_saldo_por_empresa(): void
     {
         $this->cenario();
 
-        $this->abrir('financeiro.index')->assertSee('Saldo devedor por empresa')->assertSee('Oasis Comércio')->assertSee('Não informada');
+        $this->abrir('financeiro.index')->assertOk()->assertDontSee('Saldo devedor por empresa');
     }
 
     public function test_painel_nao_mostra_o_bloco_quando_so_ha_uma_empresa(): void
@@ -231,21 +231,21 @@ class FinanceiroEmpresaTest extends TestCase
         $this->abrir('financeiro.index')->assertDontSee('Saldo devedor por empresa');
     }
 
-    public function test_painel_com_filtro_mostra_qual_empresa_esta_filtrada(): void
+    public function test_painel_com_filtro_continua_somando_so_a_empresa_sem_aviso_de_filtro(): void
     {
         $this->cenario();
 
-        $this->abrir('financeiro.index', ['empresa' => 'oasis comercio'])->assertSee('R$ 500,00')->assertSee('Oasis Comércio');
+        $this->abrir('financeiro.index', ['empresa' => 'oasis comercio'])->assertSee('R$ 500,00')->assertDontSee('Mostrando só as compras de');
     }
 
     // ---------- filtro na tela ----------
 
-    public function test_filtro_de_empresa_aparece_quando_ha_empresa_informada(): void
+    public function test_nao_ha_filtro_de_empresa_na_tela_porque_a_binario_paga_tudo(): void
     {
         $this->cenario();
 
         foreach (['financeiro.index', 'financeiro.aguardando', 'financeiro.pagos', 'financeiro.fornecedores'] as $rota) {
-            $this->abrir($rota)->assertSee('name="empresa"', false)->assertSee('Todas as empresas');
+            $this->abrir($rota)->assertOk()->assertDontSee('name="empresa"', false)->assertDontSee('Todas as empresas');
         }
     }
 
@@ -256,16 +256,14 @@ class FinanceiroEmpresaTest extends TestCase
         $this->abrir('financeiro.aguardando')->assertDontSee('Todas as empresas');
     }
 
-    public function test_opcoes_do_filtro_sem_repetir_empresa(): void
+    public function test_sem_opcoes_de_empresa_na_tela(): void
     {
         $this->compra('Joyce', 100, 'Binário');
-        $this->compra('Kabum', 100, 'BINARIO');
         $this->compra('Kabum', 100, 'Oasis Comércio');
 
         $html = $this->abrir('financeiro.aguardando')->getContent();
 
-        $this->assertSame(1, substr_count($html, 'value="binario"'));
-        $this->assertSame(1, substr_count($html, 'value="oasis comercio"'));
+        $this->assertSame(0, substr_count($html, 'value="oasis comercio"'));
     }
 
     public function test_abas_e_links_mantem_o_filtro_de_empresa(): void

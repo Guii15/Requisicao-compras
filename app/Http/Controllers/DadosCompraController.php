@@ -66,7 +66,7 @@ class DadosCompraController extends Controller
         $totalSemDados = PurchaseRequest::aprovadasAntigasSemDados()->count();
         $dataCorte = PurchaseRequest::inicioComprasFeitas()->timezone('America/Sao_Paulo')->format('d/m/Y');
 
-        $totalFalta = PurchaseRequest::where('status', 'aprovado')->where($semDados)->count();
+        $totalFalta = PurchaseRequest::where('status', 'aprovado')->where($semDados)->numRequisicoes();
 
         $fornecedoresUsados = PurchaseRequest::whereNotNull('supplier')->where('supplier', '!=', '')->distinct()->orderBy('supplier')->pluck('supplier');
 
