@@ -92,6 +92,7 @@
                         <th style="{{ $thEntr }} text-align:left;">{{ $aba === 'concluidas' ? 'Vendedor Destino' : 'Vendedor' }}</th>
                         <th style="{{ $thEntr }} text-align:left;">Itens</th>
                         <th style="{{ $thEntr }} text-align:left;">Fornecedor</th>
+                        <th style="{{ $thEntr }} text-align:left;">Data da compra</th>
                         <th style="{{ $thEntr }} text-align:right;">Qtd Solic. / {{ $aba === 'concluidas' ? 'Entrada' : 'Receb.' }}</th>
                         <th style="{{ $thEntr }} text-align:right;">Total</th>
                         <th style="{{ $thEntr }} text-align:left;">Coleta</th>
@@ -136,6 +137,8 @@
                                 <div style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoEntr }}</div>
                                 <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
                             </td>
+                            @php $datasCompra = $grupo->pluck('data_compra')->filter()->map(fn ($d) => $d->format('d/m/Y'))->unique()->values(); $dataCompra = $datasCompra->count() === 0 ? '—' : ($datasCompra->count() === 1 ? $datasCompra->first() : $datasCompra->first() . ' +'); @endphp
+                            <td data-rotulo="Data da compra" style="{{ $tdEntr }} white-space:nowrap;">{{ $dataCompra }}</td>
                             <td data-rotulo="Fornecedor" style="{{ $tdEntr }}">{{ $fornecedorEntr }}</td>
                             <td data-rotulo="Qtd solic. / {{ $aba === 'concluidas' ? 'entrada' : 'receb.' }}" style="{{ $tdEntr }} text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">{{ $qtdPedidaEntr }} / <strong style="color:{{ $qtdChegouEntr === $qtdPedidaEntr ? '#111827' : '#b8301a' }};">{{ $qtdChegouEntr }}</strong></td>
                             <td data-rotulo="Total" style="{{ $tdEntr }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalEntr > 0 ? 'R$ ' . number_format($totalEntr, 2, ',', '.') : '—' }}</td>
@@ -162,7 +165,7 @@
                             $chegouEntr = $req->entrada_concluida_em ? $req->quantidade_entrada : $req->quantidade_recebida;
                         @endphp
                         <tr class="grupo-item-{{ $chaveEntr }}" style="display:none; background:#f7f8fa;">
-                            <td colspan="9" style="padding:{{ $loop->first ? '14px' : '0' }} 20px {{ $loop->last ? '18px' : '10px' }} 20px; {{ $loop->last ? 'border-bottom:1px solid #e5e7eb;' : '' }}">
+                            <td colspan="10" style="padding:{{ $loop->first ? '14px' : '0' }} 20px {{ $loop->last ? '18px' : '10px' }} 20px; {{ $loop->last ? 'border-bottom:1px solid #e5e7eb;' : '' }}">
                                 <x-item-requisicao :req="$req">
                                     <span style="align-self:center; font-size:12.5px; color:#6b7280;">Pedido / {{ $req->entrada_concluida_em ? 'entrada' : 'recebido' }}: <strong style="color:#111827;">{{ $req->quantity }} / {{ $chegouEntr ?? '—' }}</strong></span>
                                     @if($req->entrada_concluida_em)
@@ -192,6 +195,8 @@
                                             <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
                                             <span>·</span>
                                             <span>Pedido / recebido: <strong>{{ $req->quantity }} / {{ $req->quantidade_recebida ?? '—' }}</strong></span>
+                                            <span>·</span>
+                                            <span>Compra em: <strong>{{ $req->data_compra ? $req->data_compra->format('d/m/Y') : '—' }}</strong></span>
                                         </div>
                                     </div>
                                     <button type="button" onclick="document.getElementById('modal-entrada-{{ $req->id }}').style.display='none'" aria-label="Fechar"
@@ -254,7 +259,7 @@
                     @endforeach
                     @empty
                         <tr>
-                            <td colspan="9" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
+                            <td colspan="10" style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:15px;">
                                 {{ $aba === 'concluidas' ? 'Nenhum item com entrada registrada ainda.' : 'Nenhum item liberado aguardando entrada.' }}
                             </td>
                         </tr>

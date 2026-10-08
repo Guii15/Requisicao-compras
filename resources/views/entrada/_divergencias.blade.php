@@ -21,6 +21,7 @@
                         <th style="{{ $thDiv }} text-align:left;">Vendedor</th>
                         <th style="{{ $thDiv }} text-align:left;">Itens</th>
                         <th style="{{ $thDiv }} text-align:left;">Fornecedor</th>
+                        <th style="{{ $thDiv }} text-align:left;">Data da compra</th>
                         <th style="{{ $thDiv }} text-align:right;">Pedido / Recebido</th>
                         <th style="{{ $thDiv }} text-align:left;">Entrega</th>
                         <th style="{{ $thDiv }} text-align:left;">Situação</th>
@@ -49,6 +50,8 @@
                                 <div style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoDiv }}</div>
                                 <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
                             </td>
+                            @php $datasCompra = $grupo->pluck('data_compra')->filter()->map(fn ($d) => $d->format('d/m/Y'))->unique()->values(); $dataCompra = $datasCompra->count() === 0 ? '—' : ($datasCompra->count() === 1 ? $datasCompra->first() : $datasCompra->first() . ' +'); @endphp
+                            <td data-rotulo="Data da compra" style="{{ $tdDiv }} white-space:nowrap;">{{ $dataCompra }}</td>
                             <td data-rotulo="Fornecedor" style="{{ $tdDiv }}">{{ $fornecedorDiv }}</td>
                             <td data-rotulo="Pedido / recebido" style="{{ $tdDiv }} text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;">{{ $grupo->sum('quantity') }} / <strong style="color:#b8301a;">{{ $grupo->sum(fn ($r) => (int) $r->quantidade_recebida) }}</strong></td>
                             <td data-rotulo="Entrega" style="{{ $tdDiv }} font-size:13px; white-space:nowrap;">{{ $entregasDiv->count() === 1 ? $entregasDiv->first() : 'Mista' }}</td>
@@ -64,7 +67,7 @@
                         </tr>
                         @foreach($grupo as $req)
                         <tr class="grupo-item-{{ $chaveDiv }}" style="display:none; background:#f7f8fa;">
-                            <td colspan="8" style="padding:{{ $loop->first ? '14px' : '0' }} 20px {{ $loop->last ? '18px' : '10px' }} 20px; {{ $loop->last ? 'border-bottom:1px solid #e5e7eb;' : '' }}">
+                            <td colspan="9" style="padding:{{ $loop->first ? '14px' : '0' }} 20px {{ $loop->last ? '18px' : '10px' }} 20px; {{ $loop->last ? 'border-bottom:1px solid #e5e7eb;' : '' }}">
                                 <x-item-requisicao :req="$req">
                                     <span style="align-self:center; font-size:12.5px; color:#6b7280;">Pedido: <strong style="color:#111827;">{{ $req->quantity }}</strong> · Recebido: <strong style="color:#b8301a;">{{ $req->quantidade_recebida ?? '—' }}</strong></span>
                                     @if($req->conferente)
@@ -93,6 +96,8 @@
                                             <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
                                             <span>·</span>
                                             <span>Pedido / recebido: <strong>{{ $req->quantity }} / {{ $req->quantidade_recebida ?? '—' }}</strong></span>
+                                            <span>·</span>
+                                            <span>Compra em: <strong>{{ $req->data_compra ? $req->data_compra->format('d/m/Y') : '—' }}</strong></span>
                                         </div>
                                     </div>
                                     <button type="button" onclick="document.getElementById('modal-entrada-div-{{ $req->id }}').style.display='none'" aria-label="Fechar"
