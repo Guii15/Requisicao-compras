@@ -113,8 +113,10 @@ class CondicaoPagamentoTest extends TestCase
     {
         $item = PurchaseRequest::factory()->aprovado()->create();
 
-        $this->actingAs($this->comprador)->get(route('admin.compras.edit', $item))
+        // A tela separada saiu: o formulário é a janela "Dados da compra" de Compras Feitas.
+        $this->actingAs($this->comprador)->get(route('admin.compras.feitas', ['abrir' => $item->id]))
             ->assertOk()
+            ->assertSee('id="janela-compra"', false)
             ->assertSee('name="condicao_pagamento"', false)
             ->assertSee('name="parcelas"', false)
             ->assertSee('name="primeiro_vencimento"', false);

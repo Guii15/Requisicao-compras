@@ -59,11 +59,26 @@ class AdminController extends Controller
         $requests = $this->paginarAgrupadoPorGrupoId($query, 15, 'page', ['user', 'fotosConferencia'])->withQueryString();
 
         $stats = [
-            'total'       => PurchaseRequest::count(),
-            'pendente'    => PurchaseRequest::where('status', 'pendente')->count(),
-            'aprovado'    => PurchaseRequest::where('status', 'aprovado')->count(),
-            'rejeitado'   => PurchaseRequest::where('status', 'rejeitado')->count(),
+            'total'       => PurchaseRequest::numRequisicoes(),
+            'pendente'    => PurchaseRequest::where('status', 'pendente')->numRequisicoes(),
+            'aprovado'    => PurchaseRequest::where('status', 'aprovado')->numRequisicoes(),
+            'rejeitado'   => PurchaseRequest::where('status', 'rejeitado')->numRequisicoes(),
             'total_gasto' => (float) PurchaseRequest::where('status', 'aprovado')->sum('valor'),
+        ];
+
+        // Linha de tendência dos blocos do topo: requisições criadas em cada um dos últimos 6 meses, pelo status de hoje.
+        $mesesTendencia = collect(range(5, 0))->map(fn ($atras) => now()->startOfMonth()->subMonths($atras));
+        $criadasPorMes = fn (?string $status) => $mesesTendencia->map(
+            fn ($mes) => PurchaseRequest::when($status, fn ($q) => $q->where('status', $status))
+                ->whereYear('created_at', $mes->year)
+                ->whereMonth('created_at', $mes->month)
+                ->numRequisicoes()
+        )->all();
+        $tendencias = [
+            'total'     => $criadasPorMes(null),
+            'pendente'  => $criadasPorMes('pendente'),
+            'aprovado'  => $criadasPorMes('aprovado'),
+            'rejeitado' => $criadasPorMes('rejeitado'),
         ];
 
         // Os rankings juntam o mesmo nome escrito de formas diferentes (Yhan, YHAN, "Yhan ").
@@ -96,7 +111,7 @@ class AdminController extends Controller
         $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
             return [
-                'label' => $date->translatedFormat('M/y'),
+                'label' => ucfirst($date->translatedFormat('M/y')), // Out/26
                 'year'  => $date->year,
                 'month' => $date->month,
                 'total' => (float) PurchaseRequest::where('status', 'aprovado')
@@ -113,7 +128,7 @@ class AdminController extends Controller
             ->orderBy('supplier')
             ->pluck('supplier');
 
-        return view('admin.index', compact('requests', 'stats', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
+        return view('admin.index', compact('requests', 'stats', 'tendencias', 'vendorSpending', 'supplierSpending', 'monthlySpending', 'supplierList'));
     }
 
     private const DISCO_PEDIDO_COMPRA = 'local';

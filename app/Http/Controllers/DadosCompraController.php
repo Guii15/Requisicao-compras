@@ -21,33 +21,28 @@ class DadosCompraController extends Controller
 
     private const DISCO = 'local';
 
+    /** A tela "Compras" antiga saiu: tudo fica em Compras Feitas. O endereço antigo leva para o filtro "Falta registrar". */
     public function index(Request $request)
     {
-        $query = PurchaseRequest::with('user')->where('status', 'aprovado');
-
-        $situacao = $request->query('situacao');
-        if ($situacao === 'sem_dados') {
-            $query->where(fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario'));
-        } elseif ($situacao === 'com_dados') {
-            $query->whereNotNull('data_compra')->whereNotNull('preco_unitario');
-        }
-
-        if ($request->filled('produto')) {
-            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
-        }
-
-        $itens = $query->orderByDesc('updated_at')->paginate(20)->withQueryString();
-
-        $totalSemDados = PurchaseRequest::where('status', 'aprovado')
-            ->where(fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario'))
-            ->count();
-
-        return view('admin.compras.index', compact('itens', 'situacao', 'totalSemDados'));
+        return redirect()->route('admin.compras.feitas', $request->query('situacao') === 'com_dados' ? [] : ['situacao' => 'falta']);
     }
 
     public function feitas(Request $request)
     {
-        $query = PurchaseRequest::with('user')->naListaDeComprasFeitas();
+        // "Falta registrar" mostra toda aprovada sem data ou preço (inclusive as de antes do corte), para registrar aqui mesmo.
+        $situacao = $request->query('situacao') === 'falta' ? 'falta' : null;
+        $semDados = fn ($q) => $q->whereNull('data_compra')->orWhereNull('preco_unitario');
+
+        $query = $situacao === 'falta'
+            ? PurchaseRequest::with('user')->where('status', 'aprovado')->where($semDados)
+            : PurchaseRequest::with('user')->naListaDeComprasFeitas();
+
+        // ?abrir=ID (atalho do histórico e dos endereços antigos): mostra só a requisição desse item e já abre a janela dele.
+        $abrir = PurchaseRequest::where('status', 'aprovado')->find((int) $request->query('abrir'));
+        if ($abrir) {
+            $situacao = null;
+            $query = PurchaseRequest::with('user')->where('status', 'aprovado')->where('grupo_id', $abrir->grupo_id);
+        }
 
         if ($request->filled('produto')) {
             $this->whereLikeInsensitive($query, 'product_name', $request->produto);
@@ -65,25 +60,36 @@ class DadosCompraController extends Controller
             $query->whereDate('data_compra', '<=', $request->data_final);
         }
 
-        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user'], 'updated_at')->withQueryString();
+        $requests = $this->paginarAgrupadoPorGrupoId($query, 20, 'page', ['user', 'fotosConferencia'], 'updated_at')->withQueryString();
 
         // As aprovadas antes do corte e sem data/preço não aparecem aqui (só em Compras): o aviso explica isso.
         $totalSemDados = PurchaseRequest::aprovadasAntigasSemDados()->count();
         $dataCorte = PurchaseRequest::inicioComprasFeitas()->timezone('America/Sao_Paulo')->format('d/m/Y');
 
-        return view('admin.compras.feitas', compact('requests', 'totalSemDados', 'dataCorte'));
+        $totalFalta = PurchaseRequest::where('status', 'aprovado')->where($semDados)->numRequisicoes();
+
+        $fornecedoresUsados = PurchaseRequest::whereNotNull('supplier')->where('supplier', '!=', '')->distinct()->orderBy('supplier')->pluck('supplier');
+
+        return view('admin.compras.feitas', compact('requests', 'totalSemDados', 'dataCorte', 'situacao', 'totalFalta', 'fornecedoresUsados', 'abrir'));
     }
 
+    /** A tela separada de "Dados da compra" saiu: o endereço antigo abre a janela do item em Compras Feitas. */
     public function edit(PurchaseRequest $purchaseRequest)
     {
         $this->garantirAprovada($purchaseRequest);
 
-        return view('admin.compras.edit', ['item' => $purchaseRequest]);
+        return redirect()->route('admin.compras.feitas', ['abrir' => $purchaseRequest->id]);
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest, FornecedorResolver $fornecedores)
     {
         $this->garantirAprovada($purchaseRequest);
+
+        // Envio feito pela janela da lista de Compras Feitas: volta para a lista (e reabre a janela se algo falhar).
+        $daLista = $request->input('origem') === 'lista';
+        if ($daLista) {
+            session()->flash('compra_aberta', $purchaseRequest->id);
+        }
 
         if ($request->filled('preco_unitario')) {
             $request->merge(['preco_unitario' => $this->decimalBrasileiro($request->input('preco_unitario'))]);
@@ -175,7 +181,13 @@ class DadosCompraController extends Controller
 
         $purchaseRequest->update($atualizacao);
 
-        return redirect()->route('admin.compras.edit', $purchaseRequest)
+        if ($daLista) {
+            session()->forget('compra_aberta');
+
+            return back()->with('success', 'Dados da compra de "' . $purchaseRequest->product_name . '" salvos.');
+        }
+
+        return redirect()->route('admin.compras.feitas', ['abrir' => $purchaseRequest->id])
             ->with('success', 'Dados da compra salvos.');
     }
 

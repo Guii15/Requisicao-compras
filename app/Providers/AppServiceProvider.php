@@ -35,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Datas por extenso (meses dos gráficos, etc.) em português; o resto do app continua com o idioma configurado.
+        \Carbon\Carbon::setLocale('pt_BR');
+
         // Número da aba "Aguardando" do Financeiro, em todas as telas que mostram as abas.
         View::composer('financeiro._abas', fn ($view) => $view->with('qtdAguardando', app(SaldoFornecedores::class)->quantidadeAguardando()));
     }

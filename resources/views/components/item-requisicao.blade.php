@@ -1,9 +1,10 @@
 {{--
     Cartão de um item da requisição: cabeçalho + 3 colunas (produto e anexos, compra, notas).
     O conteúdo do slot são os botões de ação do item (Editar, Exportar, Atualizar...).
+    semPrecos=true esconde unitário, caixa e total (telas de quem confere e dá entrada).
     O slot "notas" (opcional) troca o conteúdo da coluna de notas; sem ele, mostra todas (<x-obs-todas>).
 --}}
-@props(['req'])
+@props(['req', 'semPrecos' => false])
 
 @php
     $temNotasItem = filled($req->admin_note) || filled($req->reason) || filled($req->justification)
@@ -16,13 +17,13 @@
     $linkItem = 'display:block; font-size:13px; color:#05018D; text-decoration:underline; margin-top:6px; overflow-wrap:anywhere;';
 @endphp
 
-<div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; text-align:left;">
+<div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; text-align:left; min-width:0; max-width:100%;">
 
     {{-- Cabeçalho do item --}}
     <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 20px; padding:14px 20px; border-bottom:1px solid #eef0f3;">
-        <div style="min-width:0;">
-            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
-                <span style="font-size:16px; font-weight:700; color:#111827;">{{ $req->product_name }}</span>
+        <div style="min-width:0; max-width:100%;">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; min-width:0;">
+                <span style="font-size:16px; font-weight:700; color:#111827; overflow-wrap:anywhere; min-width:0; max-width:100%;">{{ $req->product_name }}</span>
                 <x-status-requisicao :status="$req->status" estilo="contorno" />
             </div>
             <x-parcial-info :item="$req" />
@@ -37,7 +38,7 @@
         @endif
     </div>
 
-    <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));">
+    <div class="ir-colunas" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr));">
 
         {{-- Coluna 1: produto e anexos --}}
         <div style="padding:16px 20px; font-size:13px; color:#374151;">
@@ -107,6 +108,7 @@
                 <div style="color:#111827;">Empresa: {{ $req->empresa }}</div>
             @endif
             @if($req->temDadosDaCompra())
+                @unless($semPrecos)
                 <div>Unitário: R$ {{ number_format($req->preco_unitario, 2, ',', '.') }}</div>
                 @if($req->preco_caixa)
                     <div>Caixa: R$ {{ number_format($req->preco_caixa, 2, ',', '.') }}</div>
@@ -114,14 +116,12 @@
                 @if($req->valor)
                     <div>Total: <strong style="color:#111827;">R$ {{ number_format($req->valor, 2, ',', '.') }}</strong></div>
                 @endif
+                @endunless
                 @if($req->data_compra)
                     <div>Compra: {{ $req->data_compra->format('d/m/Y') }}</div>
                 @endif
                 @if($req->data_coleta)
                     <div>Coleta: {{ $req->data_coleta->format('d/m/Y') }}{{ $req->coletado_por ? ' (' . $req->coletado_por . ')' : '' }}</div>
-                @endif
-                @if($req->pedido_compra_path)
-                    <div><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a></div>
                 @endif
             @elseif($req->status === 'aprovado')
                 <div style="color:#6b7280;">Ainda sem dados da compra.</div>
@@ -129,6 +129,10 @@
                 <div style="color:#6b7280;">Item rejeitado, sem compra.</div>
             @else
                 <div style="color:#6b7280;">Os dados da compra entram depois da aprovação.</div>
+            @endif
+            {{-- Fora do "tem dados": o admin pode anexar o pedido antes de registrar data e preço. --}}
+            @if($req->pedido_compra_path)
+                <div><a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; text-decoration:underline;">📎 Pedido de compra</a></div>
             @endif
             @if($req->status === 'aprovado')
                 <div>

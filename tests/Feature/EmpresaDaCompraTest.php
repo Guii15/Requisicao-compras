@@ -113,31 +113,41 @@ class EmpresaDaCompraTest extends TestCase
         PurchaseRequest::factory()->aprovado()->create(['empresa' => 'Oasis Comércio']);
         $item = PurchaseRequest::factory()->aprovado()->create();
 
-        $this->actingAs($this->admin)->get(route('admin.compras.edit', $item))
+        // o formulário é a janela "Dados da compra" de Compras Feitas
+        $html = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $item->id]))
             ->assertOk()
-            ->assertSee('name="empresa"', false)
-            ->assertSee('value="Binário"', false)
-            ->assertSee('value="Oasis Comércio"', false);
+            ->assertSee('id="janela-compra"', false)
+            ->assertSee('name="empresa" list="empresas-usadas"', false)
+            ->getContent();
+
+        $this->assertSame(1, preg_match('/<datalist id="empresas-usadas">(.*?)<\/datalist>/su', $html, $sugestoes));
+        $this->assertStringContainsString('<option value="Binário">', $sugestoes[1]);
+        $this->assertStringContainsString('<option value="Oasis Comércio">', $sugestoes[1]);
     }
 
     public function test_formulario_mostra_a_empresa_ja_salva(): void
     {
         $item = PurchaseRequest::factory()->aprovado()->create(['empresa' => 'Oasis Comércio']);
 
-        $html = $this->actingAs($this->admin)->get(route('admin.compras.edit', $item))->getContent();
+        $html = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $item->id]))->assertOk()->getContent();
 
-        $this->assertMatchesRegularExpression('/name="empresa"[^>]*value="Oasis Comércio"/u', $html);
+        // a janela é preenchida pelo botão do item: a empresa salva vai nos dados dele
+        $this->assertSame('Oasis Comércio', $this->dadosDaJanelaDeCompra($html, $item->id)['empresa']);
+        $this->assertStringContainsString("campo('empresa').value = d.empresa || '';", $html);
     }
 
-    public function test_compras_feitas_e_compras_mostram_a_empresa(): void
+    public function test_compras_feitas_mostra_a_empresa_tambem_no_filtro_falta_registrar(): void
     {
         PurchaseRequest::factory()->aprovado()->create([
             'product_name' => 'Item Com Empresa', 'empresa' => 'Oasis Comércio', 'data_compra' => '2026-10-02', 'preco_unitario' => 10,
         ]);
+        PurchaseRequest::factory()->aprovado()->create(['product_name' => 'Item Sem Dados', 'empresa' => 'Outra Empresa Ltda']);
 
-        foreach ([route('admin.compras.feitas'), route('admin.compras.index')] as $url) {
-            $this->actingAs($this->admin)->get($url)->assertOk()->assertSee('Oasis Comércio');
-        }
+        $this->actingAs($this->admin)->get(route('admin.compras.feitas'))->assertOk()->assertSee('Empresa: Oasis Comércio');
+
+        // o filtro "Falta registrar" ficou no lugar da tela "Compras"
+        $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['situacao' => 'falta']))
+            ->assertOk()->assertSee('Empresa: Outra Empresa Ltda')->assertDontSee('Item Com Empresa')->assertDontSee('Empresa: Oasis Comércio');
     }
 
     public function test_item_sem_empresa_nao_mostra_o_rotulo(): void
@@ -147,13 +157,16 @@ class EmpresaDaCompraTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.compras.feitas'))->assertDontSee('Empresa:');
     }
 
-    public function test_lista_de_requisicoes_do_admin_mostra_a_empresa_no_desktop_e_no_celular(): void
+    public function test_lista_de_requisicoes_do_admin_mostra_a_empresa_no_cartao_do_item(): void
     {
         PurchaseRequest::factory()->create(['status' => 'pendente', 'product_name' => 'Item Da Lista', 'empresa' => 'Oasis Comércio']);
 
         $html = $this->actingAs($this->admin)->get(route('admin.index'))->assertOk()->getContent();
 
-        $this->assertSame(2, substr_count($html, 'Empresa: Oasis Comércio')); // linha do desktop + card do celular
+        // cartão do item (uma marcação só para PC e celular; o bloco de cards do celular saiu)
+        $this->assertSame(1, substr_count($html, 'Empresa: Oasis Comércio'));
+        $this->assertStringContainsString('class="lista-resp"', $html);
+        $this->assertStringNotContainsString('adm-mobile-cards', $html);
     }
 
     public function test_lista_de_requisicoes_sem_empresa_nao_mostra_o_rotulo(): void

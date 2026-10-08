@@ -4,9 +4,7 @@
 
 <style>
 @media (max-width: 768px) {
-    .adm-users-grid { grid-template-columns: 1fr !important; }
-    .adm-users-table-wrap { overflow-x: auto; }
-    .adm-users-table-wrap table { min-width: 620px; }
+    .adm-users-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
 </style>
 
@@ -40,67 +38,64 @@
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
             <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-size:15px; font-weight:700; color:#111827;">Usuários cadastrados</span>
-                <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $users->count() }}</span>
+                <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">{{ $users->count() }}</span>
             </div>
-            <div class="adm-users-table-wrap">
-            {{-- Só o <table> some no mobile: os modais abaixo ficam fora dele (o navegador os tira do <tbody>). --}}
-            <table class="m-desktop" style="width:100%; border-collapse:collapse;">
+            <div class="adm-users-table-wrap lista-resp">
+            {{-- Uma marcação só: no celular a tabela vira cartões (CSS .lista-resp no layout). --}}
+            <table style="width:100%; border-collapse:collapse;">
                 <thead>
-                    <tr style="background:linear-gradient(90deg,#05018D,#1d4ed8);">
-                        <th style="padding:11px 16px; text-align:left; color:#fff; font-size:12px; font-weight:600;">Nome</th>
-                        <th style="padding:11px 16px; text-align:left; color:#fff; font-size:12px; font-weight:600;">E-mail</th>
-                        <th style="padding:11px 16px; text-align:center; color:#fff; font-size:12px; font-weight:600;">Perfil</th>
+                    <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                        <th style="padding:11px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Nome</th>
+                        <th style="padding:11px 16px; text-align:left; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">E-mail</th>
+                        <th style="padding:11px 16px; text-align:center; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Perfil</th>
                         <th style="padding:11px 16px; text-align:center; color:#fff; font-size:12px; font-weight:600;" colspan="2">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($users as $u)
-                        <tr style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
-                            <td style="padding:12px 16px; font-size:14px; color:#111827; font-weight:500;">
+                        <tr class="grupo-cabecalho" style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                            <td class="lr-larga" style="padding:12px 16px; font-size:14px; color:#111827; font-weight:600;">
                                 {{ $u->name }}
                                 @if($u->id === auth()->id())
                                     <span style="font-size:11px; color:#9ca3af; font-weight:400;">(você)</span>
                                 @endif
                             </td>
-                            <td style="padding:12px 16px; font-size:14px; color:#374151;">{{ $u->email }}</td>
-                            <td style="padding:12px 16px; text-align:center;">
+                            <td data-rotulo="E-mail" style="padding:12px 16px; font-size:14px; color:#374151; overflow-wrap:anywhere;">{{ $u->email }}</td>
+                            <td data-rotulo="Perfil" style="padding:12px 16px; text-align:center;">
                                 @if($u->is_admin)
-                                    <span style="background:#ede9fe; color:#7c3aed; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Admin</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Admin</span>
                                 @elseif($u->role === 'conferente')
-                                    <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Conferente</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Conferente</span>
                                 @elseif($u->role === 'entrada')
-                                    <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
                                 @elseif($u->role === 'financeiro')
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Financeiro</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Financeiro</span>
                                 @else
-                                    <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
                                 @endif
                             </td>
-                            <td style="padding:12px 16px; text-align:center;">
+                            <td class="lr-acao" style="padding:12px 16px; text-align:center;">
                                 <div style="display:flex; gap:6px; justify-content:center;">
                                     <button onclick="document.getElementById('modal-senha-{{ $u->id }}').style.display='flex'"
-                                            style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
-                                            onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                            style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer;">
                                         Senha
                                     </button>
                                     @if($u->id !== auth()->id())
                                         <button onclick="document.getElementById('modal-perfil-{{ $u->id }}').style.display='flex'"
-                                                style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
-                                                onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                                style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer;">
                                             Perfil
                                         </button>
                                     @endif
                                 </div>
                             </td>
-                            <td style="padding:12px 16px; text-align:center;">
+                            <td class="lr-acao" style="padding:12px 16px; text-align:center;">
                                 @if($u->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $u) }}"
                                           onsubmit="return confirm('Tem certeza que deseja remover {{ addslashes($u->name) }}?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                                style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer;"
-                                                onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'">
+                                                style="background:#fff; color:#b8301a; border:1px solid #e3b4ab; border-radius:9999px; padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer;">
                                             Remover
                                         </button>
                                     </form>
@@ -188,48 +183,6 @@
                 </tbody>
             </table>
 
-            <div class="m-cards" style="padding:12px;">
-                @forelse($users as $u)
-                    <x-mobile-card :titulo="$u->name . ($u->id === auth()->id() ? ' (você)' : '')" :campos="['E-mail' => $u->email]">
-                        <x-slot:badge>
-                            @if($u->is_admin)
-                                <span style="background:#ede9fe; color:#7c3aed; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Admin</span>
-                            @elseif($u->role === 'conferente')
-                                <span style="background:#dbeafe; color:#2563eb; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Conferente</span>
-                            @elseif($u->role === 'entrada')
-                                <span style="background:#fef3c7; color:#d97706; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
-                            @elseif($u->role === 'financeiro')
-                                <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Financeiro</span>
-                            @else
-                                <span style="background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
-                            @endif
-                        </x-slot:badge>
-                        <x-slot:acao>
-                            <button type="button" onclick="document.getElementById('modal-senha-{{ $u->id }}').style.display='flex'"
-                                    style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
-                                Senha
-                            </button>
-                            @if($u->id !== auth()->id())
-                                <button type="button" onclick="document.getElementById('modal-perfil-{{ $u->id }}').style.display='flex'"
-                                        style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
-                                    Perfil
-                                </button>
-                                <form method="POST" action="{{ route('admin.users.destroy', $u) }}"
-                                      onsubmit="return confirm('Tem certeza que deseja remover {{ addslashes($u->name) }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
-                                        Remover
-                                    </button>
-                                </form>
-                            @endif
-                        </x-slot:acao>
-                    </x-mobile-card>
-                @empty
-                    <div style="padding:48px 16px; text-align:center; color:#9ca3af; font-size:14px;">Nenhum usuário cadastrado</div>
-                @endforelse
-            </div>
             </div>
         </div>
 

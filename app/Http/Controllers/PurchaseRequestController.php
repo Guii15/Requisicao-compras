@@ -45,17 +45,31 @@ class PurchaseRequestController extends Controller
         $userId = auth()->id();
 
         $stats = [
-            'total'       => PurchaseRequest::where('user_id', $userId)->count(),
-            'pendente'    => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
-            'aprovado'    => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
-            'rejeitado'   => PurchaseRequest::where('user_id', $userId)->where('status', 'rejeitado')->count(),
+            'total'       => PurchaseRequest::where('user_id', $userId)->numRequisicoes(),
+            'pendente'    => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->numRequisicoes(),
+            'aprovado'    => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->numRequisicoes(),
+            'rejeitado'   => PurchaseRequest::where('user_id', $userId)->where('status', 'rejeitado')->numRequisicoes(),
             'total_gasto' => (float) PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->sum('valor'),
+        ];
+
+        // Linha de tendência dos blocos do topo (só as requisições deste vendedor), pelo status de hoje.
+        $mesesTendencia = collect(range(5, 0))->map(fn ($atras) => now()->startOfMonth()->subMonths($atras));
+        $doMes = fn ($q, $mes) => $q->where('user_id', $userId)->whereYear('created_at', $mes->year)->whereMonth('created_at', $mes->month);
+        $criadasPorMes = fn (?string $status) => $mesesTendencia->map(
+            fn ($mes) => $doMes(PurchaseRequest::query(), $mes)->when($status, fn ($q) => $q->where('status', $status))->numRequisicoes()
+        )->all();
+        $tendencias = [
+            'total'     => $criadasPorMes(null),
+            'pendente'  => $criadasPorMes('pendente'),
+            'aprovado'  => $criadasPorMes('aprovado'),
+            'rejeitado' => $criadasPorMes('rejeitado'),
+            'gasto'     => $mesesTendencia->map(fn ($mes) => (float) $doMes(PurchaseRequest::query(), $mes)->where('status', 'aprovado')->sum('valor'))->all(),
         ];
 
         $monthlySpending = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
             return [
-                'label' => $date->translatedFormat('M/y'),
+                'label' => ucfirst($date->translatedFormat('M/y')), // Out/26
                 'total' => (float) PurchaseRequest::where('status', 'aprovado')
                     ->whereNotNull('valor')
                     ->whereYear('created_at', $date->year)
@@ -91,7 +105,7 @@ class PurchaseRequestController extends Controller
             fn ($nome) => \App\Models\Fornecedor::normalizar($nome)
         );
 
-        return view('requests.index', compact('requests', 'stats', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
+        return view('requests.index', compact('requests', 'stats', 'tendencias', 'monthlySpending', 'vendorSpending', 'supplierSpending'));
     }
 
     public function create()
@@ -103,9 +117,9 @@ class PurchaseRequestController extends Controller
         $userId = auth()->id();
 
         $stats = [
-            'total'    => PurchaseRequest::where('user_id', $userId)->count(),
-            'pendente' => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->count(),
-            'aprovado' => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->count(),
+            'total'    => PurchaseRequest::where('user_id', $userId)->numRequisicoes(),
+            'pendente' => PurchaseRequest::where('user_id', $userId)->where('status', 'pendente')->numRequisicoes(),
+            'aprovado' => PurchaseRequest::where('user_id', $userId)->where('status', 'aprovado')->numRequisicoes(),
         ];
 
         $recentes = PurchaseRequest::where('user_id', $userId)->latest()->limit(4)->get();
@@ -273,6 +287,10 @@ class PurchaseRequestController extends Controller
             'products.*.anexo.mimes'           => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'products.*.anexo.max'             => 'O anexo pode ter no máximo 10 MB.',
             'justification.required'           => 'O campo Obs é obrigatório.',
+            'justification.max'                => 'A observação pode ter no máximo 500 caracteres.',
+            'reason.max'                       => 'O motivo pode ter no máximo 255 caracteres.',
+            'products.*.product_name.max'      => 'O nome do produto pode ter no máximo 255 caracteres.',
+            'products.*.quantity.integer'      => 'A quantidade precisa ser um número inteiro.',
         ]);
 
         $created = [];
@@ -324,6 +342,6 @@ class PurchaseRequestController extends Controller
         $destino = auth()->user()->isVendedor() ? route('requests.index') : route('admin.index');
 
         return redirect($destino)
-            ->with('success', $count === 1 ? 'Requisição criada com sucesso!' : "{$count} requisições criadas com sucesso!");
+            ->with('success', $count === 1 ? 'Requisição criada com sucesso!' : "Requisição criada com sucesso! ({$count} itens)");
     }
 }

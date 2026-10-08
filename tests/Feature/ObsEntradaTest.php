@@ -66,8 +66,9 @@ class ObsEntradaTest extends TestCase
         $vendedor = User::factory()->create(['role' => null]);
         $this->itemParaEntrada(['user_id' => $vendedor->id, 'entrada_concluida_em' => now(), 'obs_entrada' => 'Faltou o manual na caixa']);
 
+        // a nota da entrada vem no cartão do item com a etiqueta ENTRADA
         $this->actingAs($vendedor)->get(route('requests.index'))
-            ->assertSee('Obs (Entrada)')
+            ->assertSee('>ENTRADA</span>', false)
             ->assertSee('Faltou o manual na caixa');
     }
 
@@ -80,8 +81,14 @@ class ObsEntradaTest extends TestCase
         ]);
         PurchaseRequest::factory()->create(['grupo_id' => $item->grupo_id, 'status' => 'pendente']);
 
-        foreach ([route('admin.index'), route('admin.compras.index'), route('admin.compras.feitas')] as $url) {
-            $this->actingAs($admin)->get($url)->assertSee('Obs (Entrada)')->assertSee('Veio sem nota fiscal');
+        // painel do admin: cartão do item e janela Atualizar trazem a nota com a etiqueta ENTRADA
+        $html = $this->actingAs($admin)->get(route('admin.index'))->assertOk()->getContent();
+        $this->assertSame(2, substr_count($html, '>ENTRADA</span>'));
+        $this->assertSame(2, substr_count($html, 'Veio sem nota fiscal'));
+
+        // A tela "Compras" saiu: tudo fica em Compras Feitas, onde a nota vem no cartão do item com a etiqueta ENTRADA.
+        foreach ([route('admin.compras.feitas'), route('admin.compras.feitas', ['abrir' => $item->id])] as $url) {
+            $this->actingAs($admin)->get($url)->assertOk()->assertSee('>ENTRADA</span>', false)->assertSee('Veio sem nota fiscal');
         }
     }
 
@@ -90,7 +97,9 @@ class ObsEntradaTest extends TestCase
         $vendedor = User::factory()->create(['role' => null]);
         $this->itemParaEntrada(['user_id' => $vendedor->id, 'entrada_concluida_em' => now(), 'obs_entrada' => null]);
 
-        $this->actingAs($vendedor)->get(route('requests.index'))->assertDontSee('Obs (Entrada)');
+        $this->actingAs($vendedor)->get(route('requests.index'))
+            ->assertDontSee('Obs (Entrada)')
+            ->assertDontSee('>ENTRADA</span>', false);
     }
 
     public function test_conferencia_tambem_ve_a_observacao_da_entrada(): void

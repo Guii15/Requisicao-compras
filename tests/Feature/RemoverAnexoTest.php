@@ -189,18 +189,39 @@ class RemoverAnexoTest extends TestCase
         $com = $this->requisicao(['status' => 'aprovado', 'pedido_compra_path' => 'pedidos-compra/p.pdf', 'pedido_compra_nome' => 'p.pdf']);
         $sem = $this->requisicao(['status' => 'aprovado']);
 
-        $this->actingAs($this->admin)->get(route('admin.compras.edit', $com))->assertSee('Remover pedido de compra');
-        $this->actingAs($this->admin)->get(route('admin.compras.edit', $sem))->assertDontSee('Remover pedido de compra');
+        // a janela "Dados da compra" de Compras Feitas é preenchida pelo botão de cada item
+        $htmlCom = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $com->id]))->assertOk()->getContent();
+        $htmlSem = $this->actingAs($this->admin)->get(route('admin.compras.feitas', ['abrir' => $sem->id]))->assertOk()->getContent();
+
+        $dadosCom = $this->dadosDaJanelaDeCompra($htmlCom, $com->id);
+        $this->assertSame(route('admin.compras.pedido.remover', $com), $dadosCom['removerUrl']);
+        $this->assertSame(route('admin.compras.pedido', $com), $dadosCom['pedidoUrl']);
+        $this->assertSame('p.pdf', $dadosCom['pedidoNome']);
+
+        $dadosSem = $this->dadosDaJanelaDeCompra($htmlSem, $sem->id);
+        $this->assertNull($dadosSem['removerUrl']);
+        $this->assertNull($dadosSem['pedidoUrl']);
+
+        // o botão Remover envia o formulário próprio (DELETE), que recebe o endereço do item ao abrir a janela
+        $this->assertStringContainsString('<form id="jc-remover-pedido" method="POST"', $htmlCom);
+        $this->assertStringContainsString('<button type="submit" form="jc-remover-pedido"', $htmlCom);
+        $this->assertStringContainsString("document.getElementById('jc-remover-pedido').action = d.removerUrl;", $htmlCom);
+        $this->assertStringContainsString("atual.style.display = d.pedidoUrl ? 'flex' : 'none';", $htmlCom); // sem pedido, o botão fica escondido
     }
 
     public function test_quadro_de_atualizar_requisicao_mostra_os_dois_botoes(): void
     {
         // o painel de Requisições lista as que têm algo pendente
-        $this->requisicao(['status' => 'pendente', 'pedido_compra_path' => 'pedidos-compra/p.pdf', 'pedido_compra_nome' => 'p.pdf']);
+        $item = $this->requisicao(['status' => 'pendente', 'pedido_compra_path' => 'pedidos-compra/p.pdf', 'pedido_compra_nome' => 'p.pdf']);
 
         $html = $this->actingAs($this->admin)->get(route('admin.index'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('Remover anexo', $html);
-        $this->assertStringContainsString('Remover pedido de compra', $html);
+        // os dois botões "Remover" da janela apontam para os formulários escondidos de cada anexo
+        $this->assertStringContainsString('form="rm-anexo-' . $item->id . '"', $html);
+        $this->assertStringContainsString('form="rm-pedido-' . $item->id . '"', $html);
+        $this->assertStringContainsString("confirm('Remover o anexo do vendedor?')", $html);
+        $this->assertStringContainsString("confirm('Remover o pedido de compra anexado?')", $html);
+        $this->assertStringContainsString('id="rm-anexo-' . $item->id . '" method="POST" action="' . route('admin.requests.anexo.remover', $item) . '"', $html);
+        $this->assertStringContainsString('id="rm-pedido-' . $item->id . '" method="POST" action="' . route('admin.compras.pedido.remover', $item) . '"', $html);
     }
 }

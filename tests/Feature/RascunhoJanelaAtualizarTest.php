@@ -21,15 +21,17 @@ class RascunhoJanelaAtualizarTest extends TestCase
         return User::factory()->create(['is_admin' => true]);
     }
 
-    public function test_os_dois_formularios_da_janela_levam_o_id_e_a_versao_do_item(): void
+    public function test_o_formulario_da_janela_leva_o_id_e_a_versao_do_item(): void
     {
         $item = PurchaseRequest::factory()->create();
 
         $html = $this->actingAs($this->admin())->get(route('admin.index'))->assertOk()->getContent();
 
-        // desktop e celular: um formulário de cada
-        $this->assertSame(2, substr_count($html, 'data-rascunho="' . $item->id . '"'));
-        $this->assertSame(2, substr_count($html, 'data-versao="' . $item->updated_at->timestamp . '"'));
+        // uma janela só (modal-{id}) para PC e celular: um formulário por item
+        $this->assertSame(1, substr_count($html, 'data-rascunho="' . $item->id . '"'));
+        $this->assertSame(1, substr_count($html, 'data-versao="' . $item->updated_at->timestamp . '"'));
+        $this->assertStringContainsString('id="modal-' . $item->id . '"', $html);
+        $this->assertStringNotContainsString('id="modal-m-' . $item->id . '"', $html);
     }
 
     public function test_a_pagina_carrega_o_script_do_rascunho_uma_unica_vez(): void

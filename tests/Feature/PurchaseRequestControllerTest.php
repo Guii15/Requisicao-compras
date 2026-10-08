@@ -362,7 +362,7 @@ class PurchaseRequestControllerTest extends TestCase
         $response->assertSee('Conferido ✓ OK');
     }
 
-    public function test_index_badge_appears_in_both_desktop_and_mobile_blocks(): void
+    public function test_index_badge_appears_once_in_unified_list(): void
     {
         $user = User::factory()->create();
         PurchaseRequest::factory()->create([
@@ -375,7 +375,10 @@ class PurchaseRequestControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('requests.index'));
 
         $html = $response->getContent();
-        $this->assertSame(2, substr_count($html, 'Conferido ✓ OK'));
+        // uma marcação só para PC e celular (a lista vira cards no celular via CSS; o bloco idx-mobile-cards saiu)
+        $this->assertSame(1, substr_count($html, 'Conferido ✓ OK'));
+        $this->assertStringContainsString('class="lista-resp"', $html);
+        $this->assertStringNotContainsString('idx-mobile-cards', $html);
     }
 
     public function test_index_badge_wrapped_in_div_when_product_code_and_url_empty(): void
@@ -418,7 +421,7 @@ class PurchaseRequestControllerTest extends TestCase
         $response->assertDontSee('Aguardando conferência');
     }
 
-    public function test_index_cancelado_badge_appears_in_both_desktop_and_mobile_blocks(): void
+    public function test_index_cancelado_badge_appears_once_in_unified_list(): void
     {
         $user = User::factory()->create();
         PurchaseRequest::factory()->create([
@@ -431,7 +434,10 @@ class PurchaseRequestControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('requests.index'));
 
         $html = $response->getContent();
-        $this->assertSame(2, substr_count($html, '>Cancelado<'));
+        // uma marcação só para PC e celular (a lista vira cards no celular via CSS; o bloco idx-mobile-cards saiu)
+        $this->assertSame(1, substr_count($html, '>Cancelado<'));
+        $this->assertStringContainsString('class="lista-resp"', $html);
+        $this->assertStringNotContainsString('idx-mobile-cards', $html);
     }
 
     public function test_index_shows_entrada_realizada_badge(): void
@@ -468,7 +474,7 @@ class PurchaseRequestControllerTest extends TestCase
         $response->assertDontSee('>Cancelado<', false);
     }
 
-    public function test_index_entrada_realizada_badge_appears_in_both_desktop_and_mobile_blocks(): void
+    public function test_index_entrada_realizada_badge_appears_once_in_unified_list(): void
     {
         $user = User::factory()->create();
         PurchaseRequest::factory()->create([
@@ -482,7 +488,10 @@ class PurchaseRequestControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('requests.index'));
 
         $html = $response->getContent();
-        $this->assertSame(2, substr_count($html, '>Entrada Realizada<'));
+        // uma marcação só para PC e celular (a lista vira cards no celular via CSS; o bloco idx-mobile-cards saiu)
+        $this->assertSame(1, substr_count($html, '>Entrada Realizada<'));
+        $this->assertStringContainsString('class="lista-resp"', $html);
+        $this->assertStringNotContainsString('idx-mobile-cards', $html);
     }
 
     public function test_index_entrada_realizada_mostra_data_da_entrada(): void
@@ -570,16 +579,19 @@ class PurchaseRequestControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('requests.index'));
         $html = $response->getContent();
 
-        $posA = strpos($html, "id=\"foto-{$reqA->id}\"");
-        $posB = strpos($html, "id=\"foto-{$reqB->id}\"");
-        $this->assertNotFalse($posA);
-        $this->assertNotFalse($posB);
+        // a miniatura no cartão do item abre a janela foto-item-{id}
+        $this->assertStringContainsString("document.getElementById('foto-item-{$reqA->id}').style.display='flex'", $html);
+        $this->assertStringContainsString("document.getElementById('foto-item-{$reqB->id}').style.display='flex'", $html);
 
-        [$startA, $endA] = $posA < $posB ? [$posA, $posB] : [$posA, strlen($html)];
-        $modalA = substr($html, $startA, $endA - $startA);
+        foreach ([[$reqA, 'foto-a.jpg', 'foto-b.jpg'], [$reqB, 'foto-b.jpg', 'foto-a.jpg']] as [$req, $sua, $outra]) {
+            $inicio = strpos($html, "id=\"foto-item-{$req->id}\"");
+            $this->assertNotFalse($inicio);
+            $janela = substr($html, $inicio, strpos($html, '</section>', $inicio) - $inicio);
 
-        $this->assertStringContainsString('foto-a.jpg', $modalA);
-        $this->assertStringNotContainsString('foto-b.jpg', $modalA);
+            $this->assertStringContainsString($sua, $janela);
+            $this->assertStringNotContainsString($outra, $janela);
+        }
+        $this->assertStringNotContainsString("id=\"foto-{$reqA->id}\"", $html); // a janela antiga do celular saiu
     }
 
     public function test_index_does_not_n_plus_one_query_fotos_conferencia(): void

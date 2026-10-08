@@ -22,7 +22,7 @@ class ObsAdminNaConferenciaTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'conferente']))
             ->get(route('conferencia.index'))
             ->assertOk()
-            ->assertSee('Obs (Admin)')
+            ->assertSee('>ADMIN</span>', false) // etiqueta da nota do admin (cartão do item e janela Conferir Item)
             ->assertSee('Conferir o número de série antes de liberar');
     }
 
@@ -45,6 +45,7 @@ class ObsAdminNaConferenciaTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => 'conferente']))
             ->get(route('conferencia.index'))
-            ->assertDontSee('Obs (Admin)');
+            ->assertDontSee('Obs (Admin)')
+            ->assertDontSee('>ADMIN</span>', false);
     }
 }

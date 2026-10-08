@@ -59,14 +59,16 @@ class ConferenciaMelhoriasTest extends TestCase
 
         $html = $this->actingAs($this->conferente())->get(route('conferencia.index'))->assertOk()->getContent();
 
-        // linha do desktop + card do celular + quadro Conferir do desktop + quadro do celular
-        $this->assertSame(4, substr_count($html, 'Nota do admin XYZ'));
+        // cartão do item + janela Conferir Item (uma marcação só para PC e celular)
+        $this->assertSame(2, substr_count($html, 'Nota do admin XYZ'));
+        $this->assertSame(2, substr_count($html, '>ADMIN</span>'));
     }
 
     // ---------- 2. pedido de compra nas divergências ----------
 
     public function test_divergencia_mostra_o_pedido_de_compra_no_card_e_no_quadro_de_dar_entrada(): void
     {
+        // Sem data nem preço de propósito: o pedido anexado aparece mesmo antes de registrar os dados da compra.
         $item = $this->item(['status_conferencia' => 'divergente', 'quantidade_recebida' => 8, 'pedido_compra_path' => 'pedidos-compra/p.pdf', 'pedido_compra_nome' => 'pedido 77.pdf']);
 
         $html = $this->actingAs(User::factory()->create(['role' => 'entrada']))->get(route('entrada.index', ['aba' => 'divergencias']))->assertOk()->getContent();
@@ -146,8 +148,9 @@ class ConferenciaMelhoriasTest extends TestCase
 
         $html = $this->actingAs($this->conferente())->get(route('conferencia.index'))->getContent();
 
-        $this->assertSame(2, substr_count($html, 'name="fotos_extras[]"')); // quadro do desktop + do celular
-        $this->assertStringContainsString('código de barras', $html);
+        $this->assertSame(1, substr_count($html, 'name="fotos_extras[]"')); // uma janela só (a do celular saiu)
+        $this->assertStringContainsString('Fotos extras', $html);
+        $this->assertStringContainsString('(opcional — ex.: código de barras, até 5)', $html);
     }
 
     public function test_entrada_mostra_todas_as_fotos(): void
@@ -207,7 +210,7 @@ class ConferenciaMelhoriasTest extends TestCase
 
         $html = $this->actingAs($this->conferente())->get(route('conferencia.index', ['aba' => 'conferidos']))->assertOk()->getContent();
 
-        $this->assertSame(2, substr_count($html, 'Entrada realizada')); // desktop + celular
+        $this->assertSame(1, substr_count($html, 'Entrada realizada')); // o bloco só de leitura, abaixo do cartão do item
         $this->assertStringContainsString('Loja Centro', $html);
         $this->assertStringContainsString('02/10/2026', $html);
         $this->assertStringNotContainsString(route('entrada.darEntrada', $item), $html);
@@ -219,7 +222,7 @@ class ConferenciaMelhoriasTest extends TestCase
 
         $html = $this->actingAs($this->conferente())->get(route('conferencia.index', ['aba' => 'conferidos']))->getContent();
 
-        $this->assertSame(2, substr_count($html, 'Aguardando entrada'));
+        $this->assertSame(1, substr_count($html, 'Aguardando entrada'));
         $this->assertStringNotContainsString('Entrada realizada', $html);
     }
 

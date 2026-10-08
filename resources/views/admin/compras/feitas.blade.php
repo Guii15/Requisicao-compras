@@ -14,25 +14,57 @@
 
     @include('admin._abas')
 
-    <div style="margin-bottom:16px;">
+    <div style="margin-bottom:14px;">
         <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Compras Feitas</h2>
         <p style="margin:4px 0 0; color:#6b7280; font-size:13px;">
-            Toda requisição aprovada a partir de {{ $dataCorte }} aparece aqui na hora, mesmo sem os dados da compra; as de antes entram quando já têm os dados.
-            Falta registrar algo? Use
-            <a href="{{ route('admin.compras.index') }}" style="color:#05018D; font-weight:600;">Compras</a>.
+            Registre e corrija os dados de cada compra aqui mesmo, sem sair desta tela.
+            Aprovadas a partir de {{ $dataCorte }} entram na hora; as de antes entram quando têm os dados.
         </p>
     </div>
 
-    @if($totalSemDados > 0)
-        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px; line-height:1.5;">
-            ⚠️ {{ $totalSemDados }} {{ $totalSemDados === 1 ? 'compra aprovada' : 'compras aprovadas' }} antes de {{ $dataCorte }} {{ $totalSemDados === 1 ? 'ainda não tem' : 'ainda não têm' }} data e preço unitário registrados,
-            por isso não aparecem aqui (mas já aparecem na Conferência).
-            <a href="{{ route('admin.compras.index', ['situacao' => 'sem_dados']) }}" style="color:#05018D; font-weight:700; text-decoration:underline;">Ver e registrar em Compras →</a>
+    @if(session('success'))
+        <div style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:14px;">
+            ✓ {{ session('success') }}
+        </div>
+    @endif
+    @if(session('aviso'))
+        <div style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:14px;">
+            {{ session('aviso') }}
         </div>
     @endif
 
-    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    @if($abrir)
+        <div style="background:#fff; color:#374151; border:1px solid #e5e7eb; border-left:4px solid #05018D; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:13px;">
+            Mostrando só a requisição de <strong>{{ $abrir->product_name }}</strong>.
+            <a href="{{ route('admin.compras.feitas') }}" style="color:#05018D; font-weight:700; text-decoration:underline; white-space:nowrap;">Ver todas as compras →</a>
+        </div>
+    @endif
+
+    {{-- O que ver: a lista normal ou só o que ainda falta registrar (inclui as aprovadas antes do corte) --}}
+    @php
+        $filtrosAtuais = request()->only(['produto', 'vendedor', 'data_inicial', 'data_final']);
+        $abaLista = 'display:inline-flex; align-items:center; gap:8px; padding:7px 16px; border-radius:9999px; font-size:13px; font-weight:600; text-decoration:none; border:1px solid ';
+    @endphp
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+        <a href="{{ route('admin.compras.feitas', $filtrosAtuais) }}"
+           style="{{ $abaLista }}{{ $situacao === null ? '#111827; background:#111827; color:#fff;' : '#d1d5db; background:#fff; color:#374151;' }}">Todas as compras</a>
+        <a href="{{ route('admin.compras.feitas', $filtrosAtuais + ['situacao' => 'falta']) }}"
+           style="{{ $abaLista }}{{ $situacao === 'falta' ? '#111827; background:#111827; color:#fff;' : '#d1d5db; background:#fff; color:#374151;' }}">
+            Falta registrar
+            <span style="font-variant-numeric:tabular-nums; {{ $totalFalta > 0 ? 'color:#b45309;' : 'opacity:.6;' }} {{ $situacao === 'falta' ? 'color:#fcd34d;' : '' }}">{{ $totalFalta }}</span>
+        </a>
+    </div>
+
+    @if($totalSemDados > 0 && $situacao !== 'falta')
+        <div style="background:#fff; color:#374151; border:1px solid #e5e7eb; border-left:4px solid #d97706; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:13px; line-height:1.5;">
+            {{ $totalSemDados }} {{ $totalSemDados === 1 ? 'compra aprovada' : 'compras aprovadas' }} antes de {{ $dataCorte }} {{ $totalSemDados === 1 ? 'ainda não tem' : 'ainda não têm' }} data e preço unitário registrados, por isso não aparecem nesta lista.
+            <a href="{{ route('admin.compras.feitas', ['situacao' => 'falta']) }}" style="color:#05018D; font-weight:700; text-decoration:underline; white-space:nowrap;">Ver e registrar aqui →</a>
+        </div>
+    @endif
+
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 16px; margin-bottom:14px;">
         <form method="GET" action="{{ route('admin.compras.feitas') }}" class="m-empilhar" style="display:grid; grid-template-columns:1fr 1fr 160px 160px auto; gap:8px; align-items:end;">
+            @if($situacao)<input type="hidden" name="situacao" value="{{ $situacao }}">@endif
             <div>
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Produto</label>
                 <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Buscar produto..."
@@ -56,27 +88,28 @@
             <div style="display:flex; gap:8px;">
                 <button type="submit" style="padding:8px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">Filtrar</button>
                 @if(request('produto') || request('vendedor') || request('data_inicial') || request('data_final'))
-                    <a href="{{ route('admin.compras.feitas') }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px; white-space:nowrap;">Limpar</a>
+                    <a href="{{ route('admin.compras.feitas', $situacao ? ['situacao' => $situacao] : []) }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px; white-space:nowrap;">Limpar</a>
                 @endif
             </div>
         </form>
     </div>
 
-    <div class="m-desktop" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow-x:auto; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+    {{-- Mesmo desenho do painel do admin: uma linha por requisição; ao abrir, cada item é um cartão. --}}
+    <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+        <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse;">
             <thead>
-                <tr style="background:#f9fafb; color:#6b7280; text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px;">
-                    <th style="padding:10px 14px;">Produto</th>
-                    <th style="padding:10px 14px;">Qtd</th>
-                    <th style="padding:10px 14px;">Fornecedor</th>
-                    <th style="padding:10px 14px;">Compra</th>
-                    <th style="padding:10px 14px; text-align:right;">Unitário</th>
-                    <th style="padding:10px 14px; text-align:right;">Total</th>
-                    <th style="padding:10px 14px;">Coleta</th>
-                    <th style="padding:10px 14px;">Conferência</th>
-                    <th style="padding:10px 14px;">Entrada</th>
-                    <th style="padding:10px 14px;">Pedido</th>
-                    <th style="padding:10px 14px;"></th>
+                <tr style="background:#f8fafc; border-bottom:1px solid #e5e7eb;">
+                    @php $thFeita = 'padding:12px 16px; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;'; @endphp
+                    <th style="{{ $thFeita }} text-align:left;">Nº</th>
+                    <th style="{{ $thFeita }} text-align:left;">Vendedor</th>
+                    <th style="{{ $thFeita }} text-align:left;">Itens</th>
+                    <th style="{{ $thFeita }} text-align:left;">Fornecedor</th>
+                    <th style="{{ $thFeita }} text-align:left;">Compra</th>
+                    <th style="{{ $thFeita }} text-align:right;">Total</th>
+                    <th style="{{ $thFeita }} text-align:left;">Etapa</th>
+                    <th style="{{ $thFeita }} text-align:left;">Dados da compra</th>
+                    <th style="{{ $thFeita }} text-align:right;">Ação</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,131 +117,62 @@
                     @php
                         $primeiroFeita = $grupo->first();
                         $chaveFeita = $primeiroFeita->grupo_id;
-                        $todosComDados = $grupo->every(fn ($r) => $r->temDadosDaCompra());
-                        $nenhumComDados = $grupo->every(fn ($r) => !$r->temDadosDaCompra());
+                        $faltamGrupo = $grupo->filter(fn ($r) => !$r->temDadosDaCompra())->count();
+                        $todosComDados = $faltamGrupo === 0;
+                        $nenhumComDados = $faltamGrupo === $grupo->count();
                         $produtosResumoFeita = $grupo->pluck('product_name')->filter()->implode(', ');
-                        if (mb_strlen($produtosResumoFeita) > 60) {
-                            $produtosResumoFeita = mb_substr($produtosResumoFeita, 0, 60) . '…';
+                        if (mb_strlen($produtosResumoFeita) > 80) {
+                            $produtosResumoFeita = mb_substr($produtosResumoFeita, 0, 80) . '…';
                         }
+                        // O mesmo fornecedor escrito de formas diferentes conta como um só.
+                        $fornecedoresGrupo = $grupo->pluck('supplier')->filter()->unique(fn ($f) => \App\Support\RankingPorNome::chave($f));
+                        $fornecedorGrupo = $fornecedoresGrupo->count() === 0 ? '—' : ($fornecedoresGrupo->count() === 1 ? $fornecedoresGrupo->first() : $fornecedoresGrupo->count() . ' fornecedores');
+                        $datasGrupo = $grupo->pluck('data_compra')->filter()->map->format('d/m/Y')->unique();
+                        $dataGrupo = $datasGrupo->count() === 0 ? '—' : ($datasGrupo->count() === 1 ? $datasGrupo->first() : $datasGrupo->count() . ' datas');
+                        $totalGrupo = (float) $grupo->sum('valor');
+                        $tdFeita = 'padding:12px 16px; font-size:14px; color:#374151; vertical-align:middle;';
                     @endphp
-                    <tr class="grupo-cabecalho" style="border-top:1px solid #f3f4f6; cursor:pointer; background:#fafafa;" onclick="toggleGrupoCompraFeita('{{ $chaveFeita }}')">
-                        <td colspan="11" style="padding:0;">
-                            <div style="display:flex; align-items:center; gap:12px; min-height:48px; padding:8px 14px;">
-                                <div style="flex:1; min-width:0;">
-                                    <span style="color:#111827; font-weight:700; font-size:13.5px;">Requisição #{{ $primeiroFeita->id }}</span>
-                                    <span style="color:#9ca3af; font-weight:500; font-size:13px;"> — {{ $primeiroFeita->requester_name ?? 'Não informado' }}</span>
-                                    <div style="font-size:12px; color:#6b7280; margin-top:2px;">
-                                        {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }} · {{ $produtosResumoFeita }}
-                                    </div>
-                                </div>
-                                @unless($todosComDados)
-                                    <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDados ? 'Sem dados' : 'Parcial' }}</span>
-                                @endunless
-                                <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeita }}')"
-                                        style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
-                                    <span id="seta-grupo-compra-{{ $chaveFeita }}" data-seta-compra="{{ $chaveFeita }}">Ver itens</span>
-                                </button>
-                            </div>
+                    <tr class="grupo-cabecalho" style="border-bottom:1px solid #eef0f3; cursor:pointer;" onmouseover="this.style.background='#f7f8fa'" onmouseout="this.style.background='transparent'" onclick="toggleGrupoCompraFeita('{{ $chaveFeita }}')">
+                        <td class="lr-num" style="{{ $tdFeita }} font-weight:700; color:#111827; white-space:nowrap;">#{{ $primeiroFeita->id }}</td>
+                        <td data-rotulo="Vendedor" style="{{ $tdFeita }}">{{ $primeiroFeita->requester_name ?? 'Não informado' }}</td>
+                        <td class="lr-larga" data-rotulo="Itens" style="{{ $tdFeita }} max-width:380px;">
+                            <div style="font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $produtosResumoFeita }}</div>
+                            <div style="font-size:12px; color:#6b7280; margin-top:2px;">{{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
+                        </td>
+                        <td data-rotulo="Fornecedor" style="{{ $tdFeita }}">{{ $fornecedorGrupo }}</td>
+                        <td data-rotulo="Compra" style="{{ $tdFeita }} font-size:13px; white-space:nowrap;">{{ $dataGrupo }}</td>
+                        <td data-rotulo="Total" style="{{ $tdFeita }} text-align:right; font-weight:600; color:#111827; white-space:nowrap;">{{ $totalGrupo > 0 ? 'R$ ' . number_format($totalGrupo, 2, ',', '.') : '—' }}</td>
+                        <td data-rotulo="Etapa" style="{{ $tdFeita }}"><x-trilha-etapas :itens="$grupo" /></td>
+                        <td data-rotulo="Dados da compra" style="{{ $tdFeita }} font-size:13px; white-space:nowrap;">
+                            @if($todosComDados)
+                                <span style="color:#6b7280;">Registrados</span>
+                            @else
+                                <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:3px 10px; border-radius:9999px; font-size:12px; font-weight:700;">{{ $nenhumComDados ? 'Sem dados' : 'Parcial' }}</span>
+                                @if($grupo->count() > 1)
+                                    <span style="display:block; font-size:12px; color:#6b7280; margin-top:3px;">{{ $faltamGrupo === 1 ? 'falta 1 item' : 'faltam ' . $faltamGrupo . ' itens' }}</span>
+                                @endif
+                            @endif
+                        </td>
+                        <td class="lr-acao" style="{{ $tdFeita }} text-align:right;">
+                            <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeita }}')"
+                                    style="border:1px solid #d1d5db; background:#fff; color:#374151; padding:7px 16px; border-radius:9999px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                <span data-seta-compra="{{ $chaveFeita }}">Ver itens</span>
+                            </button>
                         </td>
                     </tr>
                     @foreach($grupo as $item)
-                    <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6;">
-                        <td style="padding:10px 14px; color:#111827;">
-                            <strong>{{ $item->product_name }}</strong>
-                            @unless($item->temDadosDaCompra())
-                                <div style="color:#b45309; font-size:12px;">Falta registrar data e preço</div>
-                            @endunless
-                            @if($item->codigo_fornecedor)
-                                <div style="color:#9ca3af; font-size:12px;">Cód. fornecedor: {{ $item->codigo_fornecedor }}</div>
-                            @endif
-                        </td>
-                        <td style="padding:10px 14px;">{{ $item->quantity }}</td>
-                        <td style="padding:10px 14px;">
-                            {{ $item->supplier ?: '—' }}
-                            @if($item->empresa)<div style="color:#6b7280; font-size:12px;">Empresa: {{ $item->empresa }}</div>@endif
-                        </td>
-                        <td style="padding:10px 14px; white-space:nowrap;">{{ $item->data_compra?->format('d/m/Y') ?? '—' }}</td>
-                        <td style="padding:10px 14px; text-align:right; white-space:nowrap;">{{ $item->preco_unitario !== null ? 'R$ ' . number_format($item->preco_unitario, 2, ',', '.') : '—' }}</td>
-                        <td style="padding:10px 14px; text-align:right; white-space:nowrap; font-weight:600;">{{ $item->valor ? 'R$ ' . number_format($item->valor, 2, ',', '.') : '—' }}</td>
-                        <td style="padding:10px 14px; white-space:nowrap;">{{ $item->data_coleta?->format('d/m/Y') ?? '—' }}</td>
-                        <td style="padding:10px 14px; white-space:nowrap;">@include('admin.compras._conferencia')</td>
-                        <td style="padding:10px 14px; white-space:nowrap;">{{ $item->entrada_concluida_em?->timezone('America/Sao_Paulo')->format('d/m/Y') ?? '—' }}</td>
-                        <td style="padding:10px 14px;">
-                            @if($item->pedido_compra_path)
-                                <a href="{{ route('admin.compras.pedido', $item) }}" target="_blank" style="color:#05018D; font-weight:600;">Ver</a>
-                            @else
-                                <span style="color:#9ca3af;">—</span>
-                            @endif
-                        </td>
-                        <td style="padding:10px 14px; text-align:right;">
-                            <a href="{{ route('admin.compras.edit', $item) }}"
-                               style="display:inline-block; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap; border:1px solid #d1d5db; color:#374151; background:#fff;">
-                                {{ $item->temDadosDaCompra() ? 'Editar' : 'Registrar compra' }}
-                            </a>
-                        </td>
-                    </tr>
-                    @if($item->obs)
-                    <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6; background:#f9fafb;">
-                        <td colspan="11" style="padding:12px 14px;">
-                            <div style="padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
-                                <span style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Obs (Conferente):</span>
-                                <div style="margin-top:4px; font-size:13px; color:#166534; line-height:1.5;">{{ $item->obs }}</div>
-                            </div>
-                        </td>
-                    </tr>
-                    @endif
-                    @if($item->obs_entrada)
-                    <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6; background:#f9fafb;">
-                        <td colspan="11" style="padding:12px 14px;"><x-obs-entrada :item="$item" margem="0" /></td>
-                    </tr>
-                    @endif
-                    @if(filled($item->reason) || filled($item->justification) || filled($item->observacao_conferencia))
-                    <tr class="grupo-item-compra-{{ $chaveFeita }}" style="display:none; border-top:1px solid #f3f4f6; background:#f9fafb;">
-                        <td colspan="11" style="padding:12px 14px;">
-                            <x-obs-vendedor :item="$item" margem="8px" />
-                            <x-obs-divergencia :item="$item" margem="0" />
-                        </td>
-                    </tr>
-                    @endif
+                        @include('admin.compras._linha-desktop', ['item' => $item, 'chave' => $chaveFeita, 'primeiro' => $loop->first, 'ultimo' => $loop->last])
                     @endforeach
                 @empty
                     <tr>
-                        <td colspan="11" style="padding:40px 16px; text-align:center; color:#6b7280;">Nenhuma compra registrada ainda.</td>
+                        <td colspan="9" style="padding:40px 16px; text-align:center; color:#6b7280;">
+                            {{ $situacao === 'falta' ? 'Nenhuma compra com dados faltando. Tudo registrado.' : 'Nenhuma compra registrada ainda.' }}
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
-    </div>
-
-    <div class="m-cards">
-        @forelse($requests as $grupo)
-            @php
-                $primeiroFeitaM = $grupo->first();
-                $chaveFeitaM = $primeiroFeitaM->grupo_id;
-                $todosComDadosM = $grupo->every(fn ($r) => $r->temDadosDaCompra());
-                $nenhumComDadosM = $grupo->every(fn ($r) => !$r->temDadosDaCompra());
-            @endphp
-            <div class="m-card" style="cursor:pointer;" onclick="toggleGrupoCompraFeita('{{ $chaveFeitaM }}')">
-                <div class="m-card-topo">
-                    <div class="m-card-titulo">Requisição #{{ $primeiroFeitaM->id }}</div>
-                    @unless($todosComDadosM)
-                        <span style="background:#fff; color:#7a4f00; border:1px solid #c98a00; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;">{{ $nenhumComDadosM ? 'Sem dados' : 'Parcial' }}</span>
-                    @endunless
-                </div>
-                <div style="font-size:13px; color:#6b7280;">{{ $primeiroFeitaM->requester_name ?? 'Não informado' }} · {{ $grupo->count() }} {{ $grupo->count() > 1 ? 'itens' : 'item' }}</div>
-                <div class="m-card-acao">
-                    <button type="button" onclick="event.stopPropagation(); toggleGrupoCompraFeita('{{ $chaveFeitaM }}')"
-                            style="border:1px solid #d1d5db; background:#fff; color:#374151; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
-                        <span data-seta-compra="{{ $chaveFeitaM }}">Ver itens</span>
-                    </button>
-                </div>
-            </div>
-            @foreach($grupo as $item)
-                @include('admin.compras._card-mobile', ['item' => $item, 'classe' => 'grupo-item-compra-' . $chaveFeitaM, 'estilo' => 'display:none; margin-left:12px;'])
-            @endforeach
-        @empty
-            <div style="padding:40px 16px; text-align:center; color:#6b7280;">Nenhuma compra registrada ainda.</div>
-        @endforelse
+        </div>
     </div>
 
     <div style="margin-top:16px;">{{ $requests->links() }}</div>
@@ -220,12 +184,15 @@ function toggleGrupoCompraFeita(chave) {
     if (!linhas.length) return;
     var abrindo = linhas[0].style.display === 'none';
     linhas.forEach(function (linha) {
-        linha.style.display = abrindo ? (linha.tagName === 'TR' ? 'table-row' : 'block') : 'none';
+        linha.style.display = abrindo ? '' : 'none'; // '' devolve ao CSS: linha de tabela no PC, bloco no celular
     });
     document.querySelectorAll('[data-seta-compra="' + chave + '"]').forEach(function (seta) {
-        seta.textContent = abrindo ? 'Ocultar itens' : 'Ver itens';
+        seta.textContent = abrindo ? (seta.dataset.aberto || 'Ocultar itens') : (seta.dataset.fechado || 'Ver itens');
     });
 }
 </script>
+
+{{-- Depois do script acima: a janela usa toggleGrupoCompraFeita ao abrir por atalho. --}}
+@include('admin.compras._janela-dados')
 
 @endsection

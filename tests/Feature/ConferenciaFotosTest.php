@@ -51,14 +51,17 @@ class ConferenciaFotosTest extends TestCase
         foreach (['principal', 'barras1', 'barras2'] as $nome) {
             $this->assertStringContainsString("/conferencia/{$nome}.jpg", $html);
         }
-        $this->assertSame(2, substr_count($html, 'Fotos da conferência')); // desktop + celular
+        $this->assertSame(1, substr_count(mb_strtolower($html), 'fotos da conferência')); // a janela das fotos do cartão (a mesma no PC e no celular)
     }
 
     public function test_item_sem_foto_nao_mostra_o_bloco(): void
     {
         $this->conferido([]);
 
-        $this->assertStringNotContainsString('Fotos da conferência', $this->conferidos());
+        $html = mb_strtolower($this->conferidos()); // o título agora é "Fotos da Conferência"
+
+        $this->assertStringNotContainsString('fotos da conferência', $html);
+        $this->assertStringNotContainsString('id="foto-item-', $html);
     }
 
     public function test_divergente_cancelado_e_avancado_tambem_mostram_a_foto(): void

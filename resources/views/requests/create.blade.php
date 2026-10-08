@@ -54,8 +54,8 @@ html.dark .cr-section-title { color: var(--sl-bone); }
 html.dark .cr-section-title > span { background: var(--sl-panel) !important; color: var(--sl-fog) !important; }
 html.dark .cr-field-label { color: var(--sl-fog); }
 @media (max-width: 768px) {
-    .cr-grid-main { grid-template-columns: 1fr !important; }
-    .cr-prod-form { grid-template-columns: 1fr !important; }
+    .cr-grid-main { grid-template-columns: minmax(0, 1fr) !important; }
+    .cr-prod-form { grid-template-columns: minmax(0, 1fr) !important; }
     .cr-prod-row { grid-template-columns: 1fr 60px 40px 40px !important; }
     .col-code { display: none !important; }
 }
@@ -145,8 +145,9 @@ html.dark .cr-field-label { color: var(--sl-fog); }
                     Observações e Instruções da Compra <span style="color:#dc2626;">*</span>
                     <span style="font-weight:400; color:#94a3b8;">(especifique filial 1 ou 31, dados do pedido ou detalhes importantes)</span>
                 </label>
-                <textarea name="justification" rows="2" required placeholder="Ex: Filial 31; cliente tem pressa na liberação; faturar junto com pedido X..."
+                <textarea name="justification" id="inp-obs" rows="2" required maxlength="500" placeholder="Ex: Filial 31; cliente tem pressa na liberação; faturar junto com pedido X..."
                           class="cr-input" style="resize:vertical; font-family:inherit;">{{ old('justification') }}</textarea>
+                <div id="obs-contador" style="text-align:right; font-size:11.5px; color:#94a3b8; margin-top:4px;"></div>
             </div>
         </div>
 
@@ -228,8 +229,20 @@ html.dark .cr-field-label { color: var(--sl-fog); }
 
 </div>
 
+@php
+    $itensAntigos = collect(old('products', []))->map(function ($p) {
+        return ['code' => $p['product_code'] ?? '', 'name' => $p['product_name'] ?? '', 'qty' => ((int) ($p['quantity'] ?? 1)) ?: 1, 'url' => $p['product_url'] ?? '', 'anexoFile' => null];
+    })->values()->all();
+@endphp
 <script>
-let items = [];
+// Se a validação do servidor falhar, os itens voltam (os anexos precisam ser escolhidos de novo).
+let items = {!! json_encode($itensAntigos, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!};
+
+(function () {
+    const obs = document.getElementById('inp-obs'), c = document.getElementById('obs-contador');
+    const atualiza = () => { c.textContent = obs.value.length + ' / 500'; c.style.color = obs.value.length >= 480 ? '#dc2626' : '#94a3b8'; };
+    obs.addEventListener('input', atualiza); atualiza();
+})();
 
 function addItem() {
     const code = document.getElementById('inp-code').value.trim();
@@ -295,8 +308,8 @@ function renderList() {
 
     items.forEach((item, i) => {
         const row = document.createElement('div');
-        row.className = 'cr-prod-row';
-        row.style.cssText = 'display:grid; grid-template-columns:120px 1fr 80px 44px 44px; align-items:center; border-bottom:1px solid #f1f5f9; padding:8px 14px; background:' + (i % 2 === 0 ? '#ffffff' : '#fafafa') + ';';
+        row.className = 'cr-prod-row' + (i % 2 === 0 ? '' : ' par');
+        row.style.cssText = 'display:grid; grid-template-columns:120px 1fr 80px 44px 44px; align-items:center; padding:8px 14px;';
         row.innerHTML = `
             <span class="col-code" style="font-size:13px; color:#64748b; font-family:monospace;">${item.code || '—'}</span>
             <div style="font-size:13.5px; color:#0f172a; font-weight:500;">
@@ -348,6 +361,8 @@ function renderList() {
         }
     });
 }
+
+if (items.length) renderList();
 
 document.querySelector('form').addEventListener('submit', function(e) {
     if (items.length === 0) {

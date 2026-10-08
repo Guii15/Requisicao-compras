@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 /**
  * Compras Feitas: a partir de 02/10/2026, toda requisição aprovada aparece ali na hora, mesmo sem data e preço da compra.
- * As aprovadas antes dessa data só aparecem quando já têm os dados (as sem dados ficam em Compras, com um aviso).
+ * As aprovadas antes dessa data só aparecem quando já têm os dados (as sem dados ficam no filtro "Falta registrar", com um aviso).
  */
 class AvisoSemDadosTest extends TestCase
 {
@@ -116,8 +116,9 @@ class AvisoSemDadosTest extends TestCase
 
         $html = $this->feitas();
 
-        $this->assertSame(2, substr_count($html, 'Registrar compra')); // desktop + celular do item sem dados
+        $this->assertSame(1, substr_count($html, 'Registrar compra')); // só o item sem dados (uma marcação serve PC e celular)
         $this->assertStringContainsString('Falta registrar', $html);
+        $this->assertMatchesRegularExpression('/onclick="abrirCompra\(this\)"[^>]*>\s*Editar\s*</', $html); // o completo tem Editar
     }
 
     public function test_grupo_so_com_itens_sem_dados_mostra_o_selo_sem_dados_e_nao_parcial(): void
@@ -140,7 +141,7 @@ class AvisoSemDadosTest extends TestCase
 
         $this->actingAs($this->admin)->get(route('admin.compras.feitas'))
             ->assertSee('2 compras aprovadas antes de 02/10/2026 ainda não têm')
-            ->assertSee(route('admin.compras.index', ['situacao' => 'sem_dados']), false);
+            ->assertSee(route('admin.compras.feitas', ['situacao' => 'falta']), false);
     }
 
     public function test_aviso_no_singular(): void
@@ -163,7 +164,74 @@ class AvisoSemDadosTest extends TestCase
         $this->aprovada('Item Sem Dados', '2026-09-20 10:00:00');
         $this->aprovada('Item Completo', '2026-09-20 10:00:00', ['data_compra' => '2026-09-21', 'preco_unitario' => 10]);
 
-        $this->actingAs($this->admin)->get(route('admin.compras.index', ['situacao' => 'sem_dados']))
-            ->assertSee('Item Sem Dados')->assertSee('Registrar compra')->assertDontSee('Item Completo');
+        // O endereço antigo da tela "Compras" leva para o filtro "Falta registrar" de Compras Feitas.
+        $falta = route('admin.compras.feitas', ['situacao' => 'falta']);
+        $this->actingAs($this->admin)->get(route('admin.compras.index', ['situacao' => 'sem_dados']))->assertRedirect($falta);
+
+        $this->actingAs($this->admin)->get($falta)
+            ->assertOk()->assertSee('Item Sem Dados')->assertSee('Registrar compra')->assertDontSee('Item Completo');
+    }
+
+    // ---------- tudo numa tela só: filtro "Falta registrar" e janela de dados ----------
+
+    public function test_falta_registrar_lista_tambem_as_antigas_sem_dados_na_mesma_tela(): void
+    {
+        $this->aprovada('Antiga Sem Dados', '2026-09-20 10:00:00');
+        $this->aprovada('Nova Sem Dados', '2026-10-05 09:00:00');
+        $this->aprovada('Item Completo', '2026-10-05 09:00:00', ['data_compra' => '2026-10-05', 'preco_unitario' => 10]);
+
+        $html = $this->feitas(['situacao' => 'falta']);
+
+        $this->assertStringContainsString('Antiga Sem Dados', $html);
+        $this->assertStringContainsString('Nova Sem Dados', $html);
+        $this->assertStringNotContainsString('Item Completo', $html);
+        $this->assertStringNotContainsString('ainda não têm', $html); // o aviso não se repete dentro do próprio filtro
+    }
+
+    public function test_botao_do_item_abre_a_janela_na_propria_tela_em_vez_de_ir_para_outra(): void
+    {
+        $item = $this->aprovada('Item Aprovado Hoje', '2026-10-05 09:00:00');
+
+        $html = $this->feitas();
+
+        $this->assertStringContainsString('id="janela-compra"', $html);
+        $this->assertStringContainsString('data-compra-id="' . $item->id . '"', $html);
+        $this->assertStringContainsString('name="origem" value="lista"', $html);
+    }
+
+    public function test_salvar_pela_janela_volta_para_a_lista(): void
+    {
+        $item = $this->aprovada('Item Aprovado Hoje', '2026-10-05 09:00:00');
+        $lista = route('admin.compras.feitas', ['situacao' => 'falta']);
+
+        $this->actingAs($this->admin)->from($lista)->patch(route('admin.compras.update', $item), [
+            'origem' => 'lista', 'data_compra' => '2026-10-05', 'preco_unitario' => '12,50', 'valor' => '25,00',
+            'supplier' => 'Kabum', 'quantity' => 2, 'condicao_pagamento' => 'a_vista',
+        ])->assertRedirect($lista)->assertSessionHas('success');
+
+        $this->assertTrue($item->fresh()->temDadosDaCompra());
+    }
+
+    public function test_erro_na_janela_volta_para_a_lista_e_reabre_a_janela_do_item(): void
+    {
+        $item = $this->aprovada('Item Aprovado Hoje', '2026-10-05 09:00:00');
+        $lista = route('admin.compras.feitas');
+
+        $this->actingAs($this->admin)->from($lista)->patch(route('admin.compras.update', $item), [
+            'origem' => 'lista', 'supplier' => 'Kabum',
+        ])->assertRedirect($lista)->assertSessionHasErrors(['data_compra', 'preco_unitario'])->assertSessionHas('compra_aberta', $item->id);
+
+        $this->assertFalse($item->fresh()->temDadosDaCompra());
+    }
+
+    public function test_sem_origem_lista_volta_para_compras_feitas_com_o_item_aberto(): void
+    {
+        $item = $this->aprovada('Item Aprovado Hoje', '2026-10-05 09:00:00');
+
+        $this->actingAs($this->admin)->patch(route('admin.compras.update', $item), [
+            'data_compra' => '2026-10-05', 'preco_unitario' => '12,50', 'supplier' => 'Kabum', 'condicao_pagamento' => 'a_vista',
+        ])->assertRedirect(route('admin.compras.feitas', ['abrir' => $item->id]))->assertSessionHas('success');
+
+        $this->assertTrue($item->fresh()->temDadosDaCompra());
     }
 }
