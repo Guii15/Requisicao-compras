@@ -9,14 +9,14 @@
 
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">RMA</h1>
-        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Produtos comprados que já chegaram: fornecedor, data da compra, quantidade e fotos da conferência</p>
+        <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Produtos comprados que já chegaram: fornecedor, empresa da compra, data, quantidade e fotos da conferência</p>
     </div>
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route('rma.index') }}" class="m-busca" style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
             <div style="flex:1; min-width:200px;">
-                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Produto ou fornecedor</label>
-                <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, código ou fornecedor..."
+                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Produto, fornecedor ou empresa</label>
+                <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, código, fornecedor ou empresa..."
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:9px 14px; font-size:14px; box-sizing:border-box;">
             </div>
             <div>
@@ -56,6 +56,7 @@
                         @php $thRma = 'padding:12px 16px; color:#6b7280; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;'; @endphp
                         <th style="{{ $thRma }} text-align:left;">Produto</th>
                         <th style="{{ $thRma }} text-align:left;">Fornecedor</th>
+                        <th style="{{ $thRma }} text-align:left;">Empresa</th>
                         <th style="{{ $thRma }} text-align:left;">Data da compra</th>
                         <th style="{{ $thRma }} text-align:right;">Quantidade</th>
                         <th style="{{ $thRma }} text-align:left;">Fotos</th>
@@ -73,7 +74,8 @@
                                 @endif
                             </td>
                             <td data-rotulo="Fornecedor" style="{{ $tdRma }} overflow-wrap:anywhere;">{{ $item->supplier ?: '—' }}</td>
-                            <td data-rotulo="Data da compra" style="{{ $tdRma }} white-space:nowrap;">{{ $item->data_compra ? $item->data_compra->format('d/m/Y') : '—' }}</td>
+                            <td data-rotulo="Empresa" style="{{ $tdRma }} overflow-wrap:anywhere;">{{ $item->empresa ?: '—' }}</td>
+                            <td data-rotulo="Data da compra"style="{{ $tdRma }} white-space:nowrap;">{{ $item->data_compra ? $item->data_compra->format('d/m/Y') : '—' }}</td>
                             <td data-rotulo="Quantidade" style="{{ $tdRma }} text-align:right; white-space:nowrap;">
                                 {{ $item->quantity }}
                                 @if($item->quantidade_entrada !== null && (int) $item->quantidade_entrada !== (int) $item->quantity)
@@ -93,7 +95,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding:40px 16px; text-align:center; color:#9ca3af; font-size:14px;">
+                            <td colspan="7"style="padding:40px 16px; text-align:center; color:#9ca3af; font-size:14px;">
                                 Nenhum item encontrado.
                             </td>
                         </tr>

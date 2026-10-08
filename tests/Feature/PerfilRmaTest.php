@@ -132,6 +132,32 @@ class PerfilRmaTest extends TestCase
             ->assertSee('12');
     }
 
+    public function test_mostra_a_empresa_que_fez_a_compra(): void
+    {
+        $this->item(['product_name' => 'Item Da Binario', 'empresa' => 'Binário']);
+
+        $this->actingAs($this->rma)->get(route('rma.index'))
+            ->assertOk()
+            ->assertSee('Empresa')
+            ->assertSee('Binário');
+    }
+
+    public function test_item_sem_empresa_nao_quebra(): void
+    {
+        $this->item(['product_name' => 'Item Sem Empresa', 'empresa' => null]);
+
+        $this->actingAs($this->rma)->get(route('rma.index'))->assertOk()->assertSee('Item Sem Empresa');
+    }
+
+    public function test_busca_tambem_acha_pela_empresa(): void
+    {
+        $this->item(['product_name' => 'Item A', 'empresa' => 'Binário']);
+        $this->item(['product_name' => 'Item B', 'empresa' => 'Mammuth']);
+
+        $this->actingAs($this->rma)->get(route('rma.index', ['q' => 'mammuth']))
+            ->assertSee('Item B')->assertDontSee('Item A');
+    }
+
     public function test_so_aparece_item_aprovado_com_entrada_concluida(): void
     {
         $this->item(['product_name' => 'Item Com Entrada']);

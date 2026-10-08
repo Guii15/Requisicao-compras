@@ -32,6 +32,7 @@ class RmaController extends Controller
             $query->where(function ($sub) use ($q) {
                 $this->whereLikeInsensitive($sub, 'product_name', $q);
                 $this->orWhereLikeInsensitive($sub, 'supplier', $q);
+                $this->orWhereLikeInsensitive($sub, 'empresa', $q);
                 $this->orWhereLikeInsensitive($sub, 'product_code', $q);
             });
         }
