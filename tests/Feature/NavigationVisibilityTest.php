@@ -55,7 +55,7 @@ class NavigationVisibilityTest extends TestCase
         $this->assertStringContainsString('🔍 Conferência', $nav);
         $this->assertStringContainsString('📦 Entrada', $nav);
         $this->assertStringNotContainsString('⚙ Admin', $nav);
-        $this->assertStringNotContainsString('Minhas Requisições', $nav);
+        $this->assertStringContainsString('Minhas Requisições', $nav);
     }
 
     public function test_vendedor_nav_shows_only_minhas_requisicoes(): void
