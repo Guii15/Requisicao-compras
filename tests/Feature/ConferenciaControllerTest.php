@@ -528,7 +528,7 @@ class ConferenciaControllerTest extends TestCase
         $this->assertStringContainsString('>OK<', $mobileSection);
     }
 
-    // Uma janela "Conferir Item" só por item: a do celular saiu, então os ids não podem se repetir.
+    // Uma janela "Conferir Item" só na página (desktop e celular): os ids não podem se repetir.
     public function test_single_conferir_modal_has_unique_ids_and_no_mobile_copy(): void
     {
         $conferente = User::factory()->create(['role' => 'conferente']);
@@ -540,12 +540,13 @@ class ConferenciaControllerTest extends TestCase
         $response->assertDontSee('form-conferir-m-' . $req->id, false);
 
         $html = $response->getContent();
-        $this->assertSame(1, substr_count($html, 'id="modal-conferir-' . $req->id . '"'));
-        $this->assertSame(1, substr_count($html, 'id="form-conferir-' . $req->id . '"'));
-        $this->assertSame(1, substr_count($html, 'id="campo-qtd-' . $req->id . '"'));
-        $this->assertSame(1, substr_count($html, 'id="campo-resultado-' . $req->id . '"'));
-        // o botão Conferir do cartão abre essa mesma janela
-        $this->assertStringContainsString("document.getElementById('modal-conferir-" . $req->id . "').style.display='flex'", $html);
+        $this->assertSame(1, substr_count($html, 'id="modal-conferir"'));
+        $this->assertSame(1, substr_count($html, 'id="form-conferir"'));
+        $this->assertSame(1, substr_count($html, 'id="campo-qtd"'));
+        $this->assertSame(1, substr_count($html, 'id="campo-resultado"'));
+        // o botão Conferir do cartão abre essa mesma janela, preenchida com os dados do item
+        $this->assertStringContainsString('onclick="abrirConferir(' . $req->id . ')"', $html);
+        $this->assertStringContainsString('<template id="conferir-item-' . $req->id . '"', $html);
     }
 
     public function test_mobile_modal_not_rendered_on_conferidos_tab(): void
@@ -556,7 +557,8 @@ class ConferenciaControllerTest extends TestCase
         $response = $this->actingAs($conferente)->get(route('conferencia.index', ['aba' => 'conferidos']));
 
         $response->assertDontSee('modal-conferir-m-' . $req->id, false);
-        $response->assertDontSee('id="modal-conferir-' . $req->id . '"', false); // item já conferido não tem a janela Conferir Item
+        $response->assertDontSee('id="modal-conferir"', false); // item já conferido não tem a janela Conferir Item
+        $response->assertDontSee('conferir-item-' . $req->id, false);
     }
 
     public function test_single_modal_avancar_button_only_for_entrega_direta(): void
@@ -567,8 +569,11 @@ class ConferenciaControllerTest extends TestCase
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('<button type="submit" id="btn-avancar-' . $dropship->id . '"', false);
-        $response->assertDontSee('id="btn-avancar-' . $estoque->id . '"', false);
+        // O botão é um só; o JS só o mostra quando o item aberto é entrega direta e o resultado é divergente.
+        $this->assertSame(1, substr_count($response->getContent(), 'id="btn-avancar"'));
+        $response->assertSee('<template id="conferir-item-' . $dropship->id . '"', false);
+        $this->assertMatchesRegularExpression('/<template id="conferir-item-' . $dropship->id . '"[^>]*data-entrega="entrega_direta"/', $response->getContent());
+        $this->assertMatchesRegularExpression('/<template id="conferir-item-' . $estoque->id . '"[^>]*data-entrega="estoque"/', $response->getContent());
         $response->assertDontSee('btn-avancar-m-', false);
     }
 
@@ -651,10 +656,10 @@ class ConferenciaControllerTest extends TestCase
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertSee('id="aviso-divergencia-' . $req->id . '"', false);
-        $response->assertSee('function verificaDivergencia' . $req->id . '(valor)', false);
-        $response->assertSee('oninput="verificaDivergencia' . $req->id . '(this.value)"', false);
-        $response->assertSee('pedido: 100', false);
+        $response->assertSee('id="aviso-divergencia"', false);
+        $response->assertSee('window.verificaDivergencia = function (valor)', false);
+        $response->assertSee('oninput="verificaDivergencia(this.value)"', false);
+        $this->assertMatchesRegularExpression('/<template id="conferir-item-' . $req->id . '"[^>]*data-qtd="100"/', $response->getContent()); // vira "pedido: 100" no aviso
         // as cópias do celular saíram junto com a janela do celular
         $response->assertDontSee('aviso-divergencia-m-', false);
         $response->assertDontSee('verificaDivergenciaMobile', false);
