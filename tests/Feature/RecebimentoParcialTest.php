@@ -129,7 +129,7 @@ class RecebimentoParcialTest extends TestCase
         $this->darEntrada($item, 50);
         $filho = PurchaseRequest::where('restante_de_id', $item->id)->firstOrFail();
 
-        $this->actingAs($this->conferente)->get(route('conferencia.index'))->assertOk()->assertSee('modal-conferir-' . $filho->id, false);
+        $this->actingAs($this->conferente)->get(route('conferencia.index'))->assertOk()->assertSee('abrirConferir(' . $filho->id . ')', false);
 
         $this->actingAs($this->conferente)->patch(route('conferencia.conferir', $filho), [
             'quantidade_recebida' => 50, 'foto' => UploadedFile::fake()->image('resto.jpg'), 'resultado' => 'ok', 'acao' => 'salvar',

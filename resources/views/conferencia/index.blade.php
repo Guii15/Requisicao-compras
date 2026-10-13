@@ -5,7 +5,14 @@
 
 @section('content')
 
-@php $podeConferir = Auth::user()->isConferente(); @endphp
+@php
+    $podeConferir = Auth::user()->isConferente();
+    // Cada janela (Conferir, Editar parcial, Coleta) existe UMA vez na página e é preenchida pelo item clicado.
+    $todosItens = collect($requests->items())->flatten(1);
+    $haParaConferir = $podeConferir && $todosItens->contains(fn ($r) => $r->status_conferencia === null);
+    $haParcial = $podeConferir && $todosItens->contains(fn ($r) => $r->restante_de_id && $r->status_conferencia === null);
+    $haParaColetar = $podeConferir && $todosItens->contains(fn ($r) => $r->status_coleta !== 'coletado');
+@endphp
 
 <div style="padding: 8px 0;">
 
@@ -186,7 +193,7 @@
                                     @if($req->status_conferencia !== null)
                                     @elseif($podeConferir)
                                         <x-editar-parcial :item="$req" />
-                                        <button onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='flex'"
+                                        <button type="button" onclick="abrirConferir({{ $req->id }})"
                                                 style="background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
                                             Conferir
                                         </button>
@@ -201,141 +208,21 @@
                         </tr>
 
                         @if($req->status_conferencia === null && $podeConferir)
-                        {{-- Janela Conferir (desktop): mesmo modelo largo da janela do admin, com as notas ao lado em vez de empilhadas. --}}
-                        <div id="modal-conferir-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(3px); z-index:1000; align-items:center; justify-content:center; padding:16px;">
-                            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; width:100%; max-width:940px; max-height:94vh; display:flex; flex-direction:column; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); overflow:hidden; text-align:left;">
-                                <div style="padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; background:#f8fafc;">
-                                    <div>
-                                        <h3 style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:400; color:#0f172a; letter-spacing:0.01em;">Conferir Item</h3>
-                                        <div style="margin-top:4px; font-size:13px; color:#64748b; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                            <span style="font-weight:600; color:#1e293b; overflow-wrap:anywhere;">{{ $req->product_name }}</span>
-                                            <span>·</span>
-                                            <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
-                                            <span>·</span>
-                                            <span>Pedido: <strong>{{ $req->quantity }}</strong></span>
-                                        </div>
-                                    </div>
-                                    <button type="button" onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='none'" aria-label="Fechar"
-                                            style="border:none; background:transparent; color:#94a3b8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px; line-height:1;">✕</button>
-                                </div>
-
-                                <form method="POST" action="{{ route('conferencia.conferir', $req) }}" enctype="multipart/form-data" id="form-conferir-{{ $req->id }}" onsubmit="return protegerEnvioDuplo(this)" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
-                                    @csrf
-                                    @method('PATCH')
-
-                                    <div class="jan-corpo" style="padding:22px 24px; display:grid; grid-template-columns:1.3fr 1fr; gap:28px; flex:1; min-height:0; overflow-y:auto;">
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; column-gap:12px; align-content:start;">
-                                            <div style="grid-column:1 / -1; font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Conferência</div>
-
-                                            <div style="margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Quantidade recebida</label>
-                                                <input type="number" name="quantidade_recebida" id="campo-qtd-{{ $req->id }}" value="{{ $req->quantity }}" min="0" required
-                                                       oninput="verificaDivergencia{{ $req->id }}(this.value)"
-                                                       style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; font-weight:700;">
-                                            </div>
-                                            <div style="margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Resultado</label>
-                                                <select name="resultado" id="campo-resultado-{{ $req->id }}" required onchange="atualizaResultado{{ $req->id }}(this.value)"
-                                                        style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background-color:#fff;">
-                                                    <option value="ok">OK</option>
-                                                    <option value="divergente">Divergente</option>
-                                                </select>
-                                            </div>
-                                            <div id="aviso-divergencia-{{ $req->id }}" style="display:none; grid-column:1 / -1; margin:-6px 0 14px; font-size:12px; color:#b45309; font-weight:600;">
-                                                ⚠️ Diferente da quantidade solicitada (pedido: {{ $req->quantity }})
-                                            </div>
-
-                                            <div style="margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Foto</label>
-                                                <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required style="width:100%; font-size:12px; color:#475569;">
-                                            </div>
-                                            <div style="margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Fotos extras <span style="font-weight:400; color:#94a3b8;">(opcional — ex.: código de barras, até 5)</span></label>
-                                                <input type="file" name="fotos_extras[]" accept=".jpg,.jpeg,.png,.webp" multiple style="width:100%; font-size:12px; color:#475569;">
-                                            </div>
-
-                                            <div id="campo-observacao-{{ $req->id }}" style="display:none; grid-column:1 / -1; margin-bottom:14px;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Observação da divergência</label>
-                                                <textarea name="observacao_conferencia" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
-                                            </div>
-
-                                            <div style="grid-column:1 / -1;">
-                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Obs (geral)</label>
-                                                <textarea name="obs" rows="2" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; resize:vertical; font-family:inherit;"></textarea>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Sobre o pedido</div>
-                                            <div style="font-size:13px; color:#334155; margin-bottom:18px;">
-                                                <div style="display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid #f1f5f9;"><span style="color:#64748b;">Fornecedor</span><span style="text-align:right;">{{ $req->supplier ?: '—' }}</span></div>
-                                                <div style="display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid #f1f5f9;"><span style="color:#64748b;">Entrega</span><span>{{ $req->tipo_entrega === 'entrega_direta' ? 'Venda Casada' : 'Estoque' }}</span></div>
-                                                <div style="display:flex; justify-content:space-between; gap:12px; padding:6px 0;"><span style="color:#64748b;">Pedido de compra</span>
-                                                    @if($req->pedido_compra_path)
-                                                        <a href="{{ route('admin.compras.pedido', $req) }}" target="_blank" style="color:#05018D; font-weight:600; text-decoration:underline;">📎 Ver pedido de compra</a>
-                                                    @else
-                                                        <span style="color:#94a3b8;">Não anexado</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-
-                                            <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Notas e ocorrências</div>
-                                            @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
-                                                <x-obs-todas :item="$req" margem="0" :plano="true" />
-                                            @else
-                                                <div style="font-size:13px; color:#64748b;">Nenhuma nota.</div>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <input type="hidden" name="acao" id="campo-acao-{{ $req->id }}" value="salvar">
-
-                                    <div style="padding:16px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
-                                        <button type="button" onclick="document.getElementById('modal-conferir-{{ $req->id }}').style.display='none'"
-                                                style="padding:8px 18px; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:600; cursor:pointer;">
-                                            Cancelar
-                                        </button>
-                                        @if($req->tipo_entrega === 'entrega_direta')
-                                        <button type="submit" id="btn-avancar-{{ $req->id }}" onclick="document.getElementById('campo-acao-{{ $req->id }}').value='avancar_mesmo_assim'"
-                                                style="display:none; padding:8px 18px; border-radius:6px; background:#fff; color:#b45309; font-size:13px; font-weight:600; border:1px solid #b45309; cursor:pointer;">
-                                            Avançar Mesmo Assim
-                                        </button>
-                                        @endif
-                                        <button type="submit" id="btn-aguardar-{{ $req->id }}" value="aguardar_restante" title="O que chegou segue para a entrada; o que falta fica aguardando e será conferido quando chegar"
-                                                onclick="document.getElementById('campo-acao-{{ $req->id }}').value='aguardar_restante'"
-                                                style="display:none; padding:8px 18px; border-radius:6px; background:#fff; color:#374151; font-size:13px; font-weight:600; border:1px solid #9ca3af; cursor:pointer;">
-                                            Aguardar restante
-                                        </button>
-                                        <button type="submit" onclick="document.getElementById('campo-acao-{{ $req->id }}').value='salvar'"
-                                                style="padding:8px 22px; border-radius:6px; background:#05018D; color:#ffffff; font-size:13px; font-weight:600; border:none; cursor:pointer;">
-                                            Salvar
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <script>
-                        function atualizaResultado{{ $req->id }}(valor) {
-                            document.getElementById('campo-observacao-{{ $req->id }}').style.display = valor === 'divergente' ? 'block' : 'none';
-                            var btnAvancar = document.getElementById('btn-avancar-{{ $req->id }}');
-                            if (btnAvancar) {
-                                btnAvancar.style.display = valor === 'divergente' ? 'inline-block' : 'none';
-                            }
-                        }
-                        function verificaDivergencia{{ $req->id }}(valor) {
-                            var original = {{ $req->quantity }};
-                            var recebida = parseInt(valor, 10);
-                            var divergiu = valor !== '' && recebida !== original;
-                            document.getElementById('aviso-divergencia-{{ $req->id }}').style.display = divergiu ? 'block' : 'none';
-                            // Chegou só uma parte (mais que 0 e menos que o pedido): pode aguardar o restante.
-                            document.getElementById('btn-aguardar-{{ $req->id }}').style.display = (recebida > 0 && recebida < original) ? 'inline-block' : 'none';
-                            if (divergiu) {
-                                document.getElementById('campo-resultado-{{ $req->id }}').value = 'divergente';
-                                atualizaResultado{{ $req->id }}('divergente');
-                            }
-                        }
-                        </script>
+                        {{-- Dados do item para a janela Conferir (única): o JS lê os data-* e copia as notas daqui. --}}
+                        <template id="conferir-item-{{ $req->id }}"
+                                  data-url="{{ route('conferencia.conferir', $req) }}"
+                                  data-produto="{{ $req->product_name }}"
+                                  data-solicitante="{{ $req->requester_name }}"
+                                  data-qtd="{{ $req->quantity }}"
+                                  data-fornecedor="{{ $req->supplier }}"
+                                  data-entrega="{{ $req->tipo_entrega }}"
+                                  data-pedido-url="{{ $req->pedido_compra_path ? route('admin.compras.pedido', $req) : '' }}">
+                            @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
+                                <x-obs-todas :item="$req" margem="0" :plano="true" />
+                            @else
+                                <div style="font-size:13px; color:#64748b;">Nenhuma nota.</div>
+                            @endif
+                        </template>
                         @endif
                     @endforeach
                     @empty
@@ -474,94 +361,38 @@
             </div>
         </div>
 
-        @forelse($requests as $grupo)
+        @foreach($requests as $grupo)
             @foreach($grupo as $req)
             @if($podeConferir && $req->status_coleta !== 'coletado')
-            <div id="modal-coleta-{{ $req->id }}" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(3px); z-index:2000; align-items:center; justify-content:center; padding:16px;">
-                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; width:100%; max-width:980px; max-height:94vh; display:flex; flex-direction:column; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;">
-                    <div style="padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; background:#f8fafc;">
-                        <div style="min-width:0;">
-                            <h3 style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:400; color:#0f172a; letter-spacing:0.01em;">Registrar Coleta</h3>
-                            <div style="margin-top:4px; font-size:13px; color:#64748b; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;">
-                                <span style="font-weight:600; color:#1e293b; overflow-wrap:anywhere;">{{ $req->product_name }}</span>
-                                <span>·</span>
-                                <span>Solicitante: <strong>{{ $req->requester_name }}</strong></span>
-                                <span>·</span>
-                                <span>Qtd: <strong>{{ $req->quantity }}</strong></span>
-                            </div>
-                        </div>
-                        <button type="button" onclick="fecharModalColeta({{ $req->id }})" aria-label="Fechar"
-                                style="border:none; background:transparent; color:#94a3b8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px; line-height:1;">✕</button>
-                    </div>
-
-                    <form method="POST" action="{{ route('conferencia.coleta', $req) }}" id="form-coleta-{{ $req->id }}" onsubmit="return validarColeta({{ $req->id }})" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; margin:0;">
-                        @csrf
-                        @method('PATCH')
-                        <div class="jan-corpo" style="padding:22px 24px; display:grid; grid-template-columns:1fr 1.1fr; gap:28px; flex:1; min-height:0; overflow-y:auto;">
-                            <div>
-                                <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Coleta</div>
-                                <div style="margin-bottom:16px;">
-                                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Data da coleta <span style="color:#dc2626;">*</span></label>
-                                    <input type="datetime-local" name="data_coleta" id="data-coleta-{{ $req->id }}" required
-                                           value="{{ now()->format('Y-m-d\TH:i') }}"
-                                           style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Marcar como <span style="color:#dc2626;">*</span></label>
-                                    <div style="display:flex; gap:18px; flex-wrap:wrap;">
-                                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13.5px; color:#334155; cursor:pointer;">
-                                            <input type="radio" name="status_coleta" value="coletado" checked> Coletado
-                                        </label>
-                                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:13.5px; color:#b8301a; cursor:pointer;">
-                                            <input type="radio" name="status_coleta" value="atraso"> Atraso
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div style="min-width:0;">
-                                <div style="font-size:11.5px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid #f1f5f9;">Notas e ocorrências</div>
-                                @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
-                                    <x-obs-todas :item="$req" margem="0" :plano="true" />
-                                @else
-                                    <div style="font-size:13px; color:#64748b;">Nenhuma nota.</div>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div style="padding:16px 24px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:flex-end; gap:10px;">
-                            <button type="button" onclick="fecharModalColeta({{ $req->id }})"
-                                    style="padding:8px 18px; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:600; cursor:pointer;">Cancelar</button>
-                            <button type="submit"
-                                    style="padding:8px 22px; border-radius:6px; background:#05018D; color:#ffffff; font-size:13px; font-weight:600; border:none; cursor:pointer;">Confirmar Coleta</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            {{-- Dados do item para a janela Registrar Coleta (única). --}}
+            <template id="coleta-item-{{ $req->id }}"
+                      data-url="{{ route('conferencia.coleta', $req) }}"
+                      data-produto="{{ $req->product_name }}"
+                      data-solicitante="{{ $req->requester_name }}"
+                      data-qtd="{{ $req->quantity }}">
+                @if(filled($req->admin_note) || filled($req->reason) || filled($req->justification) || filled($req->obs) || filled($req->observacao_conferencia) || filled($req->obs_entrada))
+                    <x-obs-todas :item="$req" margem="0" :plano="true" />
+                @else
+                    <div style="font-size:13px; color:#64748b;">Nenhuma nota.</div>
+                @endif
+            </template>
             @endif
             @endforeach
-            @empty
-            @endforelse
+        @endforeach
 
-        <script>
-        function abrirModalColeta(id) {
-            document.getElementById('modal-coleta-' + id).style.display = 'flex';
-        }
-        function fecharModalColeta(id) {
-            document.getElementById('modal-coleta-' + id).style.display = 'none';
-        }
-        function validarColeta(id) {
-            var dataInput = document.getElementById('data-coleta-' + id);
-            if (!dataInput.value) {
-                alert('Por favor, selecione a data da coleta!');
-                return false;
-            }
-            return true;
-        }
-        </script>
+        @if($haParaColetar)
+            @include('conferencia._modal-coleta')
+        @endif
     @endif
 
 </div>
+
+@if($aba !== 'coleta' && $haParaConferir)
+    @include('conferencia._modal-conferir')
+@endif
+@if($aba !== 'coleta' && $haParcial)
+    @include('conferencia._modal-editar-parcial')
+@endif
 
 <script>
 function toggleGrupoRequisicao(chave) {
