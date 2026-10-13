@@ -67,7 +67,7 @@ html.dark .cr-field-label { color: var(--sl-fog); }
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <div>
             <div style="display:flex; align-items:center; gap:8px;">
-                <a href="{{ auth()->user()->isVendedor() ? route('requests.index') : route('admin.index') }}" style="color:#64748b; text-decoration:none; font-size:13px;">
+                <a href="{{ auth()->user()->isAdmin() ? route('admin.index') : route('requests.index') }}" style="color:#64748b; text-decoration:none; font-size:13px;">
                     ← Voltar
                 </a>
             </div>
@@ -216,7 +216,7 @@ html.dark .cr-field-label { color: var(--sl-fog); }
 
         {{-- Ações de envio --}}
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-            <a href="{{ auth()->user()->isVendedor() ? route('requests.index') : route('admin.index') }}"
+            <a href="{{ auth()->user()->isAdmin() ? route('admin.index') : route('requests.index') }}"
                style="padding:10px 20px; border-radius:6px; border:1px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13.5px; font-weight:600; text-decoration:none;">
                 Cancelar
             </a>

@@ -110,7 +110,7 @@ class PurchaseRequestController extends Controller
 
     public function create()
     {
-        if (!auth()->user()->isVendedor() && !auth()->user()->isAdmin()) {
+        if (!auth()->user()->podeRequisitar() && !auth()->user()->isAdmin()) {
             abort(403, 'Acesso restrito.');
         }
 
@@ -257,7 +257,7 @@ class PurchaseRequestController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth()->user()->isVendedor() && !auth()->user()->isAdmin()) {
+        if (!auth()->user()->podeRequisitar() && !auth()->user()->isAdmin()) {
             abort(403, 'Acesso restrito.');
         }
 
@@ -339,7 +339,7 @@ class PurchaseRequestController extends Controller
         }
 
         $count = count($created);
-        $destino = auth()->user()->isVendedor() ? route('requests.index') : route('admin.index');
+        $destino = auth()->user()->isAdmin() ? route('admin.index') : route('requests.index');
 
         return redirect($destino)
             ->with('success', $count === 1 ? 'Requisição criada com sucesso!' : "Requisição criada com sucesso! ({$count} itens)");
