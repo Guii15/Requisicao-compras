@@ -61,7 +61,7 @@ class SaldoFornecedores
      * quita as parcelas na ordem (um pagamento maior que uma parcela adianta as seguintes). "Vencido" é o
      * que já deveria ter sido pago até hoje e ainda não foi.
      *
-     * @return array{custo: float, pago: float, aberto: float, situacao: string, condicao: ?string, condicao_codigo: ?string, parcelas: int, valor_parcela: float, proximo_vencimento: ?CarbonImmutable, dias_ate_vencimento: ?int, vencido: float, vencida: bool, parcela_sugerida: float}
+     * @return array{custo: float, pago: float, aberto: float, situacao: string, acrescimo: float, custo_total: float, condicao: ?string, condicao_codigo: ?string, parcelas: int, valor_parcela: float, proximo_vencimento: ?CarbonImmutable, dias_ate_vencimento: ?int, vencido: float, vencida: bool, parcela_sugerida: float}
      */
     public function situacao(PurchaseRequest $compra, ?CarbonImmutable $hoje = null): array
     {
@@ -70,6 +70,8 @@ class SaldoFornecedores
         $custo = $this->custo($compra);
         $pago = round((float) $compra->pagamentos->sum('valor'), 2);
         $aberto = round(max(0, $custo - $pago), 2);
+        // Acréscimos (impostos, frete...) aumentam o custo real da compra, mas não a dívida com o fornecedor.
+        $acrescimo = round((float) $compra->acrescimos->sum('valor'), 2);
 
         $parcelado = $compra->condicao_pagamento === 'parcelado' && (int) $compra->parcelas >= 2;
         $n = $parcelado ? (int) $compra->parcelas : 1;
@@ -102,6 +104,8 @@ class SaldoFornecedores
             'pago' => $pago,
             'aberto' => $aberto,
             'situacao' => $aberto <= 0 ? 'Pago' : ($pago > 0 ? 'Parcial' : 'Em aberto'),
+            'acrescimo' => $acrescimo,
+            'custo_total' => round($custo + $acrescimo, 2),
             'condicao' => match ($compra->condicao_pagamento) {
                 'a_vista' => 'À vista',
                 'parcelado' => $parcelado ? "Parcelado em {$n}x" : 'Parcelado',
@@ -121,7 +125,7 @@ class SaldoFornecedores
     /** @return Collection<int, PurchaseRequest> */
     private function compras(): Collection
     {
-        return PurchaseRequest::with(['pagamentos', 'fornecedor'])
+        return PurchaseRequest::with(['pagamentos', 'acrescimos', 'fornecedor'])
             ->where('status', 'aprovado')
             ->whereNotNull('data_compra')
             ->whereNotNull('preco_unitario')

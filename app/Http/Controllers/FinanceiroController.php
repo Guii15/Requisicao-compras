@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcrescimoCompra;
 use App\Models\Banco;
 use App\Models\PagamentoCompra;
 use App\Models\PurchaseRequest;
@@ -90,6 +91,7 @@ class FinanceiroController extends Controller
             'comprado' => round($compras->sum('custo'), 2),
             'pago' => round($compras->sum('pago'), 2),
             'saldo' => round($compras->sum('aberto'), 2),
+            'acrescimo' => round($compras->sum('acrescimo'), 2),
         ];
 
         return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel'));
@@ -177,6 +179,52 @@ class FinanceiroController extends Controller
         $pagamento->delete();
 
         return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' desfeito; o valor voltou para o saldo.');
+    }
+
+    /** Lança um acréscimo (impostos, frete...): soma no custo real da compra, sem aumentar a dívida com o fornecedor. */
+    public function acrescentar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos)
+    {
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($purchaseRequest->supplier))));
+
+        if (!$saldos->conta($purchaseRequest)) {
+            return redirect()->route('financeiro.index')->with('aviso', 'Esta compra não entra no financeiro — nada foi alterado.');
+        }
+
+        if ($request->filled('valor')) {
+            $request->merge(['valor' => Dinheiro::decimal($request->input('valor'))]);
+        }
+
+        $dados = $request->validate([
+            'valor' => 'required|numeric|min:0.01',
+            'motivo' => 'required|string|max:200',
+        ], [
+            'valor.required' => 'Informe o valor do acréscimo.',
+            'valor.numeric' => 'O valor precisa ser um número.',
+            'valor.min' => 'O valor precisa ser maior que zero.',
+            'motivo.required' => 'Informe o motivo do acréscimo (ex.: impostos, frete).',
+            'motivo.max' => 'O motivo pode ter no máximo 200 caracteres.',
+        ]);
+
+        $valor = round((float) $dados['valor'], 2);
+
+        AcrescimoCompra::create([
+            'purchase_request_id' => $purchaseRequest->id,
+            'valor' => $valor,
+            'motivo' => trim($dados['motivo']),
+            'user_id' => auth()->id(),
+        ]);
+
+        return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($valor) . ' lançado na requisição #' . $purchaseRequest->id . '.');
+    }
+
+    public function removerAcrescimo(AcrescimoCompra $acrescimo, SaldoFornecedores $saldos)
+    {
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($acrescimo->compra?->supplier))));
+        $valor = $acrescimo->valor;
+
+        $acrescimo->delete();
+
+        return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($valor) . ' removido.');
     }
 
     /** Lista paginada de compras (abas Aguardando e Pagos), com busca por fornecedor, produto, comprador ou nº da requisição. */

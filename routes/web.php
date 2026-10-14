@@ -124,6 +124,8 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::get('/fornecedor/{chave}', [FinanceiroController::class, 'fornecedor'])->name('fornecedor');
     Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
     Route::delete('/pagamentos/{pagamento}', [FinanceiroController::class, 'desfazer'])->middleware('throttle:60,1')->name('desfazer');
+    Route::post('/compras/{purchaseRequest}/acrescimos', [FinanceiroController::class, 'acrescentar'])->middleware('throttle:60,1')->name('acrescentar');
+    Route::delete('/acrescimos/{acrescimo}', [FinanceiroController::class, 'removerAcrescimo'])->middleware('throttle:60,1')->name('removerAcrescimo');
 });
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {

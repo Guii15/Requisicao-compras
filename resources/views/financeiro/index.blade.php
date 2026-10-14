@@ -52,7 +52,7 @@
     <div class="adm-stats bm-faixa" style="display:grid; grid-template-columns:repeat(4,1fr); background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:16px; overflow:hidden;">
         <x-bloco-metrica rotulo="Saldo devedor" :valor="Dinheiro::brl($d['saldo'])" :sem-linha="true"
                          :nota="'em ' . $d['aguardando']['compras'] . ' ' . ($d['aguardando']['compras'] === 1 ? 'compra' : 'compras') . ' de ' . $d['aguardando']['fornecedores'] . ' ' . ($d['aguardando']['fornecedores'] === 1 ? 'fornecedor' : 'fornecedores') . ' · ' . number_format($d['percentual_pago'], 1, ',', '.') . '% do comprado já foi pago'" />
-        <x-bloco-metrica :rotulo="'Comprado em ' . $mes" :valor="Dinheiro::brl($d['comprado_mes'])" :sem-linha="true" :nota="'Total comprado até hoje: ' . Dinheiro::brl($d['comprado'])" />
+        <x-bloco-metrica :rotulo="'Comprado em ' . $mes" :valor="Dinheiro::brl($d['comprado_mes'])" :sem-linha="true" :nota="'Total comprado até hoje: ' . Dinheiro::brl($d['comprado']) . ($d['acrescimos'] > 0 ? ' · Acréscimos (impostos, frete...): ' . Dinheiro::brl($d['acrescimos']) : '')" />
         <x-bloco-metrica :rotulo="'Pago em ' . $mes" :valor="Dinheiro::brl($d['pago_mes'])" :sem-linha="true" :nota="'Total pago até hoje: ' . Dinheiro::brl($d['pago'])" />
         <x-bloco-metrica rotulo="Compras pagas" :valor="$d['pagas']" :sem-linha="true" :nota="$d['aguardando']['compras'] . ' ainda aguardando pagamento'" />
     </div>

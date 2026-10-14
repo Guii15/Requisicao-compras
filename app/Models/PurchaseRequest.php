@@ -232,6 +232,11 @@ class PurchaseRequest extends Model
         return $this->hasMany(PagamentoCompra::class);
     }
 
+    public function acrescimos(): HasMany
+    {
+        return $this->hasMany(AcrescimoCompra::class);
+    }
+
     public function fotosConferencia(): HasMany
     {
         return $this->hasMany(ConferenciaFoto::class);
