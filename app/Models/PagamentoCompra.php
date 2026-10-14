@@ -41,10 +41,4 @@ class PagamentoCompra extends Model
     {
         return self::MEIOS[$this->meio] ?? null;
     }
-
-    /** Bancos já usados antes, para sugerir no campo (o banco é digitado livremente). */
-    public static function bancosUsados(): array
-    {
-        return static::query()->whereNotNull('banco')->distinct()->orderBy('banco')->pluck('banco')->all();
-    }
 }

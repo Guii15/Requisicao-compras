@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banco;
 use App\Models\PagamentoCompra;
 use App\Models\PurchaseRequest;
 use App\Services\PainelFinanceiro;
@@ -118,6 +119,8 @@ class FinanceiroController extends Controller
             'valor' => 'required_if:forma,parcelado|nullable|numeric|min:0.01',
             'meio' => ['required', Rule::in(array_keys(PagamentoCompra::MEIOS))],
             'banco' => 'required_unless:meio,dinheiro|nullable|string|max:100',
+            // "Cadastrar novo banco" na lista: o nome vem neste campo.
+            'banco_novo' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => $request->input('meio') !== 'dinheiro' && $request->input('banco') === '__novo')],
             'data_pagamento' => 'required|date',
             'obs' => 'nullable|string|max:500',
         ], [
@@ -130,6 +133,8 @@ class FinanceiroController extends Controller
             'meio.in' => 'Forma de pagamento inválida.',
             'banco.required_unless' => 'Informe de qual banco saiu o pagamento.',
             'banco.max' => 'O nome do banco pode ter no máximo 100 caracteres.',
+            'banco_novo.required' => 'Digite o nome do banco novo.',
+            'banco_novo.max' => 'O nome do banco pode ter no máximo 100 caracteres.',
             'data_pagamento.required' => 'Informe a data do pagamento.',
             'data_pagamento.date' => 'Data do pagamento inválida.',
         ]);
@@ -143,12 +148,19 @@ class FinanceiroController extends Controller
             ]);
         }
 
+        // O banco escolhido (ou digitado como novo) fica cadastrado na lista, sem duplicar grafias.
+        $banco = null;
+        if ($dados['meio'] !== 'dinheiro') {
+            $nomeBanco = trim((string) ($dados['banco'] === '__novo' ? $dados['banco_novo'] : $dados['banco']));
+            $banco = $nomeBanco === '' ? null : Banco::cadastrar($nomeBanco)->nome;
+        }
+
         PagamentoCompra::create([
             'purchase_request_id' => $purchaseRequest->id,
             'valor' => $valor,
             'forma' => $dados['forma'],
             'meio' => $dados['meio'],
-            'banco' => $dados['meio'] === 'dinheiro' ? null : (trim((string) ($dados['banco'] ?? '')) ?: null),
+            'banco' => $banco,
             'data_pagamento' => $dados['data_pagamento'],
             'obs' => $dados['obs'] ?? null,
             'user_id' => auth()->id(),

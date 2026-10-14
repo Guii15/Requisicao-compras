@@ -132,6 +132,7 @@
 
 </div>
 
+@php $bancos = \App\Models\Banco::nomes(); @endphp
 @foreach($itens as $linha)
     @include('financeiro._modal-pagar', ['linha' => $linha])
 @endforeach

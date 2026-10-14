@@ -1,12 +1,16 @@
-<datalist id="bancos-usados">
-    @foreach(\App\Models\PagamentoCompra::bancosUsados() as $banco)
-        <option value="{{ $banco }}">
-    @endforeach
-</datalist>
-
 <script>
 function meioPagamento(id, meio) {
     document.getElementById('campo-banco-' + id).style.display = meio === 'dinheiro' ? 'none' : 'block';
+    document.getElementById('banco-novo-' + id).required = meio !== 'dinheiro' && document.querySelector('#campo-banco-' + id + ' select').value === '__novo';
+}
+
+function bancoEscolhido(id, valor) {
+    var campo = document.getElementById('banco-novo-' + id);
+    campo.style.display = valor === '__novo' ? 'block' : 'none';
+    campo.required = valor === '__novo';
+    if (valor === '__novo') {
+        campo.focus();
+    }
 }
 
 function formaPagamento(id, forma) {

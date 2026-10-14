@@ -119,6 +119,7 @@
 </div>
 
 {{-- Quadros de pagamento (um por compra em aberto; a mesma janela no PC e no celular) --}}
+@php $bancos = \App\Models\Banco::nomes(); @endphp
 @foreach($compras as $linha)
     @include('financeiro._modal-pagar', ['linha' => $linha])
 @endforeach
