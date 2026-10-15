@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcrescimoCompra;
 use App\Models\Banco;
+use App\Models\MeioPagamento;
 use App\Models\PagamentoCompra;
 use App\Models\PurchaseRequest;
 use App\Services\PainelFinanceiro;
@@ -119,8 +120,10 @@ class FinanceiroController extends Controller
         $dados = $request->validate([
             'forma' => 'required|in:a_vista,parcelado',
             'valor' => 'required_if:forma,parcelado|nullable|numeric|min:0.01',
-            'meio' => ['required', Rule::in(array_keys(PagamentoCompra::MEIOS))],
-            'banco' => 'required_unless:meio,dinheiro|nullable|string|max:100',
+            'meio' => ['required', Rule::in([...array_keys(PagamentoCompra::meios()), '__novo'])],
+            // "Cadastrar nova forma" na lista: o nome vem neste campo.
+            'meio_novo' => ['nullable', 'string', 'max:60', Rule::requiredIf(fn () => $request->input('meio') === '__novo')],
+            'banco' => [Rule::requiredIf(fn () => in_array($request->input('meio'), PagamentoCompra::MEIOS_COM_BANCO, true)), 'nullable', 'string', 'max:100'],
             // "Cadastrar novo banco" na lista: o nome vem neste campo.
             'banco_novo' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => $request->input('meio') !== 'dinheiro' && $request->input('banco') === '__novo')],
             'data_pagamento' => 'required|date',
@@ -133,7 +136,9 @@ class FinanceiroController extends Controller
             'valor.min' => 'O valor precisa ser maior que zero.',
             'meio.required' => 'Informe a forma de pagamento (PIX, boleto, transferência...).',
             'meio.in' => 'Forma de pagamento inválida.',
-            'banco.required_unless' => 'Informe de qual banco saiu o pagamento.',
+            'meio_novo.required' => 'Digite o nome da forma de pagamento nova.',
+            'meio_novo.max' => 'O nome da forma de pagamento pode ter no máximo 60 caracteres.',
+            'banco.required' => 'Informe de qual banco saiu o pagamento.',
             'banco.max' => 'O nome do banco pode ter no máximo 100 caracteres.',
             'banco_novo.required' => 'Digite o nome do banco novo.',
             'banco_novo.max' => 'O nome do banco pode ter no máximo 100 caracteres.',
@@ -151,9 +156,12 @@ class FinanceiroController extends Controller
         }
 
         // O banco escolhido (ou digitado como novo) fica cadastrado na lista, sem duplicar grafias.
+        // Forma nova digitada na hora: fica cadastrada (ou reaproveita a que já existe com esse nome).
+        $meio = $dados['meio'] === '__novo' ? MeioPagamento::cadastrar($dados['meio_novo']) : $dados['meio'];
+
         $banco = null;
-        if ($dados['meio'] !== 'dinheiro') {
-            $nomeBanco = trim((string) ($dados['banco'] === '__novo' ? $dados['banco_novo'] : $dados['banco']));
+        if ($meio !== 'dinheiro') {
+            $nomeBanco = trim((string) (($dados['banco'] ?? '') === '__novo' ? $dados['banco_novo'] : ($dados['banco'] ?? '')));
             $banco = $nomeBanco === '' ? null : Banco::cadastrar($nomeBanco)->nome;
         }
 
@@ -161,7 +169,7 @@ class FinanceiroController extends Controller
             'purchase_request_id' => $purchaseRequest->id,
             'valor' => $valor,
             'forma' => $dados['forma'],
-            'meio' => $dados['meio'],
+            'meio' => $meio,
             'banco' => $banco,
             'data_pagamento' => $dados['data_pagamento'],
             'obs' => $dados['obs'] ?? null,

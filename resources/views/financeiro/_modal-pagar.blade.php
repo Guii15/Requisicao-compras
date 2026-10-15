@@ -52,13 +52,16 @@
                         <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Forma de pagamento <span style="color:#ef4444;">*</span></label>
                         <select name="meio" required onchange="meioPagamento({{ $c->id }}, this.value)"
                                 style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background-color:#fff;">
-                            @foreach(\App\Models\PagamentoCompra::MEIOS as $codigo => $nomeMeio)
+                            @foreach(\App\Models\PagamentoCompra::meios() as $codigo => $nomeMeio)
                                 <option value="{{ $codigo }}">{{ $nomeMeio }}</option>
                             @endforeach
+                            <option value="__novo">+ Cadastrar nova forma</option>
                         </select>
+                        <input type="text" id="meio-novo-{{ $c->id }}" name="meio_novo" maxlength="60" placeholder="Nome da forma nova" autocomplete="off"
+                               style="display:none; margin-top:6px; width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                     </div>
                     <div id="campo-banco-{{ $c->id }}">
-                        <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Banco <span style="color:#ef4444;">*</span></label>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Banco <span id="banco-obrig-{{ $c->id }}" style="color:#ef4444;">*</span></label>
                         <select name="banco" onchange="bancoEscolhido({{ $c->id }}, this.value)"
                                 style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background-color:#fff;">
                             <option value="">De qual banco saiu?</option>
