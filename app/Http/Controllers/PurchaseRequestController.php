@@ -162,7 +162,17 @@ class PurchaseRequestController extends Controller
             'product_url'    => 'nullable|url|max:2048',
             'quantity'       => 'required|integer|min:1',
             'anexo'          => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'novos_itens'                => 'nullable|array',
+            'novos_itens.*.product_name' => 'nullable|string|max:255',
+            'novos_itens.*.product_code' => 'nullable|string|max:100',
+            'novos_itens.*.product_url'  => 'nullable|string|max:2048',
+            'novos_itens.*.quantity'     => 'nullable|required_with:novos_itens.*.product_name|integer|min:1',
+            'novos_itens.*.anexo'        => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
         ], [
+            'novos_itens.*.quantity.required_with' => 'Preencha a quantidade do item novo.',
+            'novos_itens.*.quantity.min'           => 'A quantidade mínima é 1.',
+            'novos_itens.*.anexo.mimes'            => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
+            'novos_itens.*.anexo.max'              => 'O anexo pode ter no máximo 10 MB.',
             'requester_name.required' => 'O nome do vendedor é obrigatório.',
             'urgency.required'        => 'Selecione a urgência.',
             'reason.required'         => 'O motivo é obrigatório.',
@@ -175,6 +185,17 @@ class PurchaseRequestController extends Controller
             'anexo.mimes'              => 'O anexo precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'anexo.max'                => 'O anexo pode ter no máximo 10 MB.',
         ]);
+
+        // Item novo só entra enquanto a requisição inteira ainda está pendente (nada aprovado nem rejeitado).
+        $novosItens = collect($request->input('novos_itens', []))
+            ->filter(fn ($item) => trim($item['product_name'] ?? '') !== '');
+
+        if ($novosItens->isNotEmpty() && $purchaseRequest->grupo_id
+            && PurchaseRequest::where('grupo_id', $purchaseRequest->grupo_id)->where('status', '!=', 'pendente')->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'novos_itens' => 'Parte desta requisição já foi analisada pelo comprador; para mais itens, crie uma requisição nova.',
+            ]);
+        }
 
         $fornecedor = app(FornecedorResolver::class)->exato($request->supplier);
 
@@ -207,7 +228,48 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest->update($atualizacao);
 
-        return redirect()->route('requests.index')->with('success', 'Requisição atualizada com sucesso!');
+        if ($novosItens->isNotEmpty() && !$purchaseRequest->grupo_id) {
+            $purchaseRequest->update(['grupo_id' => (string) Str::uuid()]);
+        }
+
+        foreach ($novosItens as $index => $item) {
+            $anexoPath = null;
+            $anexoNome = null;
+
+            if ($request->hasFile("novos_itens.{$index}.anexo")) {
+                $arquivo = $request->file("novos_itens.{$index}.anexo");
+                $anexoPath = $arquivo->store('anexos-requisicao', self::DISCO_ANEXO);
+                $anexoNome = $arquivo->getClientOriginalName();
+            }
+
+            PurchaseRequest::create([
+                'user_id'           => $purchaseRequest->user_id,
+                'grupo_id'          => $purchaseRequest->grupo_id,
+                'requester_name'    => $purchaseRequest->requester_name,
+                'supplier'          => $purchaseRequest->supplier,
+                'fornecedor_id'     => $purchaseRequest->fornecedor_id,
+                'supplier_original' => $purchaseRequest->supplier_original,
+                'urgency'           => $purchaseRequest->urgency,
+                'reason'            => $purchaseRequest->reason,
+                'justification'     => $purchaseRequest->justification,
+                'tipo_entrega'      => $purchaseRequest->tipo_entrega,
+                'product_name'      => $item['product_name'],
+                'product_code'      => $item['product_code'] ?? null,
+                'product_url'       => $item['product_url'] ?? null,
+                'anexo_path'        => $anexoPath,
+                'anexo_nome'        => $anexoNome,
+                'quantity'          => $item['quantity'],
+                'status'            => 'pendente',
+            ]);
+        }
+
+        $mensagem = match ($novosItens->count()) {
+            0 => 'Requisição atualizada com sucesso!',
+            1 => 'Requisição atualizada! 1 item acrescentado.',
+            default => "Requisição atualizada! {$novosItens->count()} itens acrescentados.",
+        };
+
+        return redirect()->route('requests.index')->with('success', $mensagem);
     }
 
     /** O vendedor tira o anexo da própria requisição (só enquanto está pendente, como na edição). */
