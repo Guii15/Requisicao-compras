@@ -128,6 +128,52 @@
             </div>
         </div>
 
+        {{-- Itens novos: entram na mesma requisição, com os dados do pedido acima. --}}
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:28px; margin-bottom:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+                <h2 style="margin:0; font-size:15px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.5px;">Acrescentar itens</h2>
+                <button type="button" id="btn-novo-item"
+                        style="padding:8px 16px; border-radius:8px; border:1.5px solid #1d4ed8; background:#eff6ff; color:#1d4ed8; font-size:13px; font-weight:700; cursor:pointer;">
+                    + Adicionar item
+                </button>
+            </div>
+            <p style="margin:0 0 4px; font-size:13px; color:#6b7280;">Os itens novos entram nesta mesma requisição, com o mesmo vendedor, motivo, urgência e entrega.</p>
+            <div id="novos-itens"></div>
+        </div>
+
+        <template id="tpl-novo-item">
+            <div class="novo-item" style="border:1px dashed #cbd5e1; border-radius:10px; padding:16px; margin-top:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <strong class="novo-item-titulo" style="font-size:13px; color:#1e3a8a;">Item novo</strong>
+                    <button type="button" class="rm-novo-item" style="background:none; border:none; color:#dc2626; font-size:12px; text-decoration:underline; cursor:pointer; padding:0;">Tirar</button>
+                </div>
+                <div class="edit-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Nome do produto *</label>
+                        <input type="text" data-campo="product_name" required style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Código do produto</label>
+                        <input type="text" data-campo="product_code" style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                    </div>
+                </div>
+                <div class="edit-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">URL do produto</label>
+                        <input type="text" data-campo="product_url" placeholder="https://..." style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Quantidade *</label>
+                        <input type="number" data-campo="quantity" min="1" value="1" required style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:14px; box-sizing:border-box;">
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px;">Anexo <span style="color:#9ca3af; font-weight:400;">(opcional)</span></label>
+                    <input type="file" data-campo="anexo" accept=".pdf,.jpg,.jpeg,.png,.webp" style="width:100%; font-size:13px;">
+                </div>
+            </div>
+        </template>
+
         <div style="display:flex; gap:12px; justify-content:flex-end;">
             <a href="{{ route('requests.index') }}"
                style="padding:11px 24px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; text-decoration:none;">
@@ -149,5 +195,29 @@
     @endif
 
 </div>
+
+<script>
+(function () {
+    var lista = document.getElementById('novos-itens');
+    var tpl = document.getElementById('tpl-novo-item');
+    var proximo = 0;
+
+    function renumerar() {
+        lista.querySelectorAll('.novo-item-titulo').forEach(function (t, i) { t.textContent = 'Item novo ' + (i + 1); });
+    }
+
+    document.getElementById('btn-novo-item').addEventListener('click', function () {
+        var i = proximo++;
+        var bloco = tpl.content.firstElementChild.cloneNode(true);
+        bloco.querySelectorAll('[data-campo]').forEach(function (el) {
+            el.name = 'novos_itens[' + i + '][' + el.dataset.campo + ']';
+        });
+        bloco.querySelector('.rm-novo-item').addEventListener('click', function () { bloco.remove(); renumerar(); });
+        lista.appendChild(bloco);
+        renumerar();
+        bloco.querySelector('[data-campo="product_name"]').focus();
+    });
+})();
+</script>
 
 @endsection
