@@ -100,11 +100,10 @@ class FinanceiroMeioBancoTest extends TestCase
         $this->actingAs($this->fin)->get(route('financeiro.index'))->assertSee('Cheque')->assertSee('Caixa');
     }
 
-    public function test_quadro_de_pagamento_tem_os_campos_e_sugere_bancos_ja_usados(): void
+    public function test_quadro_de_pagamento_tem_os_campos_e_lista_os_bancos_cadastrados(): void
     {
         $c = $this->compra();
-        $outra = $this->compra(['supplier' => 'Kabum']);
-        PagamentoCompra::create(['purchase_request_id' => $outra->id, 'valor' => 10, 'forma' => 'parcelado', 'meio' => 'pix', 'banco' => 'Nubank PJ', 'data_pagamento' => '2026-09-25', 'user_id' => $this->fin->id]);
+        \App\Models\Banco::create(['nome' => 'Nubank PJ']);
 
         $this->actingAs($this->fin)->get(route('financeiro.aguardando'))
             ->assertSee('name="meio"', false)

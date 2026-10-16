@@ -38,7 +38,7 @@
     @endif
     @if($errors->any())
         <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">
-            <strong>Não foi possível registrar o pagamento:</strong>
+            <strong>Não foi possível salvar:</strong>
             <ul style="margin:6px 0 0; padding-left:18px;">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul>
         </div>
     @endif
@@ -91,7 +91,7 @@
                             <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
                         </td>
                         <td data-rotulo="Comprador" style="padding:12px 9px;">{{ $c->requester_name ?? '—' }}</td>
-                        <td data-rotulo="Valor" style="padding:12px 9px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}</td>
+                        <td data-rotulo="Valor" style="padding:12px 9px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}@if($linha['acrescimo'] > 0)<div style="font-size:11.5px; color:#92400e;">+ {{ Dinheiro::brl($linha['acrescimo']) }} acréscimo</div><div style="font-size:11.5px; color:#6b7280;">custo real {{ Dinheiro::brl($linha['custo_total']) }}</div>@endif</td>
                         <td data-rotulo="{{ $aguardando ? 'Em aberto' : 'Pago' }}" style="padding:12px 9px; text-align:right; white-space:nowrap; font-weight:700; color:#111827;">{{ Dinheiro::brl($aguardando ? $linha['aberto'] : $linha['pago']) }}</td>
                         <td data-rotulo="{{ $aguardando ? 'Vencimento' : 'Pago em' }}" style="padding:12px 9px; text-align:center; white-space:nowrap; color:#6b7280;">
                             @if($aguardando)
@@ -111,12 +111,16 @@
                         </td>
                         <td data-rotulo="Situação" style="padding:12px 9px; text-align:center;">{!! $selo($linha['situacao']) !!}</td>
                         <td class="lr-acao" style="padding:12px 9px; text-align:center; white-space:nowrap;">
+                            <div style="display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap;">
                             @if($linha['aberto'] > 0)
                                 <button type="button" onclick="document.getElementById('modal-pagar-{{ $c->id }}').style.display='flex'"
                                         style="background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; cursor:pointer;">Pagar</button>
                             @else
                                 <a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#05018D; font-size:12px; font-weight:600;">Ver</a>
                             @endif
+                            <button type="button" onclick="document.getElementById('modal-acrescimo-{{ $c->id }}').style.display='flex'" title="Lançar impostos, frete ou outro custo a mais desta compra"
+                                    style="background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">+ Acréscimo</button>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -132,8 +136,10 @@
 
 </div>
 
+@php $bancos = \App\Models\Banco::nomes(); @endphp
 @foreach($itens as $linha)
     @include('financeiro._modal-pagar', ['linha' => $linha])
+    @include('financeiro._modal-acrescimo', ['linha' => $linha])
 @endforeach
 
 @include('financeiro._scripts')
