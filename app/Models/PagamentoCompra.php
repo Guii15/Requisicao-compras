@@ -28,6 +28,7 @@ class PagamentoCompra extends Model
     protected $casts = [
         'valor' => 'decimal:2',
         'data_pagamento' => 'date',
+        'estornado_em' => 'datetime',
     ];
 
     public function compra(): BelongsTo
@@ -38,6 +39,16 @@ class PagamentoCompra extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    public function estornadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'estornado_por')->withTrashed();
+    }
+
+    public function estornado(): bool
+    {
+        return $this->estornado_em !== null;
     }
 
     public function meioRotulo(): ?string

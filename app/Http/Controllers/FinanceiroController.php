@@ -181,14 +181,29 @@ class FinanceiroController extends Controller
         return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' registrado.');
     }
 
-    public function desfazer(PagamentoCompra $pagamento, SaldoFornecedores $saldos)
+    /** Estorna um pagamento: ele fica guardado (com quem, quando e o motivo), mas deixa de abater o saldo. */
+    public function estornar(Request $request, PagamentoCompra $pagamento, SaldoFornecedores $saldos)
     {
         $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($pagamento->compra?->supplier))));
-        $valor = $pagamento->valor;
 
-        $pagamento->delete();
+        if ($pagamento->estornado()) {
+            return $volta->with('aviso', 'Este pagamento já estava estornado — nada foi alterado.');
+        }
 
-        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' desfeito; o valor voltou para o saldo.');
+        $dados = $request->validate([
+            'motivo' => 'required|string|max:500',
+        ], [
+            'motivo.required' => 'Informe o motivo do estorno.',
+            'motivo.max' => 'O motivo pode ter no máximo 500 caracteres.',
+        ]);
+
+        $pagamento->forceFill([
+            'estornado_em' => now(),
+            'estornado_por' => auth()->id(),
+            'motivo_estorno' => trim($dados['motivo']),
+        ])->save();
+
+        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($pagamento->valor) . ' estornado; o valor voltou para o saldo.');
     }
 
     /** Lança um acréscimo (impostos, frete...): soma no custo real da compra, sem aumentar a dívida com o fornecedor. */
