@@ -48,7 +48,9 @@ function previaCheque(id) {
         return;
     }
     var form = caixa.closest('form');
-    var parcelado = form.querySelector('[name="forma"]:checked').value === 'parcelado';
+    // Sem a escolha à vista/parcelado (Pagar fornecedor), o valor é sempre o digitado.
+    var forma = form.querySelector('[name="forma"]:checked');
+    var parcelado = !forma || forma.value === 'parcelado';
     var texto = parcelado ? form.querySelector('[name="valor"]').value : caixa.dataset.aberto;
     if (parcelado) {
         texto = texto.replace(/[R$\s]/g, '');
@@ -85,6 +87,40 @@ function formaPagamento(id, forma) {
     document.getElementById('campo-valor-' + id).style.display = forma === 'parcelado' ? 'block' : 'none';
 }
 
+// Prévia do "Pagar fornecedor": quais compras o valor quita, da mais antiga para a mais nova.
+function previaFornecedor() {
+    var previa = document.getElementById('previa-fornecedor');
+    if (!previa || typeof ORDEM_PAGAMENTO_FORNECEDOR === 'undefined') {
+        return;
+    }
+    var texto = document.querySelector('#modal-pagar-forn [name="valor"]').value.replace(/[R$\s]/g, '');
+    if (texto.indexOf(',') >= 0) {
+        texto = texto.replace(/\./g, '').replace(',', '.');
+    }
+    var centavos = /^\d+(\.\d{1,2})?$/.test(texto) ? Math.round(parseFloat(texto) * 100) : 0;
+    var saldo = ORDEM_PAGAMENTO_FORNECEDOR.reduce(function (t, c) { return t + c.centavos; }, 0);
+    if (!centavos) {
+        previa.innerHTML = '<span style="color:#b91c1c; font-weight:600;">Informe um valor válido (ex.: 12.500,00).</span>';
+    } else if (centavos > saldo) {
+        previa.innerHTML = '<span style="color:#b91c1c; font-weight:600;">O valor passa do saldo devedor (' + reais(saldo) + ').</span>';
+    } else {
+        var resta = centavos, linhas = [];
+        ORDEM_PAGAMENTO_FORNECEDOR.forEach(function (c) {
+            if (resta <= 0) {
+                return;
+            }
+            var usa = Math.min(resta, c.centavos);
+            resta -= usa;
+            var quita = usa === c.centavos;
+            linhas.push('<div style="display:flex; justify-content:space-between; gap:8px; padding:2px 0;"><span>#' + c.id + ' · ' + c.produto.replace(/</g, '&lt;')
+                + (c.vence ? ' <span style="color:#9ca3af;">vence ' + c.vence + '</span>' : '') + '</span>'
+                + '<span style="white-space:nowrap;"><strong>' + reais(usa) + '</strong> ' + (quita ? '<span style="color:#17794a;">quita</span>' : '<span style="color:#7a4f00;">parcial (falta ' + reais(c.centavos - usa) + ')</span>') + '</span></div>');
+        });
+        previa.innerHTML = '<div style="font-weight:600; margin-bottom:4px;">Vai quitar ' + linhas.length + (linhas.length === 1 ? ' compra' : ' compras') + ':</div>' + linhas.join('');
+    }
+    previaCheque('forn');
+}
+
 // Janela de pagamento que voltou com erro: reaplica o que depende da forma escolhida (cheque, banco novo...).
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[id^="modal-pagar-"][data-reabrir="1"]').forEach(function (modal) {
@@ -92,6 +128,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var meio = modal.querySelector('select[name="meio"]');
         if (meio) {
             meioPagamento(id, meio.value);
+        }
+        if (id === 'forn') {
+            previaFornecedor();
         }
     });
 });

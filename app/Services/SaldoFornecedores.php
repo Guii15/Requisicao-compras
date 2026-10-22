@@ -250,6 +250,37 @@ class SaldoFornecedores
             ->values();
     }
 
+    /**
+     * Distribui um pagamento ao fornecedor entre as compras em aberto: primeiro a de vencimento mais antigo
+     * (sem vencimento, vale a data da compra), cada uma até o que falta nela. Conta em centavos.
+     *
+     * @param  Collection  $linhas  linhas do fornecedor (resultado de linhas()/comprasDoFornecedor())
+     * @return list<array{linha: array, centavos: int, quita: bool}>
+     */
+    public function distribuir(Collection $linhas, int $centavos): array
+    {
+        $ordem = $linhas
+            ->filter(fn (array $l) => $l['aberto'] > 0)
+            ->sortBy(fn (array $l) => ($l['proximo_vencimento'] ?? $l['compra']->data_compra)->format('Ymd')
+                . $l['compra']->data_compra->format('Ymd')
+                . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+            ->values();
+
+        $partes = [];
+        foreach ($ordem as $linha) {
+            if ($centavos <= 0) {
+                break;
+            }
+
+            $falta = (int) round($linha['aberto'] * 100);
+            $usa = min($falta, $centavos);
+            $partes[] = ['linha' => $linha, 'centavos' => $usa, 'quita' => $usa === $falta];
+            $centavos -= $usa;
+        }
+
+        return $partes;
+    }
+
     /** Nome para mostrar: o cadastrado (se houver) ou a grafia mais usada nas compras. */
     public function nome(string $chave, Collection $compras): string
     {
