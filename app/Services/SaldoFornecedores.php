@@ -24,7 +24,8 @@ class SaldoFornecedores
     /** Só conta compra aprovada com os dados da compra preenchidos (as importadas do histórico ficam de fora). */
     public function conta(PurchaseRequest $compra): bool
     {
-        return $compra->status === 'aprovado' && $compra->data_compra !== null && $compra->preco_unitario !== null;
+        return in_array($compra->tipo_registro, PurchaseRequest::TIPOS_FINANCEIRO, true)
+            && $compra->status === 'aprovado' && $compra->data_compra !== null && $compra->preco_unitario !== null;
     }
 
     public function chave(?string $fornecedor): string
@@ -125,7 +126,10 @@ class SaldoFornecedores
     /** @return Collection<int, PurchaseRequest> */
     private function compras(): Collection
     {
-        return PurchaseRequest::with(['pagamentos.cheques', 'pagamentosEstornados.cheques', 'acrescimos', 'fornecedor'])
+        // Contas lançadas no Financeiro ficam fora do escopo padrão (telas de compras), mas entram aqui.
+        return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
+            ->whereIn('tipo_registro', PurchaseRequest::TIPOS_FINANCEIRO)
+            ->with(['pagamentos.cheques', 'pagamentosEstornados.cheques', 'acrescimos', 'fornecedor'])
             ->where('status', 'aprovado')
             ->whereNotNull('data_compra')
             ->whereNotNull('preco_unitario')

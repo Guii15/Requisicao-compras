@@ -23,7 +23,7 @@
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Financeiro</h1>
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">
-            {{ $aguardando ? 'Compras que ainda têm algo a pagar, das mais novas para as mais antigas.' : 'Compras já quitadas, das pagas mais recentemente para as mais antigas.' }}
+            {{ $aguardando ? 'Contas a pagar, pela data de vencimento: a que vence antes fica em cima.' : 'Compras já quitadas, das pagas mais recentemente para as mais antigas.' }}
         </p>
     </div>
 
@@ -50,15 +50,42 @@
     </div>
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+        @if($aguardando)
+            {{-- Atalhos por vencimento, com quantas contas e quanto falta em cada um --}}
+            @php $base = array_filter(['empresa' => request('empresa'), 'q' => $q]); @endphp
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                <a href="{{ route($rota, $base) }}" style="padding:7px 14px; border-radius:9999px; border:1px solid {{ !$vence && !$de && !$ate ? '#05018D' : '#cbd5e1' }}; background:{{ !$vence && !$de && !$ate ? '#05018D' : '#fff' }}; color:{{ !$vence && !$de && !$ate ? '#fff' : '#475569' }}; text-decoration:none; font-size:13px; font-weight:600; white-space:nowrap;">Todas</a>
+                @foreach($atalhos as $codigo => $a)
+                    @php
+                        $ativo = $vence === $codigo;
+                        $alerta = $codigo === 'vencidas' && $a['quantidade'] > 0;
+                        $cor = $ativo ? '#05018D' : ($alerta ? '#b8301a' : '#cbd5e1');
+                    @endphp
+                    <a href="{{ route($rota, $base + ['vence' => $codigo]) }}"
+                       style="padding:7px 14px; border-radius:9999px; border:1px solid {{ $cor }}; background:{{ $ativo ? '#05018D' : '#fff' }}; color:{{ $ativo ? '#fff' : ($alerta ? '#b8301a' : '#475569') }}; text-decoration:none; font-size:13px; font-weight:600; white-space:nowrap;">{{ $a['rotulo'] }} · {{ $a['quantidade'] }} · {{ Dinheiro::brl($a['valor']) }}</a>
+                @endforeach
+            </div>
+        @endif
         <form method="GET" action="{{ route($rota) }}" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
             @if(request('empresa'))<input type="hidden" name="empresa" value="{{ request('empresa') }}">@endif
+            @if($aguardando)
+                @if($vence)<input type="hidden" name="vence" value="{{ $vence }}">@endif
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Vence de</label>
+                    <input type="date" name="de" value="{{ $de }}" style="padding:7px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Até</label>
+                    <input type="date" name="ate" value="{{ $ate }}" style="padding:7px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+                </div>
+            @endif
             <div style="flex:1; min-width:220px;">
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Buscar</label>
                 <input type="text" name="q" value="{{ $q }}" placeholder="Fornecedor, produto, comprador ou nº da requisição..."
                        style="width:100%; padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; box-sizing:border-box;">
             </div>
             <button type="submit" style="padding:8px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Buscar</button>
-            @if($q !== '')
+            @if($q !== '' || $vence || $de || $ate)
                 <a href="{{ route($rota, array_filter(['empresa' => request('empresa')])) }}" style="padding:8px 14px; border-radius:8px; border:1px solid #e5e7eb; color:#6b7280; text-decoration:none; font-size:13px;">Limpar</a>
             @endif
         </form>
@@ -88,7 +115,7 @@
                         <td class="lr-num" style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a></td>
                         <td class="lr-larga" data-rotulo="Produto" style="padding:12px 9px; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span>
-                            <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
+                            <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}{!! $c->ehContaAvulsa() ? ' · <span style="color:#6d28d9; font-weight:600;">conta lançada</span>' : '' !!}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
                         </td>
                         <td data-rotulo="Comprador" style="padding:12px 9px;">{{ $c->requester_name ?? '—' }}</td>
                         <td data-rotulo="Valor" style="padding:12px 9px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}@if($linha['acrescimo'] > 0)<div style="font-size:11.5px; color:#92400e;">+ {{ Dinheiro::brl($linha['acrescimo']) }} acréscimo</div><div style="font-size:11.5px; color:#6b7280;">custo real {{ Dinheiro::brl($linha['custo_total']) }}</div>@endif</td>

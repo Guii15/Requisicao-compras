@@ -291,7 +291,8 @@ class AdminController extends Controller
         $dataUnificada = "CASE WHEN tipo_registro = 'requisicao' THEN COALESCE(data_compra, created_at) ELSE COALESCE(data_compra, '1970-01-01') END";
 
         $baseQuery = function () {
-            return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo');
+            // Contas lançadas à mão no Financeiro não são compras: ficam fora do histórico.
+            return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')->where('tipo_registro', '!=', PurchaseRequest::CONTA_AVULSA);
         };
 
         $query = $baseQuery()->with('user');

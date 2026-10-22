@@ -9,12 +9,14 @@ use App\Models\MeioPagamento;
 use App\Models\PagamentoCompra;
 use App\Models\PurchaseRequest;
 use App\Services\DesdobramentoCheque;
+use App\Services\FornecedorResolver;
 use App\Services\PainelFinanceiro;
 use App\Services\RelatorioFinanceiro;
 use App\Services\SaldoFornecedores;
 use App\Services\UnificadorFornecedores;
 use App\Support\Dinheiro;
 use App\Support\PlanilhaXlsx;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -30,6 +32,15 @@ class FinanceiroController extends Controller
 {
     private const POR_PAGINA = 25;
 
+    /** Atalhos da aba Aguardando (contas a pagar), pelo próximo vencimento. */
+    private const ATALHOS_VENCIMENTO = [
+        'vencidas' => 'Vencidas',
+        'hoje' => 'Vence hoje',
+        'semana' => 'Próximos 7 dias',
+        'mes' => 'Até o fim do mês',
+        'sem' => 'Sem vencimento',
+    ];
+
     public function index(Request $request, PainelFinanceiro $painel)
     {
         $d = $painel->dados(null, $request->query('empresa'));
@@ -39,12 +50,51 @@ class FinanceiroController extends Controller
 
     public function aguardando(Request $request, SaldoFornecedores $saldos)
     {
-        $linhas = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))
-            ->where('aberto', '>', 0)
-            ->sortByDesc(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+        // Contas a pagar: primeiro pelo vencimento (a que vence antes em cima); as sem vencimento vão para o fim, das mais novas para as mais antigas.
+        $semData = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))->where('aberto', '>', 0)
+            ->sortByDesc(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT));
+        $linhas = $semData->whereNotNull('proximo_vencimento')
+            ->sortBy(fn ($l) => $l['proximo_vencimento']->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+            ->concat($semData->whereNull('proximo_vencimento'))
             ->values();
 
-        return $this->lista($request, $linhas, 'aguardando');
+        $hoje = CarbonImmutable::now('America/Sao_Paulo')->startOfDay();
+        $vence = fn (array $l, string $quando) => match ($quando) {
+            'vencidas' => $l['vencida'],
+            'hoje' => $l['proximo_vencimento']?->isSameDay($hoje) ?? false,
+            'semana' => $l['proximo_vencimento'] !== null && $l['proximo_vencimento'] >= $hoje && $l['proximo_vencimento'] <= $hoje->addDays(6),
+            'mes' => $l['proximo_vencimento'] !== null && $l['proximo_vencimento'] >= $hoje && $l['proximo_vencimento'] <= $hoje->endOfMonth(),
+            'sem' => $l['proximo_vencimento'] === null,
+            default => true,
+        };
+
+        // Atalhos com quantas contas e quanto falta em cada um (antes de filtrar).
+        $atalhos = collect(self::ATALHOS_VENCIMENTO)->map(function (string $rotulo, string $codigo) use ($linhas, $vence) {
+            $grupo = $linhas->filter(fn ($l) => $vence($l, $codigo));
+
+            return ['rotulo' => $rotulo, 'quantidade' => $grupo->count(), 'valor' => round($grupo->sum('aberto'), 2)];
+        })->all();
+
+        $quando = array_key_exists((string) $request->query('vence'), self::ATALHOS_VENCIMENTO) ? (string) $request->query('vence') : null;
+        if ($quando) {
+            $linhas = $linhas->filter(fn ($l) => $vence($l, $quando))->values();
+        }
+
+        // Período de vencimento escolhido (de/até).
+        $de = $this->dataOuNula($request->query('de'));
+        $ate = $this->dataOuNula($request->query('ate'));
+        if ($de || $ate) {
+            $linhas = $linhas->filter(fn ($l) => $l['proximo_vencimento'] !== null
+                && (!$de || $l['proximo_vencimento']->format('Y-m-d') >= $de)
+                && (!$ate || $l['proximo_vencimento']->format('Y-m-d') <= $ate))->values();
+        }
+
+        return $this->lista($request, $linhas, 'aguardando', ['atalhos' => $atalhos, 'vence' => $quando, 'de' => $de, 'ate' => $ate]);
+    }
+
+    private function dataOuNula(mixed $texto): ?string
+    {
+        return is_string($texto) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $texto) ? $texto : null;
     }
 
     public function pagos(Request $request, SaldoFornecedores $saldos)
@@ -150,16 +200,16 @@ class FinanceiroController extends Controller
             . " para esse nome. Quem digitar \"{$nomes[$origem]}\" daqui para frente cai aqui.");
     }
 
-    public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos, DesdobramentoCheque $desdobramento)
+    public function pagar(Request $request, PurchaseRequest $conta, SaldoFornecedores $saldos, DesdobramentoCheque $desdobramento)
     {
         // Volta para a tela de onde o pagamento foi feito (lista ou fornecedor).
-        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($purchaseRequest->supplier))));
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($conta->supplier))));
 
-        if (!$saldos->conta($purchaseRequest)) {
+        if (!$saldos->conta($conta)) {
             return redirect()->route('financeiro.index')->with('aviso', 'Esta compra não entra no financeiro — nada foi alterado.');
         }
 
-        $situacao = $saldos->situacao($purchaseRequest->load('pagamentos'));
+        $situacao = $saldos->situacao($conta->load('pagamentos'));
 
         if ($situacao['aberto'] <= 0) {
             return $volta->with('aviso', 'Esta compra já está paga — nada foi alterado.');
@@ -177,12 +227,96 @@ class FinanceiroController extends Controller
         }
 
         $folhas = $this->gravarPagamento($dados, $valor, [
-            ['compra' => $purchaseRequest, 'valor' => $valor, 'forma' => $dados['forma']],
+            ['compra' => $conta, 'valor' => $valor, 'forma' => $dados['forma']],
         ], $desdobramento);
 
         $mensagem = 'Pagamento de ' . Dinheiro::brl($valor) . ' registrado.' . $this->textoFolhas($folhas);
 
         return $volta->with('success', $mensagem);
+    }
+
+    /** Nomes de fornecedor já usados, para a lista do "Lançar conta". */
+    public function nomesFornecedores()
+    {
+        return response()->json(DB::table('purchase_requests')->whereNotNull('supplier')->where('supplier', '!=', '')
+            ->distinct()->orderBy('supplier')->pluck('supplier'));
+    }
+
+    /**
+     * Conta que não veio de uma requisição (saldo antigo, conta do Bling, fornecedor sem compra no sistema).
+     * Entra no saldo como uma compra; "já paga" grava junto o pagamento do valor todo.
+     */
+    public function lancarConta(Request $request, SaldoFornecedores $saldos, FornecedorResolver $fornecedores, DesdobramentoCheque $desdobramento)
+    {
+        if ($request->filled('valor')) {
+            $request->merge(['valor' => Dinheiro::decimal($request->input('valor'))]);
+        }
+
+        $conta = $request->validate([
+            'fornecedor' => 'required|string|max:255',
+            'descricao' => 'required|string|max:255',
+            'valor' => 'required|numeric|min:0.01|max:999999999',
+            'data_conta' => 'required|date',
+            'condicao' => 'required|in:a_vista,parcelado',
+            'parcelas' => 'nullable|required_if:condicao,parcelado|integer|min:2|max:120',
+            'vencimento' => 'nullable|date',
+            'empresa_conta' => 'nullable|string|max:100',
+            'obs_conta' => 'nullable|string|max:500',
+            'ja_paga' => 'nullable|boolean',
+        ], [
+            'fornecedor.required' => 'Informe o fornecedor.',
+            'descricao.required' => 'Descreva a conta (ex.: saldo anterior, NF 1234).',
+            'valor.required' => 'Informe o valor da conta.',
+            'valor.numeric' => 'O valor precisa ser um número.',
+            'valor.min' => 'O valor precisa ser maior que zero.',
+            'data_conta.required' => 'Informe a data da conta.',
+            'data_conta.date' => 'Data da conta inválida.',
+            'condicao.required' => 'Informe se é à vista ou parcelado.',
+            'parcelas.required_if' => 'Informe em quantas parcelas.',
+            'parcelas.min' => 'Parcelado precisa ter pelo menos 2 parcelas.',
+            'vencimento.date' => 'Data de vencimento inválida.',
+        ]);
+
+        $pagamento = $request->boolean('ja_paga') ? $this->validarPagamento($request, false) : null;
+
+        $digitado = trim($conta['fornecedor']);
+        $fornecedor = $fornecedores->exato($digitado);
+        $valor = round((float) $conta['valor'], 2);
+
+        $compra = DB::transaction(function () use ($conta, $digitado, $fornecedor, $valor, $pagamento, $desdobramento) {
+            $compra = PurchaseRequest::create([
+                'tipo_registro' => PurchaseRequest::CONTA_AVULSA,
+                'user_id' => auth()->id(),
+                'requester_name' => auth()->user()->name,
+                'product_name' => trim($conta['descricao']),
+                'supplier' => $fornecedor?->nome ?? $digitado,
+                'fornecedor_id' => $fornecedor?->id,
+                'supplier_original' => $digitado,
+                'empresa' => trim((string) ($conta['empresa_conta'] ?? '')) ?: null,
+                'quantity' => 1,
+                'preco_unitario' => $valor,
+                'valor' => $valor,
+                'data_compra' => $conta['data_conta'],
+                'condicao_pagamento' => $conta['condicao'],
+                'parcelas' => $conta['condicao'] === 'parcelado' ? (int) $conta['parcelas'] : null,
+                'primeiro_vencimento' => $conta['vencimento'] ?? null,
+                'obs' => $conta['obs_conta'] ?? null,
+                'status' => 'aprovado',
+                'approved_at' => now(),
+                'urgency' => 'baixa',
+                'reason' => 'Conta lançada no Financeiro',
+                'justification' => 'Conta lançada no Financeiro',
+            ]);
+
+            if ($pagamento) {
+                $this->gravarPagamento($pagamento, $valor, [['compra' => $compra, 'valor' => $valor, 'forma' => 'a_vista']], $desdobramento);
+            }
+
+            return $compra;
+        });
+
+        return redirect()->route('financeiro.fornecedor', $saldos->chave($compra->supplier))->with('success',
+            'Conta de ' . Dinheiro::brl($valor) . ' lançada' . ($pagamento ? ' já paga' : '') . '.');
     }
 
     /**
@@ -400,11 +534,11 @@ class FinanceiroController extends Controller
     }
 
     /** Lança um acréscimo (impostos, frete...): soma no custo real da compra, sem aumentar a dívida com o fornecedor. */
-    public function acrescentar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos)
+    public function acrescentar(Request $request, PurchaseRequest $conta, SaldoFornecedores $saldos)
     {
-        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($purchaseRequest->supplier))));
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($conta->supplier))));
 
-        if (!$saldos->conta($purchaseRequest)) {
+        if (!$saldos->conta($conta)) {
             return redirect()->route('financeiro.index')->with('aviso', 'Esta compra não entra no financeiro — nada foi alterado.');
         }
 
@@ -426,13 +560,13 @@ class FinanceiroController extends Controller
         $valor = round((float) $dados['valor'], 2);
 
         AcrescimoCompra::create([
-            'purchase_request_id' => $purchaseRequest->id,
+            'purchase_request_id' => $conta->id,
             'valor' => $valor,
             'motivo' => trim($dados['motivo']),
             'user_id' => auth()->id(),
         ]);
 
-        return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($valor) . ' lançado na requisição #' . $purchaseRequest->id . '.');
+        return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($valor) . ' lançado na requisição #' . $conta->id . '.');
     }
 
     public function removerAcrescimo(AcrescimoCompra $acrescimo, SaldoFornecedores $saldos)
@@ -582,7 +716,7 @@ class FinanceiroController extends Controller
     }
 
     /** Lista paginada de compras (abas Aguardando e Pagos), com busca por fornecedor, produto, comprador ou nº da requisição. */
-    private function lista(Request $request, Collection $linhas, string $modo)
+    private function lista(Request $request, Collection $linhas, string $modo, array $extra = [])
     {
         $q = trim((string) $request->query('q', ''));
         $empresaSel = $this->empresaEscolhida($request);
@@ -606,7 +740,7 @@ class FinanceiroController extends Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
 
-        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total', 'empresas', 'empresaSel'));
+        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total', 'empresas', 'empresaSel') + $extra + ['atalhos' => [], 'vence' => null, 'de' => null, 'ate' => null]);
     }
 
     /** Para o pagamento se alguma das folhas já foi usada nesse banco (mesmo em cheque cancelado). */
