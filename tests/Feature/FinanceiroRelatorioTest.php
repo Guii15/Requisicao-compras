@@ -139,6 +139,19 @@ class FinanceiroRelatorioTest extends TestCase
             ->assertSee('Ana Financeiro');
     }
 
+    public function test_na_impressao_texto_comprido_quebra_dentro_da_coluna(): void
+    {
+        $c = $this->compra('Joyce', '2026-10-02', 500, ['product_name' => 'TESTE' . str_repeat('asdfg', 40)]);
+        $this->pagamento($c, '2026-10-05', 500);
+
+        $this->actingAs($this->fin)->get(route('financeiro.relatorio', ['periodo' => 'mes']))
+            ->assertOk()
+            ->assertSee('<td class="rel-texto"', false)
+            ->assertSee('.rel-tabela td.rel-texto { overflow-wrap: anywhere; }', false)
+            ->assertSee('@media print and (orientation: portrait)', false)
+            ->assertSee('@media screen and (max-width: 768px)', false);
+    }
+
     public function test_aba_relatorio_aparece_no_financeiro(): void
     {
         $this->actingAs($this->fin)->get(route('financeiro.index'))->assertSee(route('financeiro.relatorio'), false);

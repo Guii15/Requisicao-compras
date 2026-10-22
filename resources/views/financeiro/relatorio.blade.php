@@ -31,7 +31,7 @@
     .rel-atalho.ativo { background: #05018D; border-color: #05018D; color: #fff; }
     .rel-so-impressao { display: none; }
     /* No celular as tabelas rolam para o lado em vez de quebrar palavra no meio. */
-    @media (max-width: 768px) { .rel-tabela td, .rel-tabela th { white-space: nowrap; overflow-wrap: normal; } }
+    @media screen and (max-width: 768px) { .rel-tabela td, .rel-tabela th { white-space: nowrap; overflow-wrap: normal; } }
 
     @media print {
         @page { size: A4 landscape; margin: 10mm; }
@@ -48,6 +48,17 @@
         .rel-tabela thead { display: table-header-group; }
         .rel-tabela tfoot { display: table-row-group; } /* o total sai só no fim da tabela, não em cada página */
         .rel-rolagem { overflow: visible; }
+        /* No papel não há rolagem: texto comprido (produto, observação) quebra dentro da coluna em vez de empurrar Valor para fora da folha. */
+        .rel-tabela td { overflow-wrap: break-word; }
+        .rel-tabela td.rel-texto { overflow-wrap: anywhere; }
+        .rel-tabela th { letter-spacing: 0; }
+    }
+    /* Quem imprimir em retrato: letra e espaçamento menores para as 10 colunas caberem na largura. */
+    @media print and (orientation: portrait) {
+        .rel-tabela { font-size: 8.5px; }
+        .rel-tabela thead tr { font-size: 7.5px; }
+        .rel-tabela td, .rel-tabela th { padding: 5px 4px !important; }
+        .bm-faixa .bm-valor { font-size: 17px; overflow: visible; text-overflow: clip; }
         * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 </style>
@@ -154,12 +165,12 @@
                             <td style="{{ $td }} white-space:nowrap;">{{ $p['data']->format('d/m/Y') }}</td>
                             <td style="{{ $td }} font-weight:600;">{{ $p['fornecedor'] }}</td>
                             <td style="{{ $td }}">#{{ $p['requisicao'] }}</td>
-                            <td style="{{ $td }}">{{ $p['produto'] }}</td>
+                            <td class="rel-texto" style="{{ $td }}">{{ $p['produto'] }}</td>
                             <td style="{{ $td }}">{{ $p['tipo'] }}</td>
                             <td style="{{ $td }}">{{ $p['meio'] }}</td>
                             <td style="{{ $td }}">{{ $p['banco'] }}</td>
                             <td style="{{ $tdd }} font-weight:600;">{{ Dinheiro::brl($p['valor']) }}</td>
-                            <td style="{{ $td }} color:#6b7280;">{{ $p['obs'] ?? '' }}</td>
+                            <td class="rel-texto" style="{{ $td }} color:#6b7280;">{{ $p['obs'] ?? '' }}</td>
                             <td style="{{ $td }} color:#6b7280;">{{ $p['usuario'] ?? '—' }}</td>
                         </tr>
                     @empty
@@ -190,7 +201,7 @@
                             <td style="{{ $td }} white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}</td>
                             <td style="{{ $td }} font-weight:600;">{{ $l['fornecedor'] }}</td>
                             <td style="{{ $td }}">#{{ $c->id }}</td>
-                            <td style="{{ $td }}">{{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span></td>
+                            <td class="rel-texto" style="{{ $td }}">{{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span></td>
                             <td style="{{ $td }} color:#6b7280;">{{ $l['condicao'] ?? '—' }}</td>
                             <td style="{{ $tdd }}">{{ Dinheiro::brl($l['custo']) }}</td>
                             <td style="{{ $tdd }} color:#92400e;" title="{{ $c->acrescimos->pluck('motivo')->implode('; ') }}">
@@ -272,7 +283,7 @@
                             <td style="{{ $td }} white-space:nowrap;">{{ $l['proximo_vencimento']?->format('d/m/Y') ?? '—' }}</td>
                             <td style="{{ $td }} font-weight:600;">{{ $l['fornecedor'] }}</td>
                             <td style="{{ $td }}">#{{ $c->id }}</td>
-                            <td style="{{ $td }}">{{ $c->product_name }}</td>
+                            <td class="rel-texto" style="{{ $td }}">{{ $c->product_name }}</td>
                             <td style="{{ $td }} white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}</td>
                             <td style="{{ $tdd }}">{{ Dinheiro::brl($l['custo']) }}</td>
                             <td style="{{ $tdd }}">{{ Dinheiro::brl($l['pago']) }}</td>
