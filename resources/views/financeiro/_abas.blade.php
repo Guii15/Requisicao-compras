@@ -4,6 +4,7 @@
         ['ativa' => request()->routeIs('financeiro.aguardando'), 'rota' => 'financeiro.aguardando', 'rotulo' => 'Aguardando', 'contagem' => $qtdAguardando ?? null],
         ['ativa' => request()->routeIs('financeiro.pagos'), 'rota' => 'financeiro.pagos', 'rotulo' => 'Pagos'],
         ['ativa' => request()->routeIs('financeiro.fornecedores', 'financeiro.fornecedor'), 'rota' => 'financeiro.fornecedores', 'rotulo' => 'Fornecedores'],
+        ['ativa' => request()->routeIs('financeiro.cheques'), 'rota' => 'financeiro.cheques', 'rotulo' => 'Cheques'],
         ['ativa' => request()->routeIs('financeiro.relatorio'), 'rota' => 'financeiro.relatorio', 'rotulo' => 'Relatório'],
     ];
 @endphp

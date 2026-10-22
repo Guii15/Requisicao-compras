@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Um pagamento feito a um fornecedor por uma compra (à vista ou uma parcela). */
 class PagamentoCompra extends Model
@@ -23,11 +24,12 @@ class PagamentoCompra extends Model
     /** Formas que saem de um banco: nelas o banco é obrigatório. Dinheiro e as formas cadastradas não exigem. */
     public const MEIOS_COM_BANCO = ['pix', 'boleto', 'transferencia', 'cartao', 'cheque'];
 
-    protected $fillable = ['purchase_request_id', 'valor', 'forma', 'meio', 'banco', 'data_pagamento', 'obs', 'user_id'];
+    protected $fillable = ['lote', 'purchase_request_id', 'valor', 'forma', 'meio', 'banco', 'data_pagamento', 'obs', 'user_id'];
 
     protected $casts = [
         'valor' => 'decimal:2',
         'data_pagamento' => 'date',
+        'estornado_em' => 'datetime',
     ];
 
     public function compra(): BelongsTo
@@ -38,6 +40,22 @@ class PagamentoCompra extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withTrashed();
+    }
+
+    /** Folhas de cheque deste pagamento. */
+    public function cheques(): HasMany
+    {
+        return $this->hasMany(Cheque::class, 'lote', 'lote')->orderBy('numero');
+    }
+
+    public function estornadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'estornado_por')->withTrashed();
+    }
+
+    public function estornado(): bool
+    {
+        return $this->estornado_em !== null;
     }
 
     public function meioRotulo(): ?string

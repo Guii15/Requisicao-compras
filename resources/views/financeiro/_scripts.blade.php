@@ -12,6 +12,64 @@ function meioPagamento(id, meio) {
     document.getElementById('campo-banco-' + id).style.display = meio === 'dinheiro' ? 'none' : 'block';
     document.getElementById('banco-obrig-' + id).style.display = MEIOS_COM_BANCO.indexOf(meio) >= 0 ? 'inline' : 'none';
     document.getElementById('banco-novo-' + id).required = meio !== 'dinheiro' && document.querySelector('#campo-banco-' + id + ' select').value === '__novo';
+
+    var cheque = document.getElementById('campo-cheque-' + id);
+    if (cheque) {
+        cheque.style.display = meio === 'cheque' ? 'block' : 'none';
+        cheque.querySelector('[name="cheque_primeira_folha"]').required = meio === 'cheque';
+        previaCheque(id);
+    }
+}
+
+// Mesma conta do servidor (DesdobramentoCheque): folhas iguais, cada uma abaixo do limite, em centavos.
+var LIMITE_CHEQUE_CENTAVOS = {{ (int) round(config('financeiro.limite_cheque', 5000) * 100) }};
+
+function folhasCheque(centavos) {
+    if (centavos <= 0) {
+        return [];
+    }
+    var maximo = LIMITE_CHEQUE_CENTAVOS - 1;
+    var n = Math.ceil(centavos / maximo);
+    var base = Math.floor(centavos / n), resto = centavos % n, folhas = [];
+    for (var i = 0; i < n; i++) {
+        folhas.push(base + (i < resto ? 1 : 0));
+    }
+    return folhas;
+}
+
+function reais(centavos) {
+    return 'R$ ' + (centavos / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function previaCheque(id) {
+    var caixa = document.getElementById('campo-cheque-' + id);
+    var previa = document.getElementById('previa-cheque-' + id);
+    if (!caixa || !previa || caixa.style.display === 'none') {
+        return;
+    }
+    var form = caixa.closest('form');
+    var parcelado = form.querySelector('[name="forma"]:checked').value === 'parcelado';
+    var texto = parcelado ? form.querySelector('[name="valor"]').value : caixa.dataset.aberto;
+    if (parcelado) {
+        texto = texto.replace(/[R$\s]/g, '');
+        if (texto.indexOf(',') >= 0) {
+            texto = texto.replace(/\./g, '').replace(',', '.');
+        }
+    }
+    // Só aceita um valor bem escrito (12.500,00 ou 12500,00 ou 12500.00); texto colado errado não vira prévia enganosa.
+    var valido = !parcelado || /^\d+(\.\d{1,2})?$/.test(texto);
+    var centavos = valido ? Math.round(parseFloat(texto) * 100) : 0;
+    if (!centavos || centavos <= 0) {
+        previa.innerHTML = valido ? 'Informe o valor para ver as folhas.' : '<span style="color:#b91c1c; font-weight:600;">Valor inválido. Confira o "Valor pago".</span>';
+        return;
+    }
+    var folhas = folhasCheque(centavos);
+    var primeira = parseInt(form.querySelector('[name="cheque_primeira_folha"]').value.replace(/\D/g, ''), 10);
+    var linhas = folhas.map(function (v, i) {
+        var numero = isNaN(primeira) ? '?' : String(primeira + i).padStart(6, '0');
+        return 'nº ' + numero + ' · ' + reais(v);
+    });
+    previa.innerHTML = '<strong>' + folhas.length + (folhas.length === 1 ? ' folha' : ' folhas') + '</strong> (cada uma abaixo de ' + reais(LIMITE_CHEQUE_CENTAVOS) + '):<br>' + linhas.join('<br>');
 }
 
 function bancoEscolhido(id, valor) {
@@ -26,6 +84,17 @@ function bancoEscolhido(id, valor) {
 function formaPagamento(id, forma) {
     document.getElementById('campo-valor-' + id).style.display = forma === 'parcelado' ? 'block' : 'none';
 }
+
+// Janela de pagamento que voltou com erro: reaplica o que depende da forma escolhida (cheque, banco novo...).
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[id^="modal-pagar-"][data-reabrir="1"]').forEach(function (modal) {
+        var id = modal.id.replace('modal-pagar-', '');
+        var meio = modal.querySelector('select[name="meio"]');
+        if (meio) {
+            meioPagamento(id, meio.value);
+        }
+    });
+});
 
 function protegerEnvioDuplo(form) {
     if (form.dataset.enviando === '1') {

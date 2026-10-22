@@ -165,26 +165,26 @@ class FinanceiroSaldoTest extends TestCase
         $this->assertSame(0, PagamentoCompra::count());
     }
 
-    public function test_desfazer_pagamento_devolve_o_saldo(): void
+    public function test_estornar_pagamento_devolve_o_saldo(): void
     {
         $c = $this->compra('Joyce', 1000);
         $this->actingAs($this->fin)->post(route('financeiro.pagar', $c), ['forma' => 'a_vista', 'meio' => 'pix', 'banco' => 'Itaú', 'data_pagamento' => '2026-09-25']);
         $pagamento = PagamentoCompra::first();
 
-        $this->delete(route('financeiro.desfazer', $pagamento))->assertSessionHas('success');
+        $this->post(route('financeiro.estornar', $pagamento), ['motivo' => 'Teste'])->assertSessionHas('success');
 
         $this->assertSame(1000.0, $this->resumo()['JOYCE']['saldo']);
-        $this->assertSame(0, PagamentoCompra::count());
+        $this->assertSame(1, PagamentoCompra::count());
     }
 
-    public function test_so_o_financeiro_registra_ou_desfaz_pagamento(): void
+    public function test_so_o_financeiro_registra_ou_estorna_pagamento(): void
     {
         $c = $this->compra('Joyce', 1000);
         $pagamento = PagamentoCompra::create(['purchase_request_id' => $c->id, 'valor' => 10, 'forma' => 'parcelado', 'data_pagamento' => '2026-09-25', 'user_id' => $this->fin->id]);
         $comprador = User::factory()->create(['is_admin' => true]);
 
         $this->actingAs($comprador)->post(route('financeiro.pagar', $c), ['forma' => 'a_vista', 'meio' => 'pix', 'banco' => 'Itaú', 'data_pagamento' => '2026-09-25'])->assertForbidden();
-        $this->actingAs($comprador)->delete(route('financeiro.desfazer', $pagamento))->assertForbidden();
+        $this->actingAs($comprador)->post(route('financeiro.estornar', $pagamento), ['motivo' => 'Teste'])->assertForbidden();
 
         $this->assertSame(1, PagamentoCompra::count());
     }

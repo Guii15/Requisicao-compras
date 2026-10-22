@@ -51,7 +51,7 @@ class FinanceiroMeioBancoTest extends TestCase
     {
         foreach (['pix', 'boleto', 'transferencia', 'cartao', 'dinheiro', 'cheque'] as $i => $meio) {
             $c = $this->compra();
-            $this->pagar($c, ['meio' => $meio, 'banco' => $meio === 'dinheiro' ? '' : 'Bradesco'])->assertSessionHasNoErrors();
+            $this->pagar($c, ['meio' => $meio, 'banco' => $meio === 'dinheiro' ? '' : 'Bradesco', 'cheque_primeira_folha' => '101'])->assertSessionHasNoErrors();
         }
 
         $this->assertSame(6, PagamentoCompra::count());
@@ -95,7 +95,7 @@ class FinanceiroMeioBancoTest extends TestCase
 
     public function test_painel_mostra_forma_e_banco_nos_ultimos_pagamentos(): void
     {
-        $this->pagar($this->compra(), ['meio' => 'cheque', 'banco' => 'Caixa']);
+        $this->pagar($this->compra(), ['meio' => 'cheque', 'banco' => 'Caixa', 'cheque_primeira_folha' => '101']);
 
         $this->actingAs($this->fin)->get(route('financeiro.index'))->assertSee('Cheque')->assertSee('Caixa');
     }

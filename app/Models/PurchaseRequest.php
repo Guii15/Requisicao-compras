@@ -227,9 +227,16 @@ class PurchaseRequest extends Model
         return $this->belongsTo(User::class, 'conferente_id')->withTrashed();
     }
 
+    /** Pagamentos que valem (os estornados não abatem o saldo). */
     public function pagamentos(): HasMany
     {
-        return $this->hasMany(PagamentoCompra::class);
+        return $this->hasMany(PagamentoCompra::class)->whereNull('estornado_em');
+    }
+
+    /** Pagamentos estornados, guardados para o histórico. */
+    public function pagamentosEstornados(): HasMany
+    {
+        return $this->hasMany(PagamentoCompra::class)->whereNotNull('estornado_em');
     }
 
     public function acrescimos(): HasMany

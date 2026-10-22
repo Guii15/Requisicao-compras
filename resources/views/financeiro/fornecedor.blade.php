@@ -114,7 +114,7 @@
                             </div>
                         </td>
                     </tr>
-                    @if($c->pagamentos->isNotEmpty() || $c->acrescimos->isNotEmpty())
+                    @if($c->pagamentos->isNotEmpty() || $c->pagamentosEstornados->isNotEmpty() || $c->acrescimos->isNotEmpty())
                         <tr class="grupo-item-pagamentos" style="background:#f9fafb;">
                             <td colspan="10" style="padding:8px 14px 10px 40px;">@include('financeiro._pagamentos', ['compra' => $c])@include('financeiro._acrescimos', ['compra' => $c])</td>
                         </tr>

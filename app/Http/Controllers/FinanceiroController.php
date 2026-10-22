@@ -4,17 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\AcrescimoCompra;
 use App\Models\Banco;
+use App\Models\Cheque;
 use App\Models\MeioPagamento;
 use App\Models\PagamentoCompra;
 use App\Models\PurchaseRequest;
+use App\Services\DesdobramentoCheque;
 use App\Services\PainelFinanceiro;
 use App\Services\RelatorioFinanceiro;
 use App\Services\SaldoFornecedores;
 use App\Support\Dinheiro;
 use App\Support\PlanilhaXlsx;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -100,7 +104,7 @@ class FinanceiroController extends Controller
         return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel'));
     }
 
-    public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos)
+    public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos, DesdobramentoCheque $desdobramento)
     {
         // Volta para a tela de onde o pagamento foi feito (lista ou fornecedor).
         $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($purchaseRequest->supplier))));
@@ -119,6 +123,11 @@ class FinanceiroController extends Controller
             $request->merge(['valor' => Dinheiro::decimal($request->input('valor'))]);
         }
 
+        // A folha vem impressa com zeros na frente ("000101"): guarda só o número.
+        if (preg_match('/^\s*0*(\d+)\s*$/', (string) $request->input('cheque_primeira_folha'), $m)) {
+            $request->merge(['cheque_primeira_folha' => $m[1]]);
+        }
+
         $dados = $request->validate([
             'forma' => 'required|in:a_vista,parcelado',
             'valor' => 'required_if:forma,parcelado|nullable|numeric|min:0.01',
@@ -130,6 +139,9 @@ class FinanceiroController extends Controller
             'banco_novo' => ['nullable', 'string', 'max:100', Rule::requiredIf(fn () => $request->input('meio') !== 'dinheiro' && $request->input('banco') === '__novo')],
             'data_pagamento' => 'required|date',
             'obs' => 'nullable|string|max:500',
+            // Cheque: número da primeira folha (as outras seguem em sequência) e a data "bom para".
+            'cheque_primeira_folha' => ['nullable', Rule::requiredIf(fn () => $request->input('meio') === 'cheque'), 'integer', 'min:1', 'max:999999999'],
+            'cheque_bom_para' => 'nullable|date',
         ], [
             'forma.required' => 'Informe se o pagamento é à vista ou parcelado.',
             'forma.in' => 'Forma de pagamento inválida.',
@@ -146,6 +158,11 @@ class FinanceiroController extends Controller
             'banco_novo.max' => 'O nome do banco pode ter no máximo 100 caracteres.',
             'data_pagamento.required' => 'Informe a data do pagamento.',
             'data_pagamento.date' => 'Data do pagamento inválida.',
+            'cheque_primeira_folha.required' => 'Informe o número da primeira folha de cheque.',
+            'cheque_primeira_folha.integer' => 'O número da folha de cheque precisa ser só números.',
+            'cheque_primeira_folha.min' => 'Número da folha de cheque inválido.',
+            'cheque_primeira_folha.max' => 'Número da folha de cheque inválido.',
+            'cheque_bom_para.date' => 'Data "bom para" do cheque inválida.',
         ]);
 
         // À vista quita o que falta; parcelado abate só o que foi informado.
@@ -167,28 +184,92 @@ class FinanceiroController extends Controller
             $banco = $nomeBanco === '' ? null : Banco::cadastrar($nomeBanco)->nome;
         }
 
-        PagamentoCompra::create([
-            'purchase_request_id' => $purchaseRequest->id,
-            'valor' => $valor,
-            'forma' => $dados['forma'],
-            'meio' => $meio,
-            'banco' => $banco,
-            'data_pagamento' => $dados['data_pagamento'],
-            'obs' => $dados['obs'] ?? null,
-            'user_id' => auth()->id(),
-        ]);
+        // Cheque: o valor é desdobrado em folhas iguais abaixo do limite, numeradas a partir da primeira.
+        $folhas = [];
+        if ($meio === 'cheque') {
+            $primeira = (int) $dados['cheque_primeira_folha'];
+            foreach ($desdobramento->valores(DesdobramentoCheque::centavos($valor)) as $i => $centavos) {
+                $folhas[] = ['numero' => $primeira + $i, 'valor' => $centavos / 100];
+            }
+            $this->recusarFolhasUsadas($banco, array_column($folhas, 'numero'));
+        }
 
-        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' registrado.');
+        $lote = (string) Str::uuid();
+
+        try {
+            // Pagamento e folhas são gravados juntos: se uma parte falhar, nada fica gravado.
+            DB::transaction(function () use ($purchaseRequest, $valor, $dados, $meio, $banco, $folhas, $lote) {
+                PagamentoCompra::create([
+                    'lote' => $lote,
+                    'purchase_request_id' => $purchaseRequest->id,
+                    'valor' => $valor,
+                    'forma' => $dados['forma'],
+                    'meio' => $meio,
+                    'banco' => $banco,
+                    'data_pagamento' => $dados['data_pagamento'],
+                    'obs' => $dados['obs'] ?? null,
+                    'user_id' => auth()->id(),
+                ]);
+
+                foreach ($folhas as $folha) {
+                    Cheque::create([
+                        'lote' => $lote,
+                        'banco' => $banco,
+                        'numero' => $folha['numero'],
+                        'valor' => $folha['valor'],
+                        'bom_para' => $dados['cheque_bom_para'] ?? $dados['data_pagamento'],
+                        'situacao' => 'emitido',
+                        'user_id' => auth()->id(),
+                    ]);
+                }
+            });
+        } catch (UniqueConstraintViolationException) {
+            // Outra pessoa usou a mesma folha no mesmo instante.
+            $this->recusarFolhasUsadas($banco, array_column($folhas, 'numero'));
+            throw $this->erroFolha('Uma das folhas de cheque acabou de ser usada. Confira os números e tente de novo.');
+        }
+
+        $mensagem = 'Pagamento de ' . Dinheiro::brl($valor) . ' registrado.';
+        if ($folhas !== []) {
+            $mensagem .= ' ' . count($folhas) . (count($folhas) === 1 ? ' folha de cheque' : ' folhas de cheque')
+                . ' (nº ' . str_pad((string) $folhas[0]['numero'], 6, '0', STR_PAD_LEFT)
+                . (count($folhas) > 1 ? ' a ' . str_pad((string) end($folhas)['numero'], 6, '0', STR_PAD_LEFT) : '') . ').';
+        }
+
+        return $volta->with('success', $mensagem);
     }
 
-    public function desfazer(PagamentoCompra $pagamento, SaldoFornecedores $saldos)
+    /** Estorna um pagamento: ele fica guardado (com quem, quando e o motivo), mas deixa de abater o saldo. */
+    public function estornar(Request $request, PagamentoCompra $pagamento, SaldoFornecedores $saldos)
     {
         $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($pagamento->compra?->supplier))));
-        $valor = $pagamento->valor;
 
-        $pagamento->delete();
+        if ($pagamento->estornado()) {
+            return $volta->with('aviso', 'Este pagamento já estava estornado — nada foi alterado.');
+        }
 
-        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($valor) . ' desfeito; o valor voltou para o saldo.');
+        $dados = $request->validate([
+            'motivo' => 'required|string|max:500',
+        ], [
+            'motivo.required' => 'Informe o motivo do estorno.',
+            'motivo.max' => 'O motivo pode ter no máximo 500 caracteres.',
+        ]);
+
+        // As folhas de cheque do pagamento ficam canceladas (o número continua usado: a folha física já foi preenchida).
+        DB::transaction(function () use ($pagamento, $dados) {
+            $pagamento->forceFill([
+                'estornado_em' => now(),
+                'estornado_por' => auth()->id(),
+                'motivo_estorno' => trim($dados['motivo']),
+            ])->save();
+
+            if ($pagamento->lote !== null) {
+                Cheque::where('lote', $pagamento->lote)->where('situacao', '!=', 'cancelado')
+                    ->update(['situacao' => 'cancelado', 'cancelado_em' => now()]);
+            }
+        });
+
+        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($pagamento->valor) . ' estornado; o valor voltou para o saldo.');
     }
 
     /** Lança um acréscimo (impostos, frete...): soma no custo real da compra, sem aumentar a dívida com o fornecedor. */
@@ -323,6 +404,54 @@ class FinanceiroController extends Controller
         ])->deleteFileAfterSend();
     }
 
+    /** Aba Cheques: todas as folhas emitidas, com filtro por banco, situação, período (bom para) e busca por nº ou fornecedor. */
+    public function cheques(Request $request)
+    {
+        $filtros = [
+            'q' => trim((string) $request->query('q', '')),
+            'banco' => trim((string) $request->query('banco', '')),
+            'situacao' => array_key_exists((string) $request->query('situacao'), Cheque::SITUACOES) ? (string) $request->query('situacao') : '',
+            'de' => $this->dataValida($request->query('de')),
+            'ate' => $this->dataValida($request->query('ate')),
+        ];
+
+        $query = Cheque::query()
+            ->with(['pagamentos.compra.fornecedor', 'user'])
+            ->when($filtros['banco'] !== '', fn ($q) => $q->where('banco', $filtros['banco']))
+            ->when($filtros['situacao'] !== '', fn ($q) => $q->where('situacao', $filtros['situacao']))
+            ->when($filtros['de'], fn ($q, $de) => $q->whereDate('bom_para', '>=', $de))
+            ->when($filtros['ate'], fn ($q, $ate) => $q->whereDate('bom_para', '<=', $ate))
+            ->when($filtros['q'] !== '', function ($q) use ($filtros) {
+                $termo = $filtros['q'];
+                $numero = ltrim(preg_replace('/\D/', '', $termo), '0');
+
+                $q->where(function ($sub) use ($termo, $numero) {
+                    if ($numero !== '') {
+                        $sub->where('numero', (int) $numero);
+                    }
+                    $sub->orWhereHas('pagamentos.compra', fn ($c) => $c->whereRaw('LOWER(supplier) LIKE ?', ['%' . mb_strtolower($termo) . '%']));
+                });
+            });
+
+        $valendo = (clone $query)->where('situacao', '!=', 'cancelado');
+        $total = round((float) (clone $valendo)->sum('valor'), 2);
+        $qtdValendo = (clone $valendo)->count();
+
+        $cheques = $query->orderByDesc('bom_para')->orderBy('banco')->orderBy('numero')->paginate(self::POR_PAGINA)->withQueryString();
+        // Bancos cadastrados e os que já aparecem em alguma folha.
+        $bancos = collect(Banco::nomes())->merge(Cheque::query()->distinct()->pluck('banco'))
+            ->unique(fn ($b) => Banco::chave($b))->sortBy(fn ($b) => Banco::chave($b))->values();
+
+        return view('financeiro.cheques', compact('cheques', 'filtros', 'total', 'qtdValendo', 'bancos'));
+    }
+
+    private function dataValida(mixed $valor): ?string
+    {
+        $valor = trim((string) $valor);
+
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $valor) && strtotime($valor) !== false ? $valor : null;
+    }
+
     /** Lista paginada de compras (abas Aguardando e Pagos), com busca por fornecedor, produto, comprador ou nº da requisição. */
     private function lista(Request $request, Collection $linhas, string $modo)
     {
@@ -349,6 +478,23 @@ class FinanceiroController extends Controller
         );
 
         return view('financeiro.compras', compact('itens', 'modo', 'q', 'total', 'empresas', 'empresaSel'));
+    }
+
+    /** Para o pagamento se alguma das folhas já foi usada nesse banco (mesmo em cheque cancelado). */
+    private function recusarFolhasUsadas(?string $banco, array $numeros): void
+    {
+        $usadas = Cheque::where('banco', $banco)->whereIn('numero', $numeros)->orderBy('numero')->get();
+
+        if ($usadas->isNotEmpty()) {
+            $lista = $usadas->map(fn (Cheque $ch) => $ch->numeroFormatado())->implode(', ');
+            throw $this->erroFolha((count($usadas) === 1 ? "A folha {$lista} do {$banco} já foi usada" : "As folhas {$lista} do {$banco} já foram usadas")
+                . '. Confira o número da primeira folha.');
+        }
+    }
+
+    private function erroFolha(string $mensagem): ValidationException
+    {
+        return ValidationException::withMessages(['cheque_primeira_folha' => $mensagem]);
     }
 
     /** A empresa escolhida no filtro (a chave), ou null para "todas". */
