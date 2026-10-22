@@ -32,18 +32,18 @@
                 @csrf
                 <div style="margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
                     <label style="font-size:14px; color:#374151;">
-                        <input type="radio" name="forma" value="a_vista" {{ $parceladoCombinado ? '' : 'checked' }} onchange="formaPagamento({{ $c->id }}, this.value)">
+                        <input type="radio" name="forma" value="a_vista" {{ $parceladoCombinado ? '' : 'checked' }} onchange="formaPagamento({{ $c->id }}, this.value); previaCheque({{ $c->id }})">
                         À vista — quita os {{ Dinheiro::brl($linha['aberto']) }}
                     </label>
                     <label style="font-size:14px; color:#374151;">
-                        <input type="radio" name="forma" value="parcelado" {{ $parceladoCombinado ? 'checked' : '' }} onchange="formaPagamento({{ $c->id }}, this.value)">
+                        <input type="radio" name="forma" value="parcelado" {{ $parceladoCombinado ? 'checked' : '' }} onchange="formaPagamento({{ $c->id }}, this.value); previaCheque({{ $c->id }})">
                         Parcelado — informar quanto foi pago agora
                     </label>
                 </div>
 
                 <div id="campo-valor-{{ $c->id }}" style="display:{{ $parceladoCombinado ? 'block' : 'none' }}; margin-bottom:14px;">
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Valor pago (R$)</label>
-                    <input type="text" name="valor" inputmode="decimal" placeholder="Ex: 12.500,00" value="{{ $sugestao }}"
+                    <input type="text" name="valor" inputmode="decimal" placeholder="Ex: 12.500,00" value="{{ $sugestao }}" oninput="previaCheque({{ $c->id }})"
                            style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                 </div>
 
@@ -73,6 +73,23 @@
                         <input type="text" id="banco-novo-{{ $c->id }}" name="banco_novo" maxlength="100" placeholder="Nome do banco novo" autocomplete="off"
                                style="display:none; margin-top:6px; width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                     </div>
+                </div>
+
+                {{-- Cheque: o valor vira folhas iguais abaixo do limite, numeradas a partir da primeira. --}}
+                <div id="campo-cheque-{{ $c->id }}" data-aberto="{{ $linha['aberto'] }}" style="display:none; margin-bottom:14px; padding:12px 14px; border:1px solid #c7d2fe; background:#eef2ff; border-radius:8px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Nº da primeira folha <span style="color:#ef4444;">*</span></label>
+                            <input type="text" name="cheque_primeira_folha" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque({{ $c->id }})"
+                                   style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Bom para <span style="color:#9ca3af; font-weight:400;">(se for pré-datado)</span></label>
+                            <input type="date" name="cheque_bom_para"
+                                   style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
+                        </div>
+                    </div>
+                    <div id="previa-cheque-{{ $c->id }}" style="margin-top:10px; font-size:12.5px; color:#312e81;"></div>
                 </div>
 
                 <div style="margin-bottom:14px;">

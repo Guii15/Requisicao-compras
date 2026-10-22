@@ -125,7 +125,7 @@ class SaldoFornecedores
     /** @return Collection<int, PurchaseRequest> */
     private function compras(): Collection
     {
-        return PurchaseRequest::with(['pagamentos', 'pagamentosEstornados', 'acrescimos', 'fornecedor'])
+        return PurchaseRequest::with(['pagamentos.cheques', 'pagamentosEstornados.cheques', 'acrescimos', 'fornecedor'])
             ->where('status', 'aprovado')
             ->whereNotNull('data_compra')
             ->whereNotNull('preco_unitario')

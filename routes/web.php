@@ -125,6 +125,7 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::get('/pagos', [FinanceiroController::class, 'pagos'])->name('pagos');
     Route::get('/fornecedores', [FinanceiroController::class, 'fornecedores'])->name('fornecedores');
     Route::get('/fornecedor/{chave}', [FinanceiroController::class, 'fornecedor'])->name('fornecedor');
+    Route::get('/cheques', [FinanceiroController::class, 'cheques'])->name('cheques');
     Route::get('/relatorio', [FinanceiroController::class, 'relatorio'])->name('relatorio');
     Route::get('/relatorio/planilha', [FinanceiroController::class, 'planilha'])->middleware('throttle:30,1')->name('relatorio.planilha');
     Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');

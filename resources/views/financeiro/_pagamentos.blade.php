@@ -15,6 +15,7 @@
             <button type="submit" style="background:none; border:none; color:#dc2626; font-size:12px; cursor:pointer; text-decoration:underline; padding:0;">Estornar</button>
         </form>
     </div>
+    @include('financeiro._folhas-cheque', ['cheques' => $pg->cheques])
 @endforeach
 @foreach($compra->pagamentosEstornados->sortBy('data_pagamento') as $pg)
     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; color:#9ca3af; padding:2px 0;">
@@ -22,4 +23,5 @@
         <span style="background:#fee2e2; color:#b91c1c; padding:1px 8px; border-radius:20px; font-size:11.5px; font-weight:600;">Estornado</span>
         <span>em {{ $pg->estornado_em->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }} por {{ $pg->estornadoPor?->name ?? '—' }}: {{ $pg->motivo_estorno }}</span>
     </div>
+    @include('financeiro._folhas-cheque', ['cheques' => $pg->cheques])
 @endforeach
