@@ -27,7 +27,7 @@
 
     <div class="idx-stats bm-faixa" style="display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:16px; overflow:hidden;">
         <x-bloco-metrica :rotulo="'Total em cheques' . ($filtrando ? ' (no filtro)' : '')" :valor="Dinheiro::brl($total)" :sem-linha="true"
-                         :nota="$cheques->total() . ' ' . ($cheques->total() === 1 ? 'folha' : 'folhas') . ' · canceladas não somam'" />
+                         :nota="$qtdValendo . ' ' . ($qtdValendo === 1 ? 'folha emitida' : 'folhas emitidas') . ($cheques->total() > $qtdValendo ? ' · ' . ($cheques->total() - $qtdValendo) . ' ' . ($cheques->total() - $qtdValendo === 1 ? 'cancelada (não soma)' : 'canceladas (não somam)') : '')" />
     </div>
 
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 16px; margin-bottom:16px;">

@@ -433,12 +433,16 @@ class FinanceiroController extends Controller
                 });
             });
 
-        $total = round((float) (clone $query)->where('situacao', '!=', 'cancelado')->sum('valor'), 2);
+        $valendo = (clone $query)->where('situacao', '!=', 'cancelado');
+        $total = round((float) (clone $valendo)->sum('valor'), 2);
+        $qtdValendo = (clone $valendo)->count();
 
         $cheques = $query->orderByDesc('bom_para')->orderBy('banco')->orderBy('numero')->paginate(self::POR_PAGINA)->withQueryString();
-        $bancos = Cheque::query()->distinct()->orderBy('banco')->pluck('banco');
+        // Bancos cadastrados e os que já aparecem em alguma folha.
+        $bancos = collect(Banco::nomes())->merge(Cheque::query()->distinct()->pluck('banco'))
+            ->unique(fn ($b) => Banco::chave($b))->sortBy(fn ($b) => Banco::chave($b))->values();
 
-        return view('financeiro.cheques', compact('cheques', 'filtros', 'total', 'bancos'));
+        return view('financeiro.cheques', compact('cheques', 'filtros', 'total', 'qtdValendo', 'bancos'));
     }
 
     private function dataValida(mixed $valor): ?string

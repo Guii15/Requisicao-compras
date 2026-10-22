@@ -7,14 +7,20 @@
         @if($pg->meioRotulo())<span style="color:#374151;">{{ $pg->meioRotulo() }}@if($pg->banco) · {{ $pg->banco }}@endif</span>@endif
         @if($pg->obs)<span style="color:#6b7280;">· {{ $pg->obs }}</span>@endif
         <span style="color:#9ca3af;">por {{ $pg->user?->name ?? '—' }}</span>
-        {{-- O motivo é pedido na hora; sem motivo, nada é enviado. --}}
-        <form method="POST" action="{{ route('financeiro.estornar', $pg) }}" style="display:inline;"
-              onsubmit="var m = prompt('Estornar este pagamento de {{ \App\Support\Dinheiro::brl($pg->valor) }}? O valor volta para o saldo.\n\nMotivo do estorno:'); if (!m || !m.trim()) { return false; } this.motivo.value = m; return protegerEnvioDuplo(this);">
-            @csrf
-            <input type="hidden" name="motivo" value="">
-            <button type="submit" style="background:none; border:none; color:#dc2626; font-size:12px; cursor:pointer; text-decoration:underline; padding:0;">Estornar</button>
-        </form>
+        <button type="button" onclick="var f = document.getElementById('estorno-{{ $pg->id }}'); f.style.display = 'flex'; f.querySelector('input[name=motivo]').focus();"
+                style="background:none; border:none; color:#dc2626; font-size:12px; cursor:pointer; text-decoration:underline; padding:0;">Estornar</button>
     </div>
+    {{-- Motivo do estorno digitado na própria tela; sem motivo, nada é enviado. --}}
+    <form id="estorno-{{ $pg->id }}" method="POST" action="{{ route('financeiro.estornar', $pg) }}" onsubmit="return protegerEnvioDuplo(this)"
+          style="display:{{ $errors->has('motivo') && (string) old('_pagamento') === (string) $pg->id ? 'flex' : 'none' }}; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px 18px; padding:8px 10px; border:1px solid #fca5a5; background:#fef2f2; border-radius:8px; font-size:12.5px;">
+        @csrf
+        <input type="hidden" name="_pagamento" value="{{ $pg->id }}">
+        <span style="color:#991b1b; font-weight:600;">Estornar {{ \App\Support\Dinheiro::brl($pg->valor) }}{{ $pg->cheques->isEmpty() ? '' : ' e cancelar ' . ($pg->cheques->count() === 1 ? 'a folha' : 'as ' . $pg->cheques->count() . ' folhas') . ' de cheque' }}?</span>
+        <input type="text" name="motivo" maxlength="500" required placeholder="Motivo do estorno (obrigatório)" autocomplete="off"
+               style="flex:1; min-width:220px; border:1px solid #cbd5e1; border-radius:6px; padding:6px 10px; font-size:12.5px; background:#fff;">
+        <button type="submit" style="padding:6px 14px; border-radius:6px; background:#dc2626; color:#fff; border:none; font-size:12px; font-weight:600; cursor:pointer;">Confirmar estorno</button>
+        <button type="button" onclick="this.form.style.display='none'" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; color:#475569; font-size:12px; cursor:pointer;">Cancelar</button>
+    </form>
     @include('financeiro._folhas-cheque', ['cheques' => $pg->cheques])
 @endforeach
 @foreach($compra->pagamentosEstornados->sortBy('data_pagamento') as $pg)

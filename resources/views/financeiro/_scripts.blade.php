@@ -56,9 +56,11 @@ function previaCheque(id) {
             texto = texto.replace(/\./g, '').replace(',', '.');
         }
     }
-    var centavos = Math.round(parseFloat(texto) * 100);
+    // Só aceita um valor bem escrito (12.500,00 ou 12500,00 ou 12500.00); texto colado errado não vira prévia enganosa.
+    var valido = !parcelado || /^\d+(\.\d{1,2})?$/.test(texto);
+    var centavos = valido ? Math.round(parseFloat(texto) * 100) : 0;
     if (!centavos || centavos <= 0) {
-        previa.textContent = 'Informe o valor para ver as folhas.';
+        previa.innerHTML = valido ? 'Informe o valor para ver as folhas.' : '<span style="color:#b91c1c; font-weight:600;">Valor inválido. Confira o "Valor pago".</span>';
         return;
     }
     var folhas = folhasCheque(centavos);
@@ -82,6 +84,17 @@ function bancoEscolhido(id, valor) {
 function formaPagamento(id, forma) {
     document.getElementById('campo-valor-' + id).style.display = forma === 'parcelado' ? 'block' : 'none';
 }
+
+// Janela de pagamento que voltou com erro: reaplica o que depende da forma escolhida (cheque, banco novo...).
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[id^="modal-pagar-"][data-reabrir="1"]').forEach(function (modal) {
+        var id = modal.id.replace('modal-pagar-', '');
+        var meio = modal.querySelector('select[name="meio"]');
+        if (meio) {
+            meioPagamento(id, meio.value);
+        }
+    });
+});
 
 function protegerEnvioDuplo(form) {
     if (form.dataset.enviando === '1') {

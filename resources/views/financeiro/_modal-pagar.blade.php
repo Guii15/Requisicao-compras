@@ -5,9 +5,13 @@
         $c = $linha['compra'];
         $parceladoCombinado = $linha['condicao_codigo'] === 'parcelado';
         $sugestao = $parceladoCombinado ? number_format($linha['parcela_sugerida'], 2, ',', '.') : '';
+        // Voltou com erro (ex.: folha de cheque já usada): a janela reabre com o que a pessoa tinha digitado.
+        $reabrir = $errors->any() && (string) old('_compra') === (string) $c->id;
+        $velho = fn (string $campo, $padrao = null) => $reabrir ? old($campo, $padrao) : $padrao;
+        $parceladoMarcado = $velho('forma', $parceladoCombinado ? 'parcelado' : 'a_vista') === 'parcelado';
     @endphp
     {{-- Mesmo modelo de janela das outras telas: cabeçalho, corpo e rodapé fixo. --}}
-    <div id="modal-pagar-{{ $c->id }}" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(3px); z-index:1000; align-items:center; justify-content:center; padding:16px;">
+    <div id="modal-pagar-{{ $c->id }}" data-reabrir="{{ $reabrir ? '1' : '' }}" style="display:{{ $reabrir ? 'flex' : 'none' }}; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(3px); z-index:1000; align-items:center; justify-content:center; padding:16px;">
         <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; width:100%; max-width:560px; max-height:94vh; display:flex; flex-direction:column; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); overflow:hidden; text-align:left;">
             <div style="padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; background:#f8fafc;">
                 <div>
@@ -18,6 +22,12 @@
                         style="border:none; background:transparent; color:#94a3b8; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px; line-height:1;">✕</button>
             </div>
             <div style="padding:20px 24px; overflow-y:auto;">
+            @if($reabrir)
+                <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px;">
+                    <strong>Não foi possível salvar:</strong>
+                    <ul style="margin:4px 0 0; padding-left:18px;">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul>
+                </div>
+            @endif
             <p style="margin:0 0 6px; font-size:13.5px; color:#111827;">Falta pagar: <strong>{{ Dinheiro::brl($linha['aberto']) }}</strong> de {{ Dinheiro::brl($linha['custo']) }}</p>
             @if($linha['condicao'])
                 <p style="margin:0 0 16px; font-size:12.5px; color:#6b7280;">
@@ -30,20 +40,21 @@
 
             <form method="POST" action="{{ route('financeiro.pagar', $c) }}" onsubmit="return protegerEnvioDuplo(this)">
                 @csrf
+                <input type="hidden" name="_compra" value="{{ $c->id }}">
                 <div style="margin-bottom:14px; display:flex; flex-direction:column; gap:8px;">
                     <label style="font-size:14px; color:#374151;">
-                        <input type="radio" name="forma" value="a_vista" {{ $parceladoCombinado ? '' : 'checked' }} onchange="formaPagamento({{ $c->id }}, this.value); previaCheque({{ $c->id }})">
+                        <input type="radio" name="forma" value="a_vista" {{ $parceladoMarcado ? '' : 'checked' }} onchange="formaPagamento({{ $c->id }}, this.value); previaCheque({{ $c->id }})">
                         À vista — quita os {{ Dinheiro::brl($linha['aberto']) }}
                     </label>
                     <label style="font-size:14px; color:#374151;">
-                        <input type="radio" name="forma" value="parcelado" {{ $parceladoCombinado ? 'checked' : '' }} onchange="formaPagamento({{ $c->id }}, this.value); previaCheque({{ $c->id }})">
+                        <input type="radio" name="forma" value="parcelado" {{ $parceladoMarcado ? 'checked' : '' }} onchange="formaPagamento({{ $c->id }}, this.value); previaCheque({{ $c->id }})">
                         Parcelado — informar quanto foi pago agora
                     </label>
                 </div>
 
-                <div id="campo-valor-{{ $c->id }}" style="display:{{ $parceladoCombinado ? 'block' : 'none' }}; margin-bottom:14px;">
+                <div id="campo-valor-{{ $c->id }}" style="display:{{ $parceladoMarcado ? 'block' : 'none' }}; margin-bottom:14px;">
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Valor pago (R$)</label>
-                    <input type="text" name="valor" inputmode="decimal" placeholder="Ex: 12.500,00" value="{{ $sugestao }}" oninput="previaCheque({{ $c->id }})"
+                    <input type="text" name="valor" inputmode="decimal" placeholder="Ex: 12.500,00" value="{{ $velho('valor', $sugestao) }}" onfocus="this.select()" oninput="previaCheque({{ $c->id }})"
                            style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                 </div>
 
@@ -53,7 +64,7 @@
                         <select name="meio" required onchange="meioPagamento({{ $c->id }}, this.value)"
                                 style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background-color:#fff;">
                             @foreach(\App\Models\PagamentoCompra::meios() as $codigo => $nomeMeio)
-                                <option value="{{ $codigo }}">{{ $nomeMeio }}</option>
+                                <option value="{{ $codigo }}"{{ $velho('meio') === $codigo ? ' selected' : '' }}>{{ $nomeMeio }}</option>
                             @endforeach
                             <option value="__novo">+ Cadastrar nova forma</option>
                         </select>
@@ -66,7 +77,7 @@
                                 style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background-color:#fff;">
                             <option value="">De qual banco saiu?</option>
                             @foreach($bancos as $nomeBanco)
-                                <option value="{{ $nomeBanco }}">{{ $nomeBanco }}</option>
+                                <option value="{{ $nomeBanco }}"{{ $velho('banco') === $nomeBanco ? ' selected' : '' }}>{{ $nomeBanco }}</option>
                             @endforeach
                             <option value="__novo">+ Cadastrar novo banco</option>
                         </select>
@@ -80,12 +91,12 @@
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div>
                             <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Nº da primeira folha <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="cheque_primeira_folha" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque({{ $c->id }})"
+                            <input type="text" name="cheque_primeira_folha" value="{{ $velho('cheque_primeira_folha') }}" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque({{ $c->id }})"
                                    style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
                         </div>
                         <div>
                             <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Bom para <span style="color:#9ca3af; font-weight:400;">(se for pré-datado)</span></label>
-                            <input type="date" name="cheque_bom_para"
+                            <input type="date" name="cheque_bom_para" value="{{ $velho('cheque_bom_para') }}"
                                    style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
                         </div>
                     </div>
@@ -94,13 +105,13 @@
 
                 <div style="margin-bottom:14px;">
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Data do pagamento</label>
-                    <input type="date" name="data_pagamento" value="{{ now('America/Sao_Paulo')->format('Y-m-d') }}" required
+                    <input type="date" name="data_pagamento" value="{{ $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d')) }}" required
                            style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                 </div>
 
                 <div style="margin-bottom:18px;">
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Observação <span style="color:#9ca3af; font-weight:400;">(opcional)</span></label>
-                    <input type="text" name="obs" maxlength="500" placeholder="Ex: boleto, PIX, parcela 1/3"
+                    <input type="text" name="obs" value="{{ $velho('obs') }}" maxlength="500" placeholder="Ex: boleto, PIX, parcela 1/3"
                            style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                 </div>
 

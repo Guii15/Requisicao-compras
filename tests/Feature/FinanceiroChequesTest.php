@@ -157,6 +157,37 @@ class FinanceiroChequesTest extends TestCase
             ->assertOk()->assertSee('000101')->assertDontSee('000777');
     }
 
+    public function test_aba_cheques_conta_separado_as_folhas_canceladas(): void
+    {
+        $this->pagarEmCheque($this->compra(9000))->assertSessionHasNoErrors(); // 2 folhas
+        $this->pagarEmCheque($this->compra(1000), ['cheque_primeira_folha' => '300'])->assertSessionHasNoErrors();
+        $this->actingAs($this->fin)->post(route('financeiro.estornar', PagamentoCompra::first()), ['motivo' => 'Erro']);
+
+        $this->actingAs($this->fin)->get(route('financeiro.cheques'))
+            ->assertOk()
+            ->assertSee('R$ 1.000,00')
+            ->assertSee('1 folha emitida')
+            ->assertSee('2 canceladas (não somam)');
+    }
+
+    public function test_depois_de_um_erro_a_janela_de_pagamento_volta_aberta_com_o_que_foi_digitado(): void
+    {
+        $this->pagarEmCheque($this->compra(9000))->assertSessionHasNoErrors();
+        $outra = $this->compra(9000);
+        $tela = route('financeiro.fornecedor', 'VIA COMERCIO');
+
+        $this->actingAs($this->fin)->from($tela)->followingRedirects()->post(route('financeiro.pagar', $outra), [
+            '_compra' => $outra->id, 'forma' => 'a_vista', 'meio' => 'cheque', 'banco' => 'Itaú',
+            'data_pagamento' => '2026-10-22', 'cheque_primeira_folha' => '102', 'obs' => 'Pago na visita',
+        ])
+            ->assertOk()
+            ->assertSee('já foi usada')
+            ->assertSee('id="modal-pagar-' . $outra->id . '" data-reabrir="1" style="display:flex;', false)
+            ->assertSee('value="102"', false)
+            ->assertSee('value="Pago na visita"', false)
+            ->assertSee('<option value="cheque" selected', false);
+    }
+
     public function test_so_o_financeiro_ve_a_aba_cheques(): void
     {
         $this->actingAs(User::factory()->create(['is_admin' => true]))->get(route('financeiro.cheques'))->assertForbidden();
