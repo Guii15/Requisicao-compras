@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Relatório do Financeiro de um período: o que foi pago (pela data do pagamento), o que foi comprado
@@ -64,13 +65,20 @@ class RelatorioFinanceiro
         return $inicio <= $fim ? [$inicio, $fim] : [$fim, $inicio];
     }
 
-    public function gerar(CarbonImmutable $de, CarbonImmutable $ate, ?CarbonImmutable $hoje = null): array
+    /** $busca: fornecedor, produto ou nº da requisição ("57" ou "#57"); vazio = tudo. */
+    public function gerar(CarbonImmutable $de, CarbonImmutable $ate, ?CarbonImmutable $hoje = null, ?string $busca = null): array
     {
         $de = $de->startOfDay();
         $ate = $ate->startOfDay();
         $dentro = fn ($data) => $data !== null && ($d = $data->format('Y-m-d')) >= $de->format('Y-m-d') && $d <= $ate->format('Y-m-d');
 
         $linhas = $this->saldos->linhas($hoje);
+        $busca = trim((string) $busca);
+        if ($busca !== '') {
+            $linhas = $linhas->filter(fn (array $l) => ltrim($busca, '#') === (string) $l['compra']->id
+                || $this->contem($l['fornecedor'], $busca)
+                || $this->contem((string) $l['compra']->product_name, $busca))->values();
+        }
 
         $pagamentos = $linhas
             ->flatMap(fn (array $l) => $l['compra']->pagamentos
@@ -125,6 +133,14 @@ class RelatorioFinanceiro
             'por_fornecedor' => $this->porFornecedor($linhas, $compras, $pagamentos),
             'abertas' => $abertas->all(),
         ];
+    }
+
+    /** Busca sem diferenciar maiúsculas, acentos ou espaços nas pontas. */
+    private function contem(string $texto, string $busca): bool
+    {
+        $normalizar = fn (string $s) => mb_strtolower(Str::ascii(trim($s)));
+
+        return str_contains($normalizar($texto), $normalizar($busca));
     }
 
     /** Total e quantidade de pagamentos por forma ou por banco, do maior para o menor. */

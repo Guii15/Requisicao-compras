@@ -71,8 +71,10 @@ class FinanceiroController extends Controller
 
         $q = trim((string) $request->query('q', ''));
         if ($q !== '') {
+            // "57" ou "#57" também acha o fornecedor da requisição 57.
+            $daRequisicao = $todas->first(fn ($l) => (string) $l['compra']->id === ltrim($q, '#'))['chave'] ?? null;
             $fornecedores = $fornecedores
-                ->filter(fn ($f) => $this->contem($f['nome'], $q) || str_contains($f['chave'], $saldos->chave($q)))
+                ->filter(fn ($f) => $this->contem($f['nome'], $q) || str_contains($f['chave'], $saldos->chave($q)) || $f['chave'] === $daRequisicao)
                 ->values();
         }
 
@@ -416,23 +418,25 @@ class FinanceiroController extends Controller
     public function relatorio(Request $request, RelatorioFinanceiro $relatorios)
     {
         [$de, $ate, $periodo] = $relatorios->periodo($request->query('periodo'), $request->query('de'), $request->query('ate'));
-        $r = $relatorios->gerar($de, $ate);
+        $q = trim((string) $request->query('q', ''));
+        $r = $relatorios->gerar($de, $ate, null, $q);
 
-        return view('financeiro.relatorio', compact('r', 'periodo'));
+        return view('financeiro.relatorio', compact('r', 'periodo', 'q'));
     }
 
     /** O mesmo relatório em Excel: uma aba para o resumo, os pagamentos, as compras, os fornecedores e o que está em aberto. */
     public function planilha(Request $request, RelatorioFinanceiro $relatorios)
     {
         [$de, $ate] = $relatorios->periodo($request->filled('de') || $request->filled('ate') ? 'personalizado' : $request->query('periodo'), $request->query('de'), $request->query('ate'));
-        $r = $relatorios->gerar($de, $ate);
+        $q = trim((string) $request->query('q', ''));
+        $r = $relatorios->gerar($de, $ate, null, $q);
 
         if (!class_exists(\ZipArchive::class)) {
             return redirect()->route('financeiro.relatorio', ['periodo' => 'personalizado', 'de' => $de->format('Y-m-d'), 'ate' => $ate->format('Y-m-d')])
                 ->with('aviso', 'Não deu para gerar a planilha: falta a extensão zip do PHP no servidor. Use Imprimir / PDF.');
         }
 
-        $titulo = 'Relatório financeiro · ' . $de->format('d/m/Y') . ' a ' . $ate->format('d/m/Y');
+        $titulo = 'Relatório financeiro · ' . $de->format('d/m/Y') . ' a ' . $ate->format('d/m/Y') . ($q !== '' ? ' · só: ' . $q : '');
         $gerado = 'Gerado em ' . now('America/Sao_Paulo')->format('d/m/Y H:i') . ' por ' . (auth()->user()->name ?? '—');
         $s = $r['resumo'];
 

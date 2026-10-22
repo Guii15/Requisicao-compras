@@ -35,7 +35,7 @@
             @if(request('empresa'))<input type="hidden" name="empresa" value="{{ request('empresa') }}">@endif
             <div style="flex:1; min-width:200px;">
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Fornecedor</label>
-                <input type="text" name="q" value="{{ $q }}" placeholder="Buscar fornecedor..."
+                <input type="text" name="q" value="{{ $q }}" placeholder="Fornecedor ou nº da requisição..."
                        style="width:100%; padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; box-sizing:border-box;">
             </div>
             <button type="submit" style="padding:8px 16px; background:#05018D; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Buscar</button>

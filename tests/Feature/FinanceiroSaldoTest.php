@@ -202,6 +202,17 @@ class FinanceiroSaldoTest extends TestCase
             ->assertSee('R$ 1.000.500,00');
     }
 
+    public function test_aba_fornecedores_acha_pelo_numero_da_requisicao(): void
+    {
+        $this->compra('Joyce', 1000);
+        $kabum = $this->compra('Kabum', 500);
+
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedores', ['q' => '#' . $kabum->id]))
+            ->assertOk()->assertSee('Kabum')->assertDontSee('Joyce');
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedores', ['q' => (string) $kabum->id]))
+            ->assertOk()->assertSee('Kabum')->assertDontSee('Joyce');
+    }
+
     public function test_tela_do_fornecedor_lista_as_compras_com_situacao(): void
     {
         $aberta = $this->compra('Joyce', 1000, ['product_name' => 'Memória Aberta', 'requester_name' => 'Isaac']);

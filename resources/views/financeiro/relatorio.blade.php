@@ -10,6 +10,7 @@
     $intervalo = $r['de']->format('d/m/Y') . ' a ' . $r['ate']->format('d/m/Y');
     $atalhos = ['semana' => 'Esta semana', 'semana_passada' => 'Semana passada', 'mes' => 'Este mês', 'mes_passado' => 'Mês passado'];
     $datas = ['de' => $r['de']->format('Y-m-d'), 'ate' => $r['ate']->format('Y-m-d')];
+    $busca = $q !== '' ? ['q' => $q] : []; // a busca continua ao trocar o período e vai junto para o Excel
     $th = 'padding:9px 10px; text-align:left;';
     $thd = 'padding:9px 10px; text-align:right;';
     $td = 'padding:9px 10px;';
@@ -80,7 +81,7 @@
     <div class="rel-nao-imprime" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:14px 16px; margin-bottom:18px;">
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
             @foreach($atalhos as $codigo => $rotulo)
-                <a href="{{ route('financeiro.relatorio', ['periodo' => $codigo]) }}" class="rel-atalho {{ $periodo === $codigo ? 'ativo' : '' }}">{{ $rotulo }}</a>
+                <a href="{{ route('financeiro.relatorio', ['periodo' => $codigo] + $busca) }}" class="rel-atalho {{ $periodo === $codigo ? 'ativo' : '' }}">{{ $rotulo }}</a>
             @endforeach
         </div>
         <form method="GET" action="{{ route('financeiro.relatorio') }}" style="display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
@@ -93,10 +94,13 @@
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Até</label>
                 <input type="date" name="ate" value="{{ $datas['ate'] }}" style="padding:7px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
             </div>
-            <button type="submit" style="padding:8px 16px; background:#fff; color:#05018D; border:1px solid #05018D; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Ver período</button>
-            <div style="flex:1;"></div>
+            <div style="flex:1; min-width:220px;">
+                <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Fornecedor ou requisição</label>
+                <input type="text" name="q" value="{{ $q }}" placeholder="Ex: Joyce ou #57" style="width:100%; padding:7px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; box-sizing:border-box;">
+            </div>
+            <button type="submit" style="padding:8px 16px; background:#fff; color:#05018D; border:1px solid #05018D; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Ver</button>
             <button type="button" onclick="window.print()" style="padding:8px 16px; background:#fff; color:#05018D; border:1px solid #05018D; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🖨️ Imprimir / Salvar PDF</button>
-            <a href="{{ route('financeiro.relatorio.planilha', $datas) }}" style="padding:8px 16px; background:#05018D; color:#fff; border:1px solid #05018D; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none;">⬇️ Baixar Excel</a>
+            <a href="{{ route('financeiro.relatorio.planilha', $datas + $busca) }}" style="padding:8px 16px; background:#05018D; color:#fff; border:1px solid #05018D; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none;">⬇️ Baixar Excel</a>
         </form>
     </div>
 
@@ -106,7 +110,7 @@
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
-        <h2 style="margin:0; font-size:20px; font-weight:700; color:#111827;">Relatório financeiro · {{ $intervalo }}</h2>
+        <h2 style="margin:0; font-size:20px; font-weight:700; color:#111827;">Relatório financeiro · {{ $intervalo }}@if($q !== '') <span style="font-size:15px; color:#4338ca;">· Mostrando só: {{ $q }}</span> <a href="{{ route('financeiro.relatorio', ['periodo' => 'personalizado'] + $datas) }}" class="rel-nao-imprime" style="font-size:13px; font-weight:600; color:#6b7280;">ver tudo</a>@endif</h2>
         <span style="font-size:12.5px; color:#6b7280;">Gerado em {{ now('America/Sao_Paulo')->format('d/m/Y H:i') }} por {{ auth()->user()->name }}</span>
     </div>
 
