@@ -70,6 +70,8 @@
                                     <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Entrada</span>
                                 @elseif($u->role === 'financeiro')
                                     <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Financeiro</span>
+                                @elseif($u->role === 'rma')
+                                    <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">RMA</span>
                                 @else
                                     <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
                                 @endif
@@ -156,6 +158,7 @@
                                             <option value="conferente" {{ $perfilAtual === 'conferente' ? 'selected' : '' }}>Conferente</option>
                                             <option value="entrada" {{ $perfilAtual === 'entrada' ? 'selected' : '' }}>Entrada</option>
                                             <option value="financeiro" {{ $perfilAtual === 'financeiro' ? 'selected' : '' }}>Financeiro</option>
+                                            <option value="rma" {{ $perfilAtual === 'rma' ? 'selected' : '' }}>RMA</option>
                                             <option value="admin" {{ $perfilAtual === 'admin' ? 'selected' : '' }}>Admin</option>
                                         </select>
                                     </div>
@@ -232,6 +235,7 @@
                         <option value="conferente" {{ old('perfil') === 'conferente' ? 'selected' : '' }}>Conferente</option>
                         <option value="entrada" {{ old('perfil') === 'entrada' ? 'selected' : '' }}>Entrada</option>
                         <option value="financeiro" {{ old('perfil') === 'financeiro' ? 'selected' : '' }}>Financeiro</option>
+                        <option value="rma" {{ old('perfil') === 'rma' ? 'selected' : '' }}>RMA</option>
                         <option value="admin" {{ old('perfil') === 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
                 </div>

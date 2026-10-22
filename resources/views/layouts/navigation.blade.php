@@ -60,6 +60,16 @@
                         💰 Financeiro
                     </a>
                     @endif
+                    @if(Auth::user()->isRma())
+                    <a href="{{ route('rma.index') }}"
+                       style="color: {{ request()->routeIs('rma.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
+                              background: {{ request()->routeIs('rma.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
+                              padding:6px 14px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; margin-left:4px;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='#fff'"
+                       onmouseout="this.style.background='{{ request()->routeIs('rma.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }}'; this.style.color='{{ request()->routeIs('rma.*') ? '#fff' : 'rgba(255,255,255,0.65)' }}'">
+                        🔎 RMA
+                    </a>
+                    @endif
                 </div>
             </div>
 
@@ -154,6 +164,9 @@
         @endif
         @if(Auth::user()->isFinanceiro())
             <a href="{{ route('financeiro.index') }}" class="menu-m-link {{ request()->routeIs('financeiro.*') ? 'ativo' : '' }}">Financeiro</a>
+        @endif
+        @if(Auth::user()->isRma())
+            <a href="{{ route('rma.index') }}" class="menu-m-link {{ request()->routeIs('rma.*') ? 'ativo' : '' }}">RMA</a>
         @endif
 
         <div class="menu-m-usuario">

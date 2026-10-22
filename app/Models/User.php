@@ -63,6 +63,12 @@ class User extends Authenticatable
         return $this->role === 'financeiro';
     }
 
+    /** Setor RMA: só leitura, vê o que foi comprado e já chegou (produto, fornecedor, data, quantidade, fotos). */
+    public function isRma(): bool
+    {
+        return $this->role === 'rma';
+    }
+
     /** Quem entra na aba Financeiro: o setor e o super admin (que cria e acompanha os usuários). */
     public function podeVerFinanceiro(): bool
     {
