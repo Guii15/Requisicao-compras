@@ -12,8 +12,10 @@ use App\Services\DesdobramentoCheque;
 use App\Services\PainelFinanceiro;
 use App\Services\RelatorioFinanceiro;
 use App\Services\SaldoFornecedores;
+use App\Services\UnificadorFornecedores;
 use App\Support\Dinheiro;
 use App\Support\PlanilhaXlsx;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -70,8 +72,10 @@ class FinanceiroController extends Controller
 
         $q = trim((string) $request->query('q', ''));
         if ($q !== '') {
+            // "57" ou "#57" também acha o fornecedor da requisição 57.
+            $daRequisicao = $todas->first(fn ($l) => (string) $l['compra']->id === ltrim($q, '#'))['chave'] ?? null;
             $fornecedores = $fornecedores
-                ->filter(fn ($f) => $this->contem($f['nome'], $q) || str_contains($f['chave'], $saldos->chave($q)))
+                ->filter(fn ($f) => $this->contem($f['nome'], $q) || str_contains($f['chave'], $saldos->chave($q)) || $f['chave'] === $daRequisicao)
                 ->values();
         }
 
@@ -101,7 +105,49 @@ class FinanceiroController extends Controller
             'acrescimo' => round($compras->sum('acrescimo'), 2),
         ];
 
-        return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel'));
+        // Para mostrar que um pagamento foi dividido entre várias compras ("parte de um pagamento de R$ X").
+        EloquentCollection::make($compras->pluck('compra')->all())->load(['pagamentos.doLote', 'pagamentosEstornados.doLote']);
+
+        // Ordem em que "Pagar fornecedor" quita as compras (a janela mostra a prévia com ela).
+        $ordemPagamento = collect($saldos->distribuir($compras, DesdobramentoCheque::centavos($totais['saldo'])))
+            ->map(fn (array $p) => [
+                'id' => $p['linha']['compra']->id,
+                'produto' => $p['linha']['compra']->product_name,
+                'vence' => $p['linha']['proximo_vencimento']?->format('d/m/Y'),
+                'centavos' => $p['centavos'],
+            ])->all();
+
+        // Para "Juntar com outro fornecedor": os de nome parecido aparecem primeiro.
+        $unificador = app(UnificadorFornecedores::class);
+        $outros = $saldos->resumo($todas)->where('chave', '!=', $chave)
+            ->map(fn ($f) => $f + ['parecido' => $unificador->motivoParecido($chave, $f['chave']) !== null])
+            ->sortBy('nome', SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel', 'ordemPagamento', 'outros'));
+    }
+
+    /**
+     * Junta este fornecedor com outro que é o mesmo ("Joyce" + "Joyce Informática"). A pessoa escolhe
+     * qual nome fica; as compras e pagamentos dos dois passam a ser de um fornecedor só.
+     */
+    public function juntarFornecedor(Request $request, string $chave, SaldoFornecedores $saldos, UnificadorFornecedores $unificador)
+    {
+        $dados = $request->validate([
+            'outro' => ['required', 'string'],
+            'fica' => ['required', 'in:este,outro'],
+        ], ['outro.required' => 'Escolha o fornecedor para juntar.']);
+
+        $nomes = $saldos->resumo()->pluck('nome', 'chave');
+        if (!isset($nomes[$chave], $nomes[$dados['outro']]) || $dados['outro'] === $chave) {
+            throw ValidationException::withMessages(['outro' => 'Escolha outro fornecedor da lista para juntar.']);
+        }
+
+        [$origem, $destino] = $dados['fica'] === 'este' ? [$dados['outro'], $chave] : [$chave, $dados['outro']];
+        $movidas = $unificador->juntar($origem, $nomes[$origem], $nomes[$destino], auth()->id());
+
+        return redirect()->route('financeiro.fornecedor', $saldos->chave($nomes[$destino]))->with('success',
+            "\"{$nomes[$origem]}\" foi juntado a \"{$nomes[$destino]}\": {$movidas} " . ($movidas === 1 ? 'compra passou' : 'compras passaram')
+            . " para esse nome. Quem digitar \"{$nomes[$origem]}\" daqui para frente cai aqui.");
     }
 
     public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos, DesdobramentoCheque $desdobramento)
@@ -119,6 +165,69 @@ class FinanceiroController extends Controller
             return $volta->with('aviso', 'Esta compra já está paga — nada foi alterado.');
         }
 
+        $dados = $this->validarPagamento($request, true);
+
+        // À vista quita o que falta; parcelado abate só o que foi informado.
+        $valor = $dados['forma'] === 'a_vista' ? $situacao['aberto'] : round((float) $dados['valor'], 2);
+
+        if ($valor > $situacao['aberto'] + 0.004) {
+            throw ValidationException::withMessages([
+                'valor' => 'O valor é maior do que falta pagar nesta compra (' . Dinheiro::brl($situacao['aberto']) . ').',
+            ]);
+        }
+
+        $folhas = $this->gravarPagamento($dados, $valor, [
+            ['compra' => $purchaseRequest, 'valor' => $valor, 'forma' => $dados['forma']],
+        ], $desdobramento);
+
+        $mensagem = 'Pagamento de ' . Dinheiro::brl($valor) . ' registrado.' . $this->textoFolhas($folhas);
+
+        return $volta->with('success', $mensagem);
+    }
+
+    /**
+     * Pagamento ao fornecedor de uma vez (valor total ou parcial): o valor é distribuído entre as compras em aberto,
+     * do vencimento mais antigo para o mais novo. A última compra alcançada pode ficar parcial.
+     */
+    public function pagarFornecedor(Request $request, string $chave, SaldoFornecedores $saldos, DesdobramentoCheque $desdobramento)
+    {
+        $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $chave)));
+        $empresa = $this->empresaEscolhida($request);
+        $abertas = $saldos->comprasDoFornecedor($chave, $empresa)->where('aberto', '>', 0)->values();
+
+        if ($abertas->isEmpty()) {
+            return $volta->with('aviso', 'Este fornecedor não tem nada em aberto — nada foi alterado.');
+        }
+
+        $dados = $this->validarPagamento($request, false);
+        $saldo = round($abertas->sum('aberto'), 2);
+        $valor = round((float) $dados['valor'], 2);
+
+        if ($valor > $saldo + 0.004) {
+            throw ValidationException::withMessages([
+                'valor' => 'O valor é maior do que o saldo devedor do fornecedor (' . Dinheiro::brl($saldo) . ').',
+            ]);
+        }
+
+        $partes = collect($saldos->distribuir($abertas, DesdobramentoCheque::centavos($valor)))
+            ->map(fn (array $p) => [
+                'compra' => $p['linha']['compra'],
+                'valor' => $p['centavos'] / 100,
+                // Quitou a compra inteira = à vista; só uma parte = parcelado (como no pagamento por compra).
+                'forma' => $p['quita'] ? 'a_vista' : 'parcelado',
+            ])->all();
+
+        $folhas = $this->gravarPagamento($dados, $valor, $partes, $desdobramento);
+
+        $mensagem = 'Pagamento de ' . Dinheiro::brl($valor) . ' ao fornecedor registrado em '
+            . count($partes) . (count($partes) === 1 ? ' compra.' : ' compras.') . $this->textoFolhas($folhas);
+
+        return $volta->with('success', $mensagem);
+    }
+
+    /** Valida os campos comuns do pagamento (forma, banco, data, cheque). Com $porCompra, "forma" diz se é à vista ou parcelado. */
+    private function validarPagamento(Request $request, bool $porCompra): array
+    {
         if ($request->filled('valor')) {
             $request->merge(['valor' => Dinheiro::decimal($request->input('valor'))]);
         }
@@ -128,9 +237,9 @@ class FinanceiroController extends Controller
             $request->merge(['cheque_primeira_folha' => $m[1]]);
         }
 
-        $dados = $request->validate([
-            'forma' => 'required|in:a_vista,parcelado',
-            'valor' => 'required_if:forma,parcelado|nullable|numeric|min:0.01',
+        return $request->validate([
+            'forma' => $porCompra ? 'required|in:a_vista,parcelado' : 'nullable',
+            'valor' => $porCompra ? 'required_if:forma,parcelado|nullable|numeric|min:0.01' : 'required|numeric|min:0.01',
             'meio' => ['required', Rule::in([...array_keys(PagamentoCompra::meios()), '__novo'])],
             // "Cadastrar nova forma" na lista: o nome vem neste campo.
             'meio_novo' => ['nullable', 'string', 'max:60', Rule::requiredIf(fn () => $request->input('meio') === '__novo')],
@@ -146,6 +255,7 @@ class FinanceiroController extends Controller
             'forma.required' => 'Informe se o pagamento é à vista ou parcelado.',
             'forma.in' => 'Forma de pagamento inválida.',
             'valor.required_if' => 'Informe o valor pago.',
+            'valor.required' => 'Informe o valor pago.',
             'valor.numeric' => 'O valor precisa ser um número.',
             'valor.min' => 'O valor precisa ser maior que zero.',
             'meio.required' => 'Informe a forma de pagamento (PIX, boleto, transferência...).',
@@ -164,16 +274,17 @@ class FinanceiroController extends Controller
             'cheque_primeira_folha.max' => 'Número da folha de cheque inválido.',
             'cheque_bom_para.date' => 'Data "bom para" do cheque inválida.',
         ]);
+    }
 
-        // À vista quita o que falta; parcelado abate só o que foi informado.
-        $valor = $dados['forma'] === 'a_vista' ? $situacao['aberto'] : round((float) $dados['valor'], 2);
-
-        if ($valor > $situacao['aberto'] + 0.004) {
-            throw ValidationException::withMessages([
-                'valor' => 'O valor é maior do que falta pagar nesta compra (' . Dinheiro::brl($situacao['aberto']) . ').',
-            ]);
-        }
-
+    /**
+     * Grava as baixas de um pagamento (uma por compra, todas no mesmo lote) e, se for cheque, as folhas sobre o
+     * valor total. Tudo numa transação: se uma parte falhar, nada fica gravado.
+     *
+     * @param  list<array{compra: PurchaseRequest, valor: float, forma: string}>  $partes
+     * @return list<array{numero: int, valor: float}> as folhas de cheque emitidas
+     */
+    private function gravarPagamento(array $dados, float $valor, array $partes, DesdobramentoCheque $desdobramento): array
+    {
         // O banco escolhido (ou digitado como novo) fica cadastrado na lista, sem duplicar grafias.
         // Forma nova digitada na hora: fica cadastrada (ou reaproveita a que já existe com esse nome).
         $meio = $dados['meio'] === '__novo' ? MeioPagamento::cadastrar($dados['meio_novo']) : $dados['meio'];
@@ -197,19 +308,20 @@ class FinanceiroController extends Controller
         $lote = (string) Str::uuid();
 
         try {
-            // Pagamento e folhas são gravados juntos: se uma parte falhar, nada fica gravado.
-            DB::transaction(function () use ($purchaseRequest, $valor, $dados, $meio, $banco, $folhas, $lote) {
-                PagamentoCompra::create([
-                    'lote' => $lote,
-                    'purchase_request_id' => $purchaseRequest->id,
-                    'valor' => $valor,
-                    'forma' => $dados['forma'],
-                    'meio' => $meio,
-                    'banco' => $banco,
-                    'data_pagamento' => $dados['data_pagamento'],
-                    'obs' => $dados['obs'] ?? null,
-                    'user_id' => auth()->id(),
-                ]);
+            DB::transaction(function () use ($partes, $dados, $meio, $banco, $folhas, $lote) {
+                foreach ($partes as $parte) {
+                    PagamentoCompra::create([
+                        'lote' => $lote,
+                        'purchase_request_id' => $parte['compra']->id,
+                        'valor' => $parte['valor'],
+                        'forma' => $parte['forma'],
+                        'meio' => $meio,
+                        'banco' => $banco,
+                        'data_pagamento' => $dados['data_pagamento'],
+                        'obs' => $dados['obs'] ?? null,
+                        'user_id' => auth()->id(),
+                    ]);
+                }
 
                 foreach ($folhas as $folha) {
                     Cheque::create([
@@ -229,14 +341,19 @@ class FinanceiroController extends Controller
             throw $this->erroFolha('Uma das folhas de cheque acabou de ser usada. Confira os números e tente de novo.');
         }
 
-        $mensagem = 'Pagamento de ' . Dinheiro::brl($valor) . ' registrado.';
-        if ($folhas !== []) {
-            $mensagem .= ' ' . count($folhas) . (count($folhas) === 1 ? ' folha de cheque' : ' folhas de cheque')
-                . ' (nº ' . str_pad((string) $folhas[0]['numero'], 6, '0', STR_PAD_LEFT)
-                . (count($folhas) > 1 ? ' a ' . str_pad((string) end($folhas)['numero'], 6, '0', STR_PAD_LEFT) : '') . ').';
+        return $folhas;
+    }
+
+    /** " 3 folhas de cheque (nº 000101 a 000103)." para a mensagem de sucesso; vazio sem cheque. */
+    private function textoFolhas(array $folhas): string
+    {
+        if ($folhas === []) {
+            return '';
         }
 
-        return $volta->with('success', $mensagem);
+        return ' ' . count($folhas) . (count($folhas) === 1 ? ' folha de cheque' : ' folhas de cheque')
+            . ' (nº ' . str_pad((string) $folhas[0]['numero'], 6, '0', STR_PAD_LEFT)
+            . (count($folhas) > 1 ? ' a ' . str_pad((string) end($folhas)['numero'], 6, '0', STR_PAD_LEFT) : '') . ').';
     }
 
     /** Estorna um pagamento: ele fica guardado (com quem, quando e o motivo), mas deixa de abater o saldo. */
@@ -255,13 +372,20 @@ class FinanceiroController extends Controller
             'motivo.max' => 'O motivo pode ter no máximo 500 caracteres.',
         ]);
 
+        // Pagamento ao fornecedor dividido em várias compras é um dinheiro só: o estorno vale para todas as partes.
+        $partes = $pagamento->lote !== null
+            ? PagamentoCompra::where('lote', $pagamento->lote)->whereNull('estornado_em')->get()
+            : collect([$pagamento]);
+
         // As folhas de cheque do pagamento ficam canceladas (o número continua usado: a folha física já foi preenchida).
-        DB::transaction(function () use ($pagamento, $dados) {
-            $pagamento->forceFill([
-                'estornado_em' => now(),
-                'estornado_por' => auth()->id(),
-                'motivo_estorno' => trim($dados['motivo']),
-            ])->save();
+        DB::transaction(function () use ($pagamento, $partes, $dados) {
+            foreach ($partes as $parte) {
+                $parte->forceFill([
+                    'estornado_em' => now(),
+                    'estornado_por' => auth()->id(),
+                    'motivo_estorno' => trim($dados['motivo']),
+                ])->save();
+            }
 
             if ($pagamento->lote !== null) {
                 Cheque::where('lote', $pagamento->lote)->where('situacao', '!=', 'cancelado')
@@ -269,7 +393,10 @@ class FinanceiroController extends Controller
             }
         });
 
-        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($pagamento->valor) . ' estornado; o valor voltou para o saldo.');
+        $total = round((float) $partes->sum('valor'), 2);
+
+        return $volta->with('success', 'Pagamento de ' . Dinheiro::brl($total) . ' estornado'
+            . ($partes->count() > 1 ? ' (' . $partes->count() . ' compras)' : '') . '; o valor voltou para o saldo.');
     }
 
     /** Lança um acréscimo (impostos, frete...): soma no custo real da compra, sem aumentar a dívida com o fornecedor. */
@@ -322,23 +449,25 @@ class FinanceiroController extends Controller
     public function relatorio(Request $request, RelatorioFinanceiro $relatorios)
     {
         [$de, $ate, $periodo] = $relatorios->periodo($request->query('periodo'), $request->query('de'), $request->query('ate'));
-        $r = $relatorios->gerar($de, $ate);
+        $q = trim((string) $request->query('q', ''));
+        $r = $relatorios->gerar($de, $ate, null, $q);
 
-        return view('financeiro.relatorio', compact('r', 'periodo'));
+        return view('financeiro.relatorio', compact('r', 'periodo', 'q'));
     }
 
     /** O mesmo relatório em Excel: uma aba para o resumo, os pagamentos, as compras, os fornecedores e o que está em aberto. */
     public function planilha(Request $request, RelatorioFinanceiro $relatorios)
     {
         [$de, $ate] = $relatorios->periodo($request->filled('de') || $request->filled('ate') ? 'personalizado' : $request->query('periodo'), $request->query('de'), $request->query('ate'));
-        $r = $relatorios->gerar($de, $ate);
+        $q = trim((string) $request->query('q', ''));
+        $r = $relatorios->gerar($de, $ate, null, $q);
 
         if (!class_exists(\ZipArchive::class)) {
             return redirect()->route('financeiro.relatorio', ['periodo' => 'personalizado', 'de' => $de->format('Y-m-d'), 'ate' => $ate->format('Y-m-d')])
                 ->with('aviso', 'Não deu para gerar a planilha: falta a extensão zip do PHP no servidor. Use Imprimir / PDF.');
         }
 
-        $titulo = 'Relatório financeiro · ' . $de->format('d/m/Y') . ' a ' . $ate->format('d/m/Y');
+        $titulo = 'Relatório financeiro · ' . $de->format('d/m/Y') . ' a ' . $ate->format('d/m/Y') . ($q !== '' ? ' · só: ' . $q : '');
         $gerado = 'Gerado em ' . now('America/Sao_Paulo')->format('d/m/Y H:i') . ' por ' . (auth()->user()->name ?? '—');
         $s = $r['resumo'];
 
@@ -488,7 +617,7 @@ class FinanceiroController extends Controller
         if ($usadas->isNotEmpty()) {
             $lista = $usadas->map(fn (Cheque $ch) => $ch->numeroFormatado())->implode(', ');
             throw $this->erroFolha((count($usadas) === 1 ? "A folha {$lista} do {$banco} já foi usada" : "As folhas {$lista} do {$banco} já foram usadas")
-                . '. Confira o número da primeira folha.');
+                . '. A próxima folha livre desse banco é ' . str_pad((string) (Cheque::proximasFolhas()[$banco] ?? 1), 6, '0', STR_PAD_LEFT) . '.');
         }
     }
 

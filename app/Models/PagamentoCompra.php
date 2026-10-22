@@ -48,6 +48,12 @@ class PagamentoCompra extends Model
         return $this->hasMany(Cheque::class, 'lote', 'lote')->orderBy('numero');
     }
 
+    /** Todas as partes do mesmo pagamento (quando um pagamento ao fornecedor quitou várias compras). */
+    public function doLote(): HasMany
+    {
+        return $this->hasMany(PagamentoCompra::class, 'lote', 'lote');
+    }
+
     public function estornadoPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'estornado_por')->withTrashed();

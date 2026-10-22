@@ -139,6 +139,54 @@ class FinanceiroRelatorioTest extends TestCase
             ->assertSee('Ana Financeiro');
     }
 
+    public function test_na_impressao_texto_comprido_quebra_dentro_da_coluna(): void
+    {
+        $c = $this->compra('Joyce', '2026-10-02', 500, ['product_name' => 'TESTE' . str_repeat('asdfg', 40)]);
+        $this->pagamento($c, '2026-10-05', 500);
+
+        $this->actingAs($this->fin)->get(route('financeiro.relatorio', ['periodo' => 'mes']))
+            ->assertOk()
+            ->assertSee('<td class="rel-texto"', false)
+            ->assertSee('.rel-tabela td.rel-texto { overflow-wrap: anywhere; }', false)
+            ->assertSee('@media print and (orientation: portrait)', false)
+            ->assertSee('@media screen and (max-width: 768px)', false);
+    }
+
+    public function test_busca_por_fornecedor_deixa_so_ele_no_relatorio(): void
+    {
+        $this->cenario();
+
+        $r = app(RelatorioFinanceiro::class)->gerar(
+            CarbonImmutable::parse('2026-10-01', 'America/Sao_Paulo'), CarbonImmutable::parse('2026-10-31', 'America/Sao_Paulo'), null, 'kábum',
+        );
+
+        $this->assertSame(['Kabum'], collect($r['pagamentos'])->pluck('fornecedor')->unique()->values()->all());
+        $this->assertSame(1000.0, $r['resumo']['pago']);
+        $this->assertSame(1, $r['resumo']['compras']);
+        $this->assertSame(900.0, $r['resumo']['saldo_hoje']); // 2.000 - 1.000 - 100 de setembro
+        $this->assertSame(['Kabum'], collect($r['por_fornecedor'])->pluck('nome')->all());
+    }
+
+    public function test_busca_pelo_numero_da_requisicao(): void
+    {
+        $this->cenario();
+        $pichau = PurchaseRequest::where('supplier', 'Pichau')->sole();
+
+        $this->actingAs($this->fin)->get(route('financeiro.relatorio', ['periodo' => 'mes', 'q' => '#' . $pichau->id]))
+            ->assertOk()
+            ->assertSee('Produto Pichau')
+            ->assertDontSee('Produto Kabum')
+            ->assertSee('name="q" value="#' . $pichau->id . '"', false)
+            ->assertSee('Mostrando só: #' . $pichau->id);
+    }
+
+    public function test_busca_continua_ao_trocar_o_periodo_e_vai_para_a_planilha(): void
+    {
+        $this->actingAs($this->fin)->get(route('financeiro.relatorio', ['periodo' => 'mes', 'q' => 'Joyce']))
+            ->assertSee(e(route('financeiro.relatorio', ['periodo' => 'semana', 'q' => 'Joyce'])), false)
+            ->assertSee(e(route('financeiro.relatorio.planilha', ['de' => '2026-10-01', 'ate' => '2026-10-31', 'q' => 'Joyce'])), false);
+    }
+
     public function test_aba_relatorio_aparece_no_financeiro(): void
     {
         $this->actingAs($this->fin)->get(route('financeiro.index'))->assertSee(route('financeiro.relatorio'), false);
