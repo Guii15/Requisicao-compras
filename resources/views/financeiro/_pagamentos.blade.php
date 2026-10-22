@@ -16,7 +16,11 @@
           style="display:{{ $errors->has('motivo') && (string) old('_pagamento') === (string) $pg->id ? 'flex' : 'none' }}; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px 18px; padding:8px 10px; border:1px solid #fca5a5; background:#fef2f2; border-radius:8px; font-size:12.5px;">
         @csrf
         <input type="hidden" name="_pagamento" value="{{ $pg->id }}">
-        <span style="color:#991b1b; font-weight:600;">@php $lote = $pg->relationLoaded('doLote') ? $pg->doLote->whereNull('estornado_em') : collect([$pg]); @endphp
+        <span style="color:#991b1b; font-weight:600;">@php
+                // Pagamento antigo (sem lote) ou de uma compra só: o estorno é só dele.
+                $lote = $pg->lote !== null && $pg->relationLoaded('doLote') ? $pg->doLote->whereNull('estornado_em') : collect();
+                $lote = $lote->isEmpty() ? collect([$pg]) : $lote;
+            @endphp
             Estornar {{ \App\Support\Dinheiro::brl($lote->sum('valor')) }}{{ $lote->count() > 1 ? ' (o pagamento inteiro, ' . $lote->count() . ' compras)' : '' }}{{ $pg->cheques->isEmpty() ? '' : ' e cancelar ' . ($pg->cheques->count() === 1 ? 'a folha' : 'as ' . $pg->cheques->count() . ' folhas') . ' de cheque' }}?</span>
         <input type="text" name="motivo" maxlength="500" required placeholder="Motivo do estorno (obrigatório)" autocomplete="off"
                style="flex:1; min-width:220px; border:1px solid #cbd5e1; border-radius:6px; padding:6px 10px; font-size:12.5px; background:#fff;">

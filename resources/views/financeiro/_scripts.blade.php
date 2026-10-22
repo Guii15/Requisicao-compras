@@ -99,7 +99,9 @@ function previaFornecedor() {
     }
     var centavos = /^\d+(\.\d{1,2})?$/.test(texto) ? Math.round(parseFloat(texto) * 100) : 0;
     var saldo = ORDEM_PAGAMENTO_FORNECEDOR.reduce(function (t, c) { return t + c.centavos; }, 0);
-    if (!centavos) {
+    if (texto === '') {
+        previa.innerHTML = 'Digite o valor pago para ver quais compras ele quita (primeiro as que vencem antes).';
+    } else if (!centavos) {
         previa.innerHTML = '<span style="color:#b91c1c; font-weight:600;">Informe um valor válido (ex.: 12.500,00).</span>';
     } else if (centavos > saldo) {
         previa.innerHTML = '<span style="color:#b91c1c; font-weight:600;">O valor passa do saldo devedor (' + reais(saldo) + ').</span>';

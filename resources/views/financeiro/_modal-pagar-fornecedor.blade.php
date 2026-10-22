@@ -1,4 +1,4 @@
-{{-- Quadro "Pagar fornecedor": um valor só (total ou parcial) distribuído entre as compras em aberto, da mais antiga para a mais nova. --}}
+{{-- Quadro "Pagar fornecedor": um valor só (total ou parcial) distribuído entre as compras em aberto, da que vence primeiro para a que vence depois. --}}
 @php
     use App\Support\Dinheiro;
     $reabrir = $errors->any() && (string) old('_compra') === 'forn';
@@ -32,7 +32,10 @@
                 <div style="margin-bottom:14px;">
                     <label style="{{ $rotulo }}">Valor pago (R$) <span style="color:#ef4444;">*</span> <span style="color:#9ca3af; font-weight:400;">— o total ou só uma parte</span></label>
                     <input type="text" name="valor" required inputmode="decimal" onfocus="this.select()" oninput="previaFornecedor()"
-                           value="{{ $reabrir && is_numeric(old('valor')) ? number_format((float) old('valor'), 2, ',', '.') : $velho('valor', number_format($totais['saldo'], 2, ',', '.')) }}" style="{{ $campo }}">
+                           placeholder="Ex: 12.500,00" value="{{ $reabrir && is_numeric(old('valor')) ? number_format((float) old('valor'), 2, ',', '.') : $velho('valor', '') }}" style="{{ $campo }}">
+                    {{-- Começa vazio de propósito: quitar tudo é uma escolha, não o padrão. --}}
+                    <button type="button" onclick="var v = this.form.valor; v.value = '{{ number_format($totais['saldo'], 2, ',', '.') }}'; previaFornecedor();"
+                            style="margin-top:6px; background:none; border:none; padding:0; color:#05018D; font-size:12.5px; font-weight:600; text-decoration:underline; cursor:pointer;">Usar o saldo todo ({{ Dinheiro::brl($totais['saldo']) }})</button>
                 </div>
 
                 <div id="previa-fornecedor" style="margin-bottom:14px; padding:10px 12px; border:1px solid #e2e8f0; background:#f8fafc; border-radius:8px; font-size:12.5px; color:#334155;"></div>

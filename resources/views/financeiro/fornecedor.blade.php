@@ -28,7 +28,7 @@
         @if($totais['saldo'] > 0)
             <button type="button" onclick="document.getElementById('modal-pagar-forn').style.display='flex'; previaFornecedor();"
                     style="margin-top:12px; background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:9px 22px; font-size:13.5px; font-weight:600; cursor:pointer;">Pagar fornecedor</button>
-            <span style="margin-left:8px; font-size:12.5px; color:#6b7280;">um valor só (total ou parcial) que quita as compras da mais antiga para a mais nova</span>
+            <span style="margin-left:8px; font-size:12.5px; color:#6b7280;">um valor só (total ou parcial) que quita primeiro as compras que vencem antes</span>
         @endif
     </div>
 

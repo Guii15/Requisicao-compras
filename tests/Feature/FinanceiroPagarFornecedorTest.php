@@ -185,6 +185,27 @@ class FinanceiroPagarFornecedorTest extends TestCase
             ->assertSee('value="900,00"', false);
     }
 
+    public function test_estorno_de_pagamento_antigo_sem_lote_mostra_o_valor_dele(): void
+    {
+        $c = $this->compra(15000, '2026-09-01');
+        PagamentoCompra::create(['purchase_request_id' => $c->id, 'valor' => 15000, 'forma' => 'a_vista', 'data_pagamento' => '2026-09-05', 'user_id' => $this->fin->id]);
+
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedor', 'JOYCE'))
+            ->assertOk()
+            ->assertSee('Estornar R$ 15.000,00?')
+            ->assertDontSee('R$ 0,00?');
+    }
+
+    public function test_valor_do_pagar_fornecedor_comeca_vazio(): void
+    {
+        $this->compra(500, '2026-09-01');
+
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedor', 'JOYCE'))
+            ->assertOk()
+            ->assertSee('Usar o saldo todo (R$ 500,00)')
+            ->assertDontSee('value="500,00"', false);
+    }
+
     public function test_sem_nada_em_aberto_avisa_e_nao_grava(): void
     {
         $c = $this->compra(300, '2026-09-01');
