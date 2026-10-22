@@ -569,14 +569,29 @@ class FinanceiroController extends Controller
         return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($valor) . ' lançado na requisição #' . $conta->id . '.');
     }
 
-    public function removerAcrescimo(AcrescimoCompra $acrescimo, SaldoFornecedores $saldos)
+    /** Acréscimo lançado errado: fica guardado como estornado (quem, quando e por quê) e deixa de contar no custo real. */
+    public function estornarAcrescimo(Request $request, AcrescimoCompra $acrescimo, SaldoFornecedores $saldos)
     {
         $volta = redirect()->to(url()->previous(route('financeiro.fornecedor', $saldos->chave($acrescimo->compra?->supplier))));
-        $valor = $acrescimo->valor;
 
-        $acrescimo->delete();
+        if ($acrescimo->estornado()) {
+            return $volta->with('aviso', 'Este acréscimo já estava estornado — nada foi alterado.');
+        }
 
-        return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($valor) . ' removido.');
+        $dados = $request->validate([
+            'motivo' => 'required|string|max:500',
+        ], [
+            'motivo.required' => 'Informe o motivo do estorno.',
+            'motivo.max' => 'O motivo pode ter no máximo 500 caracteres.',
+        ]);
+
+        $acrescimo->forceFill([
+            'estornado_em' => now(),
+            'estornado_por' => auth()->id(),
+            'motivo_estorno' => trim($dados['motivo']),
+        ])->save();
+
+        return $volta->with('success', 'Acréscimo de ' . Dinheiro::brl($acrescimo->valor) . ' estornado.');
     }
 
     /** Relatório de um período (semana, mês ou datas escolhidas), para ver na tela, imprimir ou salvar em PDF. */
