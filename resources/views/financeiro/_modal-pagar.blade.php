@@ -54,7 +54,7 @@
 
                 <div id="campo-valor-{{ $c->id }}" style="display:{{ $parceladoMarcado ? 'block' : 'none' }}; margin-bottom:14px;">
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Valor pago (R$)</label>
-                    <input type="text" name="valor" inputmode="decimal" placeholder="Ex: 12.500,00" value="{{ $velho('valor', $sugestao) }}" onfocus="this.select()" oninput="previaCheque({{ $c->id }})"
+                    <input type="text" name="valor" inputmode="decimal" placeholder="Ex: 12.500,00" value="{{ $reabrir && is_numeric(old('valor')) ? number_format((float) old('valor'), 2, ',', '.') : $velho('valor', $sugestao) }}" onfocus="this.select()" oninput="previaCheque({{ $c->id }})"
                            style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                 </div>
 
@@ -91,7 +91,7 @@
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div>
                             <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Nº da primeira folha <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="cheque_primeira_folha" value="{{ $velho('cheque_primeira_folha') }}" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque({{ $c->id }})"
+                            <input type="text" name="cheque_primeira_folha" value="{{ $reabrir && ctype_digit((string) old('cheque_primeira_folha')) ? str_pad(old('cheque_primeira_folha'), 6, '0', STR_PAD_LEFT) : $velho('cheque_primeira_folha') }}" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque({{ $c->id }})"
                                    style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
                         </div>
                         <div>

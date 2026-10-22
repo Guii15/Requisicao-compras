@@ -177,14 +177,15 @@ class FinanceiroChequesTest extends TestCase
         $tela = route('financeiro.fornecedor', 'VIA COMERCIO');
 
         $this->actingAs($this->fin)->from($tela)->followingRedirects()->post(route('financeiro.pagar', $outra), [
-            '_compra' => $outra->id, 'forma' => 'a_vista', 'meio' => 'cheque', 'banco' => 'Itaú',
+            '_compra' => $outra->id, 'forma' => 'parcelado', 'valor' => '9.000,00', 'meio' => 'cheque', 'banco' => 'Itaú',
             'data_pagamento' => '2026-10-22', 'cheque_primeira_folha' => '102', 'obs' => 'Pago na visita',
         ])
             ->assertOk()
             ->assertSee('já foi usada')
             ->assertSee('id="modal-pagar-' . $outra->id . '" data-reabrir="1" style="display:flex;', false)
-            ->assertSee('value="102"', false)
+            ->assertSee('value="000102"', false)
             ->assertSee('value="Pago na visita"', false)
+            ->assertSee('value="9.000,00"', false)
             ->assertSee('<option value="cheque" selected', false);
     }
 
