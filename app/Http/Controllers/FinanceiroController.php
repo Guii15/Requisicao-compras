@@ -12,6 +12,7 @@ use App\Services\DesdobramentoCheque;
 use App\Services\PainelFinanceiro;
 use App\Services\RelatorioFinanceiro;
 use App\Services\SaldoFornecedores;
+use App\Services\UnificadorFornecedores;
 use App\Support\Dinheiro;
 use App\Support\PlanilhaXlsx;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -116,7 +117,37 @@ class FinanceiroController extends Controller
                 'centavos' => $p['centavos'],
             ])->all();
 
-        return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel', 'ordemPagamento'));
+        // Para "Juntar com outro fornecedor": os de nome parecido aparecem primeiro.
+        $unificador = app(UnificadorFornecedores::class);
+        $outros = $saldos->resumo($todas)->where('chave', '!=', $chave)
+            ->map(fn ($f) => $f + ['parecido' => $unificador->motivoParecido($chave, $f['chave']) !== null])
+            ->sortBy('nome', SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        return view('financeiro.fornecedor', compact('chave', 'nome', 'compras', 'totais', 'empresas', 'empresaSel', 'ordemPagamento', 'outros'));
+    }
+
+    /**
+     * Junta este fornecedor com outro que é o mesmo ("Joyce" + "Joyce Informática"). A pessoa escolhe
+     * qual nome fica; as compras e pagamentos dos dois passam a ser de um fornecedor só.
+     */
+    public function juntarFornecedor(Request $request, string $chave, SaldoFornecedores $saldos, UnificadorFornecedores $unificador)
+    {
+        $dados = $request->validate([
+            'outro' => ['required', 'string'],
+            'fica' => ['required', 'in:este,outro'],
+        ], ['outro.required' => 'Escolha o fornecedor para juntar.']);
+
+        $nomes = $saldos->resumo()->pluck('nome', 'chave');
+        if (!isset($nomes[$chave], $nomes[$dados['outro']]) || $dados['outro'] === $chave) {
+            throw ValidationException::withMessages(['outro' => 'Escolha outro fornecedor da lista para juntar.']);
+        }
+
+        [$origem, $destino] = $dados['fica'] === 'este' ? [$dados['outro'], $chave] : [$chave, $dados['outro']];
+        $movidas = $unificador->juntar($origem, $nomes[$origem], $nomes[$destino], auth()->id());
+
+        return redirect()->route('financeiro.fornecedor', $saldos->chave($nomes[$destino]))->with('success',
+            "\"{$nomes[$origem]}\" foi juntado a \"{$nomes[$destino]}\": {$movidas} " . ($movidas === 1 ? 'compra passou' : 'compras passaram')
+            . " para esse nome. Quem digitar \"{$nomes[$origem]}\" daqui para frente cai aqui.");
     }
 
     public function pagar(Request $request, PurchaseRequest $purchaseRequest, SaldoFornecedores $saldos, DesdobramentoCheque $desdobramento)

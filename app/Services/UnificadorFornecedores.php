@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Fornecedor;
+use App\Models\FornecedorMesclagem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -118,6 +119,49 @@ class UnificadorFornecedores
         }
 
         return $mapa;
+    }
+
+    /**
+     * Junta dois fornecedores que a pessoa disse serem o mesmo ("Joyce" + "Joyce Informática"):
+     * as compras dos dois passam para $nomeFinal (o que foi digitado fica em supplier_original)
+     * e a junção fica registrada, para quem digitar o nome antigo depois cair no que ficou.
+     *
+     * @return int quantas compras do fornecedor juntado mudaram de nome
+     */
+    public function juntar(string $chaveOrigem, string $nomeOrigem, string $nomeFinal, ?int $userId): int
+    {
+        $chaveFinal = Fornecedor::normalizar($nomeFinal);
+        if ($chaveOrigem === '' || $chaveFinal === '' || $chaveOrigem === $chaveFinal) {
+            throw new \InvalidArgumentException('Escolha dois fornecedores diferentes.');
+        }
+
+        return DB::transaction(function () use ($chaveOrigem, $nomeOrigem, $nomeFinal, $chaveFinal, $userId) {
+            $fornecedor = Fornecedor::firstOrCreate(['nome_normalizado' => $chaveFinal], ['nome' => $nomeFinal]);
+
+            $compras = DB::table('purchase_requests')->whereNotNull('supplier')->get(['id', 'supplier'])
+                ->map(fn ($c) => ['id' => $c->id, 'chave' => Fornecedor::normalizar($c->supplier)])
+                ->whereIn('chave', [$chaveOrigem, $chaveFinal]);
+
+            foreach ($compras->pluck('id')->chunk(500) as $ids) {
+                DB::table('purchase_requests')->whereIn('id', $ids->all())->update([
+                    'supplier_original' => DB::raw(self::TEXTO_ORIGINAL),
+                    'supplier' => $fornecedor->nome,
+                    'fornecedor_id' => $fornecedor->id,
+                ]);
+            }
+
+            $movidas = $compras->where('chave', $chaveOrigem)->count();
+
+            // O nome que ficou deixa de ser "juntado a outro" (evita volta infinita se juntarem ao contrário).
+            FornecedorMesclagem::where('origem_normalizado', $chaveFinal)->delete();
+            FornecedorMesclagem::create([
+                'origem_nome' => $nomeOrigem, 'origem_normalizado' => $chaveOrigem,
+                'destino_id' => $fornecedor->id, 'destino_nome' => $fornecedor->nome,
+                'compras_afetadas' => $movidas, 'user_id' => $userId,
+            ]);
+
+            return $movidas;
+        });
     }
 
     /**

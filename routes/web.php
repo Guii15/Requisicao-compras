@@ -130,6 +130,7 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::get('/relatorio/planilha', [FinanceiroController::class, 'planilha'])->middleware('throttle:30,1')->name('relatorio.planilha');
     Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
     Route::post('/fornecedor/{chave}/pagamentos', [FinanceiroController::class, 'pagarFornecedor'])->middleware('throttle:60,1')->name('pagarFornecedor');
+    Route::post('/fornecedor/{chave}/juntar', [FinanceiroController::class, 'juntarFornecedor'])->middleware('throttle:30,1')->name('juntarFornecedor');
     Route::post('/pagamentos/{pagamento}/estorno', [FinanceiroController::class, 'estornar'])->middleware('throttle:60,1')->name('estornar');
     Route::post('/compras/{purchaseRequest}/acrescimos', [FinanceiroController::class, 'acrescentar'])->middleware('throttle:60,1')->name('acrescentar');
     Route::delete('/acrescimos/{acrescimo}', [FinanceiroController::class, 'removerAcrescimo'])->middleware('throttle:60,1')->name('removerAcrescimo');

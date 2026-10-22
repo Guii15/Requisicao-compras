@@ -30,6 +30,13 @@
                     style="margin-top:12px; background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:9px 22px; font-size:13.5px; font-weight:600; cursor:pointer;">Pagar fornecedor</button>
             <span style="margin-left:8px; font-size:12.5px; color:#6b7280;">um valor só (total ou parcial) que quita primeiro as compras que vencem antes</span>
         @endif
+        @if($outros->isNotEmpty())
+            <div style="margin-top:10px;">
+                <button type="button" onclick="document.getElementById('modal-juntar').style.display='flex'"
+                        style="background:none; border:none; padding:0; color:#05018D; font-size:12.5px; font-weight:600; text-decoration:underline; cursor:pointer;">Juntar com outro fornecedor</button>
+                <span style="font-size:12.5px; color:#6b7280;">(quando o mesmo fornecedor foi digitado com outro nome)</span>
+            </div>
+        @endif
     </div>
 
     @if(session('success'))
@@ -140,6 +147,9 @@
 
 @if($totais['saldo'] > 0)
     @include('financeiro._modal-pagar-fornecedor')
+@endif
+@if($outros->isNotEmpty())
+    @include('financeiro._modal-juntar-fornecedor')
 @endif
 
 @include('financeiro._scripts')
