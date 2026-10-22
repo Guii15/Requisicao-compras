@@ -129,7 +129,7 @@ class SaldoFornecedores
         // Contas lançadas no Financeiro ficam fora do escopo padrão (telas de compras), mas entram aqui.
         return PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
             ->whereIn('tipo_registro', PurchaseRequest::TIPOS_FINANCEIRO)
-            ->with(['pagamentos.cheques', 'pagamentosEstornados.cheques', 'acrescimos', 'fornecedor'])
+            ->with(['pagamentos.cheques', 'pagamentosEstornados.cheques', 'acrescimos.user', 'acrescimosEstornados.estornadoPor', 'fornecedor'])
             ->where('status', 'aprovado')
             ->whereNotNull('data_compra')
             ->whereNotNull('preco_unitario')

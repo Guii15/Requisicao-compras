@@ -140,7 +140,7 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::post('/fornecedor/{chave}/juntar', [FinanceiroController::class, 'juntarFornecedor'])->middleware('throttle:30,1')->name('juntarFornecedor');
     Route::post('/pagamentos/{pagamento}/estorno', [FinanceiroController::class, 'estornar'])->middleware('throttle:60,1')->name('estornar');
     Route::post('/compras/{conta}/acrescimos', [FinanceiroController::class, 'acrescentar'])->middleware('throttle:60,1')->name('acrescentar');
-    Route::delete('/acrescimos/{acrescimo}', [FinanceiroController::class, 'removerAcrescimo'])->middleware('throttle:60,1')->name('removerAcrescimo');
+    Route::post('/acrescimos/{acrescimo}/estorno', [FinanceiroController::class, 'estornarAcrescimo'])->middleware('throttle:60,1')->name('estornarAcrescimo');
 });
 
 // Setor RMA: só leitura do que foi comprado e já chegou (sem valores em dinheiro).

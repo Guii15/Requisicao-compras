@@ -250,9 +250,16 @@ class PurchaseRequest extends Model
         return $this->hasMany(PagamentoCompra::class)->whereNotNull('estornado_em');
     }
 
+    /** Acréscimos que valem (os estornados não entram no custo real). */
     public function acrescimos(): HasMany
     {
-        return $this->hasMany(AcrescimoCompra::class);
+        return $this->hasMany(AcrescimoCompra::class)->whereNull('estornado_em');
+    }
+
+    /** Acréscimos estornados, guardados para o histórico. */
+    public function acrescimosEstornados(): HasMany
+    {
+        return $this->hasMany(AcrescimoCompra::class)->whereNotNull('estornado_em');
     }
 
     public function fotosConferencia(): HasMany

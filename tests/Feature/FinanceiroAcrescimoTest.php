@@ -92,14 +92,49 @@ class FinanceiroAcrescimoTest extends TestCase
         $this->assertSame(0, AcrescimoCompra::count());
     }
 
-    public function test_remove_acrescimo(): void
+    public function test_estorno_de_acrescimo_fica_guardado_com_quem_quando_e_por_que(): void
     {
         $c = $this->compra();
         $this->acrescentar($c);
 
-        $this->actingAs($this->fin)->delete(route('financeiro.removerAcrescimo', AcrescimoCompra::first()))->assertSessionHas('success');
+        $this->actingAs($this->fin)->post(route('financeiro.estornarAcrescimo', AcrescimoCompra::first()), ['motivo' => 'Frete lançado duas vezes'])
+            ->assertSessionHasNoErrors()->assertSessionHas('success');
 
-        $this->assertSame(0, AcrescimoCompra::count());
+        $ac = AcrescimoCompra::sole();
+        $this->assertNotNull($ac->estornado_em);
+        $this->assertSame([$this->fin->id, 'Frete lançado duas vezes'], [$ac->estornado_por, $ac->motivo_estorno]);
+        $this->assertSame(0.0, app(\App\Services\SaldoFornecedores::class)->linhas()->sole()['acrescimo']);
+    }
+
+    public function test_estorno_de_acrescimo_exige_motivo_e_nao_estorna_duas_vezes(): void
+    {
+        $c = $this->compra();
+        $this->acrescentar($c);
+        $ac = AcrescimoCompra::first();
+
+        $this->actingAs($this->fin)->post(route('financeiro.estornarAcrescimo', $ac), ['motivo' => ''])->assertSessionHasErrors('motivo');
+        $this->assertNull($ac->fresh()->estornado_em);
+
+        $this->actingAs($this->fin)->post(route('financeiro.estornarAcrescimo', $ac), ['motivo' => 'Errado']);
+        $primeiro = $ac->fresh()->estornado_em;
+        $this->actingAs($this->fin)->post(route('financeiro.estornarAcrescimo', $ac), ['motivo' => 'De novo'])->assertSessionHas('aviso');
+        $this->assertSame('Errado', $ac->fresh()->motivo_estorno);
+        $this->assertEquals($primeiro, $ac->fresh()->estornado_em);
+    }
+
+    public function test_acrescimo_estornado_aparece_riscado_na_tela(): void
+    {
+        $c = $this->compra();
+        $this->acrescentar($c);
+        $this->actingAs($this->fin)->post(route('financeiro.estornarAcrescimo', AcrescimoCompra::first()), ['motivo' => 'Frete lançado duas vezes']);
+
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedor', \App\Models\Fornecedor::normalizar($c->supplier)))
+            ->assertOk()->assertSee('Estornado')->assertSee('Frete lançado duas vezes');
+    }
+
+    public function test_nao_tem_mais_como_apagar_acrescimo(): void
+    {
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('financeiro.removerAcrescimo'));
     }
 
     public function test_quem_nao_e_do_financeiro_nao_lanca(): void
