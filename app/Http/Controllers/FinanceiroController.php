@@ -16,6 +16,7 @@ use App\Services\SaldoFornecedores;
 use App\Services\UnificadorFornecedores;
 use App\Support\Dinheiro;
 use App\Support\PlanilhaXlsx;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -31,6 +32,15 @@ class FinanceiroController extends Controller
 {
     private const POR_PAGINA = 25;
 
+    /** Atalhos da aba Aguardando (contas a pagar), pelo próximo vencimento. */
+    private const ATALHOS_VENCIMENTO = [
+        'vencidas' => 'Vencidas',
+        'hoje' => 'Vence hoje',
+        'semana' => 'Próximos 7 dias',
+        'mes' => 'Até o fim do mês',
+        'sem' => 'Sem vencimento',
+    ];
+
     public function index(Request $request, PainelFinanceiro $painel)
     {
         $d = $painel->dados(null, $request->query('empresa'));
@@ -40,12 +50,51 @@ class FinanceiroController extends Controller
 
     public function aguardando(Request $request, SaldoFornecedores $saldos)
     {
-        $linhas = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))
-            ->where('aberto', '>', 0)
-            ->sortByDesc(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+        // Contas a pagar: primeiro pelo vencimento (a que vence antes em cima); as sem vencimento vão para o fim, das mais novas para as mais antigas.
+        $semData = $saldos->somenteEmpresa($saldos->linhas(), $request->query('empresa'))->where('aberto', '>', 0)
+            ->sortByDesc(fn ($l) => $l['compra']->data_compra->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT));
+        $linhas = $semData->whereNotNull('proximo_vencimento')
+            ->sortBy(fn ($l) => $l['proximo_vencimento']->format('Ymd') . str_pad((string) $l['compra']->id, 10, '0', STR_PAD_LEFT))
+            ->concat($semData->whereNull('proximo_vencimento'))
             ->values();
 
-        return $this->lista($request, $linhas, 'aguardando');
+        $hoje = CarbonImmutable::now('America/Sao_Paulo')->startOfDay();
+        $vence = fn (array $l, string $quando) => match ($quando) {
+            'vencidas' => $l['vencida'],
+            'hoje' => $l['proximo_vencimento']?->isSameDay($hoje) ?? false,
+            'semana' => $l['proximo_vencimento'] !== null && $l['proximo_vencimento'] >= $hoje && $l['proximo_vencimento'] <= $hoje->addDays(6),
+            'mes' => $l['proximo_vencimento'] !== null && $l['proximo_vencimento'] >= $hoje && $l['proximo_vencimento'] <= $hoje->endOfMonth(),
+            'sem' => $l['proximo_vencimento'] === null,
+            default => true,
+        };
+
+        // Atalhos com quantas contas e quanto falta em cada um (antes de filtrar).
+        $atalhos = collect(self::ATALHOS_VENCIMENTO)->map(function (string $rotulo, string $codigo) use ($linhas, $vence) {
+            $grupo = $linhas->filter(fn ($l) => $vence($l, $codigo));
+
+            return ['rotulo' => $rotulo, 'quantidade' => $grupo->count(), 'valor' => round($grupo->sum('aberto'), 2)];
+        })->all();
+
+        $quando = array_key_exists((string) $request->query('vence'), self::ATALHOS_VENCIMENTO) ? (string) $request->query('vence') : null;
+        if ($quando) {
+            $linhas = $linhas->filter(fn ($l) => $vence($l, $quando))->values();
+        }
+
+        // Período de vencimento escolhido (de/até).
+        $de = $this->dataOuNula($request->query('de'));
+        $ate = $this->dataOuNula($request->query('ate'));
+        if ($de || $ate) {
+            $linhas = $linhas->filter(fn ($l) => $l['proximo_vencimento'] !== null
+                && (!$de || $l['proximo_vencimento']->format('Y-m-d') >= $de)
+                && (!$ate || $l['proximo_vencimento']->format('Y-m-d') <= $ate))->values();
+        }
+
+        return $this->lista($request, $linhas, 'aguardando', ['atalhos' => $atalhos, 'vence' => $quando, 'de' => $de, 'ate' => $ate]);
+    }
+
+    private function dataOuNula(mixed $texto): ?string
+    {
+        return is_string($texto) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $texto) ? $texto : null;
     }
 
     public function pagos(Request $request, SaldoFornecedores $saldos)
@@ -667,7 +716,7 @@ class FinanceiroController extends Controller
     }
 
     /** Lista paginada de compras (abas Aguardando e Pagos), com busca por fornecedor, produto, comprador ou nº da requisição. */
-    private function lista(Request $request, Collection $linhas, string $modo)
+    private function lista(Request $request, Collection $linhas, string $modo, array $extra = [])
     {
         $q = trim((string) $request->query('q', ''));
         $empresaSel = $this->empresaEscolhida($request);
@@ -691,7 +740,7 @@ class FinanceiroController extends Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
 
-        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total', 'empresas', 'empresaSel'));
+        return view('financeiro.compras', compact('itens', 'modo', 'q', 'total', 'empresas', 'empresaSel') + $extra + ['atalhos' => [], 'vence' => null, 'de' => null, 'ate' => null]);
     }
 
     /** Para o pagamento se alguma das folhas já foi usada nesse banco (mesmo em cheque cancelado). */
