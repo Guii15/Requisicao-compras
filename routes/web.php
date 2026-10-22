@@ -18,6 +18,7 @@ use App\Http\Middleware\RmaMiddleware;
 use App\Http\Controllers\RmaController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\VendedorMiddleware;
+use App\Models\PurchaseRequest;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -119,6 +120,10 @@ Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(
     Route::patch('/{purchaseRequest}/coleta', [ConferenciaController::class, 'registrarColeta'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('coleta');
 });
 
+// Pagar e lançar acréscimo valem também para as contas lançadas no Financeiro (fora do escopo padrão).
+Route::bind('conta', fn ($id) => PurchaseRequest::withoutGlobalScope('apenasFluxoAtivo')
+    ->whereIn('tipo_registro', PurchaseRequest::TIPOS_FINANCEIRO)->findOrFail($id));
+
 Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->name('financeiro.')->group(function () {
     Route::get('/', [FinanceiroController::class, 'index'])->name('index');
     Route::get('/aguardando', [FinanceiroController::class, 'aguardando'])->name('aguardando');
@@ -128,11 +133,13 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::get('/cheques', [FinanceiroController::class, 'cheques'])->name('cheques');
     Route::get('/relatorio', [FinanceiroController::class, 'relatorio'])->name('relatorio');
     Route::get('/relatorio/planilha', [FinanceiroController::class, 'planilha'])->middleware('throttle:30,1')->name('relatorio.planilha');
-    Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
+    Route::post('/compras/{conta}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
+    Route::get('/fornecedores/nomes', [FinanceiroController::class, 'nomesFornecedores'])->name('nomesFornecedores');
+    Route::post('/contas', [FinanceiroController::class, 'lancarConta'])->middleware('throttle:60,1')->name('lancarConta');
     Route::post('/fornecedor/{chave}/pagamentos', [FinanceiroController::class, 'pagarFornecedor'])->middleware('throttle:60,1')->name('pagarFornecedor');
     Route::post('/fornecedor/{chave}/juntar', [FinanceiroController::class, 'juntarFornecedor'])->middleware('throttle:30,1')->name('juntarFornecedor');
     Route::post('/pagamentos/{pagamento}/estorno', [FinanceiroController::class, 'estornar'])->middleware('throttle:60,1')->name('estornar');
-    Route::post('/compras/{purchaseRequest}/acrescimos', [FinanceiroController::class, 'acrescentar'])->middleware('throttle:60,1')->name('acrescentar');
+    Route::post('/compras/{conta}/acrescimos', [FinanceiroController::class, 'acrescentar'])->middleware('throttle:60,1')->name('acrescentar');
     Route::delete('/acrescimos/{acrescimo}', [FinanceiroController::class, 'removerAcrescimo'])->middleware('throttle:60,1')->name('removerAcrescimo');
 });
 

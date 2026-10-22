@@ -11,6 +11,9 @@
     <div style="margin-bottom:20px;">
         <h1 style="margin:0; font-size:24px; font-weight:700; color:#05018D;">Financeiro</h1>
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Contas a pagar por fornecedor: cada compra feita soma no saldo e cada pagamento dá baixa.</p>
+        <button type="button" onclick="abrirLancarConta()" title="Conta que não veio de uma requisição: saldo antigo, conta do Bling, fornecedor sem compra no sistema"
+                    style="margin-top:12px; background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:8px 20px; font-size:13.5px; font-weight:600; cursor:pointer;">+ Lançar conta</button>
+        <span style="margin-left:8px; font-size:12.5px; color:#6b7280;">saldo antigo, conta do Bling ou fornecedor que nunca comprou pelo sistema</span>
     </div>
 
     @include('financeiro._abas')
@@ -79,4 +82,7 @@
     </div>
 
 </div>
+
+@include('financeiro._modal-lancar-conta')
+@include('financeiro._scripts')
 @endsection

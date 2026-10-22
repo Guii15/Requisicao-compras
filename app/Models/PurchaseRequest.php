@@ -24,6 +24,17 @@ class PurchaseRequest extends Model
         });
     }
 
+    /** Conta lançada à mão no Financeiro (saldo antigo, conta do Bling, fornecedor sem compra): não é requisição. */
+    public const CONTA_AVULSA = 'conta_avulsa';
+
+    /** O que entra no Financeiro: requisições e contas lançadas lá. */
+    public const TIPOS_FINANCEIRO = ['requisicao', self::CONTA_AVULSA];
+
+    public function ehContaAvulsa(): bool
+    {
+        return $this->tipo_registro === self::CONTA_AVULSA;
+    }
+
     /** Daqui em diante, toda requisição aprovada aparece em Compras Feitas na hora, mesmo sem data e preço da compra. */
     public const COMPRAS_FEITAS_DESDE = '2026-10-02';
 

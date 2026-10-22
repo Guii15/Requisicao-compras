@@ -30,6 +30,8 @@
                     style="margin-top:12px; background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:9px 22px; font-size:13.5px; font-weight:600; cursor:pointer;">Pagar fornecedor</button>
             <span style="margin-left:8px; font-size:12.5px; color:#6b7280;">um valor só (total ou parcial) que quita primeiro as compras que vencem antes</span>
         @endif
+        <button type="button" onclick="abrirLancarConta()" title="Conta que não veio de uma requisição: saldo antigo, conta do Bling, fornecedor sem compra no sistema"
+                    style="margin-top:12px; margin-left:4px; background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:8px 20px; font-size:13.5px; font-weight:600; cursor:pointer;">+ Lançar conta</button>
         @if($outros->isNotEmpty())
             <div style="margin-top:10px;">
                 <button type="button" onclick="document.getElementById('modal-juntar').style.display='flex'"
@@ -85,7 +87,7 @@
                     @php $c = $linha['compra']; @endphp
                     <tr class="grupo-cabecalho" style="border-top:1px solid #f3f4f6;">
                         <td data-rotulo="Compra" style="padding:12px 14px; white-space:nowrap;">{{ $c->data_compra->format('d/m/Y') }}</td>
-                        <td data-rotulo="Requisição" style="padding:12px 14px;">#{{ $c->id }}</td>
+                        <td data-rotulo="Requisição" style="padding:12px 14px;">#{{ $c->id }}@if($c->ehContaAvulsa())<div style="font-size:11px; color:#6d28d9; font-weight:600;">conta lançada</div>@endif</td>
                         <td class="lr-larga" data-rotulo="Produto" style="padding:12px 14px; font-weight:600; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af; font-weight:400;">× {{ $c->quantity }}</span>
                             @if($linha['condicao'])<div style="font-size:11.5px; color:#9ca3af; font-weight:400;">{{ $linha['condicao'] }}</div>@endif
@@ -151,6 +153,7 @@
 @if($outros->isNotEmpty())
     @include('financeiro._modal-juntar-fornecedor')
 @endif
+@include('financeiro._modal-lancar-conta', ['fornecedorPadrao' => $nome])
 
 @include('financeiro._scripts')
 @endsection

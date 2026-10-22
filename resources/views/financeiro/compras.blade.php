@@ -88,7 +88,7 @@
                         <td class="lr-num" style="padding:12px 9px; font-weight:600;"><a href="{{ route('financeiro.fornecedor', array_filter(['chave' => $linha['chave'], 'empresa' => request('empresa')])) }}" style="color:#111827; text-decoration:none;">{{ $linha['fornecedor'] }}</a></td>
                         <td class="lr-larga" data-rotulo="Produto" style="padding:12px 9px; color:#111827;">
                             {{ $c->product_name }} <span style="color:#9ca3af;">× {{ $c->quantity }}</span>
-                            <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
+                            <div style="font-size:11.5px; color:#9ca3af;">req. #{{ $c->id }}{!! $c->ehContaAvulsa() ? ' · <span style="color:#6d28d9; font-weight:600;">conta lançada</span>' : '' !!}@if($linha['condicao']) · {{ $linha['condicao'] }}@endif</div>
                         </td>
                         <td data-rotulo="Comprador" style="padding:12px 9px;">{{ $c->requester_name ?? '—' }}</td>
                         <td data-rotulo="Valor" style="padding:12px 9px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}@if($linha['acrescimo'] > 0)<div style="font-size:11.5px; color:#92400e;">+ {{ Dinheiro::brl($linha['acrescimo']) }} acréscimo</div><div style="font-size:11.5px; color:#6b7280;">custo real {{ Dinheiro::brl($linha['custo_total']) }}</div>@endif</td>
