@@ -80,6 +80,12 @@ class User extends Authenticatable
         return !$this->isAdmin() && $this->role === null;
     }
 
+    /** Quem cria e acompanha as PRÓPRIAS requisições: o vendedor e o perfil Entrada (que segue dando entrada normalmente). */
+    public function podeRequisitar(): bool
+    {
+        return $this->isVendedor() || (!$this->isAdmin() && $this->role === 'entrada');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      */

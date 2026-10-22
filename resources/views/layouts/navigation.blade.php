@@ -10,7 +10,7 @@
                 </a>
 
                 <div class="hidden sm:flex sm:items-center sm:ms-8">
-                    @if(Auth::user()->isVendedor())
+                    @if(Auth::user()->podeRequisitar())
                     <a href="{{ route('requests.index') }}"
                        style="color: {{ request()->routeIs('requests.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
                               background: {{ request()->routeIs('requests.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
@@ -150,7 +150,7 @@
         html.dark .menu-m .menu-m-acao { background:transparent; border-color:var(--sl-line-2); color:var(--sl-bone); }
     </style>
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden menu-m">
-        @if(Auth::user()->isVendedor())
+        @if(Auth::user()->podeRequisitar())
             <a href="{{ route('requests.index') }}" class="menu-m-link {{ request()->routeIs('requests.*') ? 'ativo' : '' }}">Minhas Requisições</a>
         @endif
         @if(Auth::user()->isAdmin())

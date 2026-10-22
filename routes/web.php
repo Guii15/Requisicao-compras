@@ -125,8 +125,12 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
     Route::get('/pagos', [FinanceiroController::class, 'pagos'])->name('pagos');
     Route::get('/fornecedores', [FinanceiroController::class, 'fornecedores'])->name('fornecedores');
     Route::get('/fornecedor/{chave}', [FinanceiroController::class, 'fornecedor'])->name('fornecedor');
+    Route::get('/relatorio', [FinanceiroController::class, 'relatorio'])->name('relatorio');
+    Route::get('/relatorio/planilha', [FinanceiroController::class, 'planilha'])->middleware('throttle:30,1')->name('relatorio.planilha');
     Route::post('/compras/{purchaseRequest}/pagamentos', [FinanceiroController::class, 'pagar'])->middleware('throttle:60,1')->name('pagar');
     Route::delete('/pagamentos/{pagamento}', [FinanceiroController::class, 'desfazer'])->middleware('throttle:60,1')->name('desfazer');
+    Route::post('/compras/{purchaseRequest}/acrescimos', [FinanceiroController::class, 'acrescentar'])->middleware('throttle:60,1')->name('acrescentar');
+    Route::delete('/acrescimos/{acrescimo}', [FinanceiroController::class, 'removerAcrescimo'])->middleware('throttle:60,1')->name('removerAcrescimo');
 });
 
 // Setor RMA: só leitura do que foi comprado e já chegou (sem valores em dinheiro).

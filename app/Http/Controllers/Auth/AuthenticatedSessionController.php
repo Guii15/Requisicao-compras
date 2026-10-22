@@ -95,7 +95,7 @@ class AuthenticatedSessionController extends Controller
             EntradaMiddleware::class                 => fn () => $user->isEntrada(),
             FinanceiroMiddleware::class              => fn () => $user->podeVerFinanceiro(),
             RmaMiddleware::class                     => fn () => $user->isRma() || $user->isAdmin(),
-            VendedorMiddleware::class                => fn () => $user->isVendedor(),
+            VendedorMiddleware::class                => fn () => $user->podeRequisitar(),
         ];
 
         foreach ($rota->gatherMiddleware() as $middleware) {

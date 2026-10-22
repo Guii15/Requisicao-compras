@@ -53,8 +53,8 @@ class QuantidadeDadosCompraTest extends TestCase
         $html = $this->actingAs(User::factory()->create(['role' => 'conferente']))->get(route('conferencia.index'))->getContent();
 
         $this->assertStringContainsString('Cabo Teste', $html);
-        $this->assertStringContainsString('value="100" min="0"', $html);   // quantidade recebida já vem com 100
-        $this->assertStringNotContainsString('value="50" min="0"', $html);
+        $this->assertStringContainsString('data-qtd="100"', $html);   // quantidade recebida já vem com 100
+        $this->assertStringNotContainsString('data-qtd="50"', $html);
     }
 
     public function test_sem_o_campo_a_quantidade_nao_muda(): void

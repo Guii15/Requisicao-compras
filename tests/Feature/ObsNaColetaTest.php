@@ -74,7 +74,8 @@ class ObsNaColetaTest extends TestCase
 
         $this->assertSame(1, substr_count($html, self::ADMIN)); // só o cartão do item, sem o quadro de coletar
         $this->assertStringContainsString('>ADMIN</span>', $html);
-        $this->assertStringNotContainsString('id="modal-coleta-', $html);
+        $this->assertStringNotContainsString('id="modal-coleta"', $html);
+        $this->assertStringNotContainsString('coleta-item-', $html);
     }
 
     public function test_quem_e_da_entrada_tambem_ve(): void

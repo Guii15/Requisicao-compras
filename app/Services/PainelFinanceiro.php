@@ -40,6 +40,7 @@ class PainelFinanceiro
             'saldo' => round($linhas->sum('aberto'), 2),
             'comprado' => $comprado,
             'pago' => $pago,
+            'acrescimos' => round($linhas->sum('acrescimo'), 2),
             'percentual_pago' => $comprado > 0 ? round($pago / $comprado * 100, 1) : 0.0,
             'comprado_mes' => round($linhas->filter(fn ($l) => $l['compra']->data_compra->format('Y-m') === $mesAtual)->sum('custo'), 2),
             'pago_mes' => round($pagamentos->filter(fn ($x) => $x['pg']->data_pagamento->format('Y-m') === $mesAtual)->sum(fn ($x) => (float) $x['pg']->valor), 2),

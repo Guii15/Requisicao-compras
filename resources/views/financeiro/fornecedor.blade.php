@@ -35,7 +35,7 @@
     @endif
     @if($errors->any())
         <div style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px;">
-            <strong>Não foi possível registrar o pagamento:</strong>
+            <strong>Não foi possível salvar:</strong>
             <ul style="margin:6px 0 0; padding-left:18px;">@foreach($errors->all() as $erro)<li>{{ $erro }}</li>@endforeach</ul>
         </div>
     @endif
@@ -46,6 +46,10 @@
         <x-bloco-metrica rotulo="Comprado" :valor="Dinheiro::brl($totais['comprado'])" :sem-linha="true" />
         <x-bloco-metrica rotulo="Pago" :valor="Dinheiro::brl($totais['pago'])" :sem-linha="true" />
     </div>
+
+    @if($totais['acrescimo'] > 0)
+        <p style="margin:-8px 0 16px; font-size:13px; color:#6b7280;">Acréscimos (impostos, frete...): <strong style="color:#92400e;">{{ Dinheiro::brl($totais['acrescimo']) }}</strong> · custo real {{ Dinheiro::brl($totais['comprado'] + $totais['acrescimo']) }}. Não entram no saldo devedor.</p>
+    @endif
 
     {{-- Uma marcação só: no celular a tabela vira cartões (CSS .lista-resp no layout) --}}
     <div class="lista-resp" style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; overflow-x:auto;">
@@ -79,7 +83,7 @@
                             @endif
                         </td>
                         <td data-rotulo="Comprador" style="padding:12px 14px;">{{ $c->requester_name ?? '—' }}</td>
-                        <td data-rotulo="Valor" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}</td>
+                        <td data-rotulo="Valor" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['custo']) }}@if($linha['acrescimo'] > 0)<div style="font-size:11.5px; color:#92400e;">+ {{ Dinheiro::brl($linha['acrescimo']) }} acréscimo</div><div style="font-size:11.5px; color:#6b7280;">custo real {{ Dinheiro::brl($linha['custo_total']) }}</div>@endif</td>
                         <td data-rotulo="Pago" style="padding:12px 14px; text-align:right; white-space:nowrap;">{{ Dinheiro::brl($linha['pago']) }}</td>
                         <td data-rotulo="Em aberto" style="padding:12px 14px; text-align:right; white-space:nowrap; font-weight:700;">{{ Dinheiro::brl($linha['aberto']) }}</td>
                         <td data-rotulo="Vencimento" style="padding:12px 14px; text-align:center; white-space:nowrap;">
@@ -100,15 +104,19 @@
                         </td>
                         <td data-rotulo="Situação" style="padding:12px 14px; text-align:center;">{!! $selo($linha['situacao']) !!}</td>
                         <td class="lr-acao" style="padding:12px 14px; text-align:center;">
+                            <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
                             @if($linha['aberto'] > 0)
                                 <button type="button" onclick="document.getElementById('modal-pagar-{{ $c->id }}').style.display='flex'"
                                         style="background:#05018D; color:#fff; border:1px solid #05018D; border-radius:9999px; padding:7px 18px; font-size:12.5px; font-weight:600; cursor:pointer;">Pagar</button>
                             @endif
+                            <button type="button" onclick="document.getElementById('modal-acrescimo-{{ $c->id }}').style.display='flex'" title="Lançar impostos, frete ou outro custo a mais desta compra"
+                                    style="background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">+ Acréscimo</button>
+                            </div>
                         </td>
                     </tr>
-                    @if($c->pagamentos->isNotEmpty())
+                    @if($c->pagamentos->isNotEmpty() || $c->acrescimos->isNotEmpty())
                         <tr class="grupo-item-pagamentos" style="background:#f9fafb;">
-                            <td colspan="10" style="padding:8px 14px 10px 40px;">@include('financeiro._pagamentos', ['compra' => $c])</td>
+                            <td colspan="10" style="padding:8px 14px 10px 40px;">@include('financeiro._pagamentos', ['compra' => $c])@include('financeiro._acrescimos', ['compra' => $c])</td>
                         </tr>
                     @endif
                 @endforeach
@@ -119,8 +127,10 @@
 </div>
 
 {{-- Quadros de pagamento (um por compra em aberto; a mesma janela no PC e no celular) --}}
+@php $bancos = \App\Models\Banco::nomes(); @endphp
 @foreach($compras as $linha)
     @include('financeiro._modal-pagar', ['linha' => $linha])
+    @include('financeiro._modal-acrescimo', ['linha' => $linha])
 @endforeach
 
 @include('financeiro._scripts')

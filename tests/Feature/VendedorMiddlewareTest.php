@@ -44,13 +44,13 @@ class VendedorMiddlewareTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_entrada_is_forbidden(): void
+    public function test_entrada_is_allowed_to_see_own_requests(): void
     {
         $entrada = User::factory()->create(['role' => 'entrada']);
 
         $response = $this->actingAs($entrada)->get(route('requests.index'));
 
-        $response->assertForbidden();
+        $response->assertOk();
     }
 
     public function test_admin_is_allowed_to_create_request(): void

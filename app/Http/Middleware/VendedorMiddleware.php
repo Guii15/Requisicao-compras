@@ -15,7 +15,7 @@ class VendedorMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !auth()->user()->isVendedor()) {
+        if (!auth()->check() || !auth()->user()->podeRequisitar()) {
             abort(403, 'Acesso restrito.');
         }
 

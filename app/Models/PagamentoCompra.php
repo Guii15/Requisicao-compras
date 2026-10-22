@@ -20,6 +20,9 @@ class PagamentoCompra extends Model
         'cheque' => 'Cheque',
     ];
 
+    /** Formas que saem de um banco: nelas o banco é obrigatório. Dinheiro e as formas cadastradas não exigem. */
+    public const MEIOS_COM_BANCO = ['pix', 'boleto', 'transferencia', 'cartao', 'cheque'];
+
     protected $fillable = ['purchase_request_id', 'valor', 'forma', 'meio', 'banco', 'data_pagamento', 'obs', 'user_id'];
 
     protected $casts = [
@@ -39,12 +42,14 @@ class PagamentoCompra extends Model
 
     public function meioRotulo(): ?string
     {
-        return self::MEIOS[$this->meio] ?? null;
+        return self::meios()[$this->meio] ?? null;
     }
 
-    /** Bancos já usados antes, para sugerir no campo (o banco é digitado livremente). */
-    public static function bancosUsados(): array
+    /** Todas as formas: as fixas e depois as cadastradas pelo Financeiro (código => rótulo). */
+    public static function meios(): array
     {
-        return static::query()->whereNotNull('banco')->distinct()->orderBy('banco')->pluck('banco')->all();
+        // Lida uma vez por requisição (o histórico chama isto para cada pagamento); cadastrar uma forma limpa a memória.
+        return self::MEIOS + once(fn () => MeioPagamento::query()->orderBy('nome')->get()
+            ->mapWithKeys(fn (MeioPagamento $m) => [$m->codigo() => $m->nome])->all());
     }
 }
