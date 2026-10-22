@@ -34,6 +34,17 @@ class Cheque extends Model
         return $this->belongsTo(User::class)->withTrashed();
     }
 
+    /**
+     * Próxima folha de cada banco (a maior já usada + 1, contando as canceladas), para o número já vir preenchido.
+     *
+     * @return array<string, int> banco => próximo número
+     */
+    public static function proximasFolhas(): array
+    {
+        return static::query()->selectRaw('banco, MAX(numero) as ultima')->groupBy('banco')->pluck('ultima', 'banco')
+            ->map(fn ($ultima) => (int) $ultima + 1)->all();
+    }
+
     /** 101 -> "000101", como vem impresso na folha. */
     public function numeroFormatado(): string
     {

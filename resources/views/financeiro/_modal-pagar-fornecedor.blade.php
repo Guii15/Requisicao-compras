@@ -69,12 +69,13 @@
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div>
                             <label style="{{ $rotulo }}">Nº da primeira folha <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="cheque_primeira_folha" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque('forn')"
+                            <input type="text" name="cheque_primeira_folha" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="this.dataset.manual = '1'; previaCheque('forn')"
                                    value="{{ $reabrir && ctype_digit((string) old('cheque_primeira_folha')) ? str_pad(old('cheque_primeira_folha'), 6, '0', STR_PAD_LEFT) : $velho('cheque_primeira_folha') }}" style="{{ $campo }}">
+                            <div id="dica-folha-forn" style="margin-top:4px; font-size:11.5px; color:#4338ca;"></div>
                         </div>
                         <div>
                             <label style="{{ $rotulo }}">Bom para <span style="color:#9ca3af; font-weight:400;">(se for pré-datado)</span></label>
-                            <input type="date" name="cheque_bom_para" value="{{ $velho('cheque_bom_para') }}" style="{{ $campo }}">
+                            <input type="date" name="cheque_bom_para" value="{{ $velho('cheque_bom_para', $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d'))) }}" oninput="this.dataset.manual = '1'" style="{{ $campo }}">
                         </div>
                     </div>
                     <div id="previa-cheque-forn" style="margin-top:10px; font-size:12.5px; color:#312e81;"></div>
@@ -82,7 +83,7 @@
 
                 <div style="margin-bottom:14px;">
                     <label style="{{ $rotulo }}">Data do pagamento</label>
-                    <input type="date" name="data_pagamento" required value="{{ $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d')) }}" style="{{ $campo }}">
+                    <input type="date" name="data_pagamento" oninput="bomParaSegue(this)" required value="{{ $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d')) }}" style="{{ $campo }}">
                 </div>
 
                 <div style="margin-bottom:18px;">

@@ -582,7 +582,7 @@ class FinanceiroController extends Controller
         if ($usadas->isNotEmpty()) {
             $lista = $usadas->map(fn (Cheque $ch) => $ch->numeroFormatado())->implode(', ');
             throw $this->erroFolha((count($usadas) === 1 ? "A folha {$lista} do {$banco} já foi usada" : "As folhas {$lista} do {$banco} já foram usadas")
-                . '. Confira o número da primeira folha.');
+                . '. A próxima folha livre desse banco é ' . str_pad((string) (Cheque::proximasFolhas()[$banco] ?? 1), 6, '0', STR_PAD_LEFT) . '.');
         }
     }
 

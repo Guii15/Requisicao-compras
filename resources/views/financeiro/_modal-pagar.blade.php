@@ -91,12 +91,13 @@
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         <div>
                             <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Nº da primeira folha <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="cheque_primeira_folha" value="{{ $reabrir && ctype_digit((string) old('cheque_primeira_folha')) ? str_pad(old('cheque_primeira_folha'), 6, '0', STR_PAD_LEFT) : $velho('cheque_primeira_folha') }}" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="previaCheque({{ $c->id }})"
+                            <input type="text" name="cheque_primeira_folha" value="{{ $reabrir && ctype_digit((string) old('cheque_primeira_folha')) ? str_pad(old('cheque_primeira_folha'), 6, '0', STR_PAD_LEFT) : $velho('cheque_primeira_folha') }}" inputmode="numeric" placeholder="Ex: 000101" autocomplete="off" oninput="this.dataset.manual = '1'; previaCheque({{ $c->id }})"
                                    style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
+                            <div id="dica-folha-{{ $c->id }}" style="margin-top:4px; font-size:11.5px; color:#4338ca;"></div>
                         </div>
                         <div>
                             <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Bom para <span style="color:#9ca3af; font-weight:400;">(se for pré-datado)</span></label>
-                            <input type="date" name="cheque_bom_para" value="{{ $velho('cheque_bom_para') }}"
+                            <input type="date" name="cheque_bom_para" value="{{ $velho('cheque_bom_para', $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d'))) }}" oninput="this.dataset.manual = '1'"
                                    style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; background:#fff;">
                         </div>
                     </div>
@@ -105,7 +106,7 @@
 
                 <div style="margin-bottom:14px;">
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Data do pagamento</label>
-                    <input type="date" name="data_pagamento" value="{{ $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d')) }}" required
+                    <input type="date" name="data_pagamento" oninput="bomParaSegue(this)" value="{{ $velho('data_pagamento', now('America/Sao_Paulo')->format('Y-m-d')) }}" required
                            style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;">
                 </div>
 

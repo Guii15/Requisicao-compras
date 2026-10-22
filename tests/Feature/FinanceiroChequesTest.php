@@ -189,6 +189,34 @@ class FinanceiroChequesTest extends TestCase
             ->assertSee('<option value="cheque" selected', false);
     }
 
+    public function test_proxima_folha_segue_a_sequencia_de_cada_banco_contando_as_canceladas(): void
+    {
+        $this->pagarEmCheque($this->compra(9000))->assertSessionHasNoErrors(); // Itaú 101 e 102
+        $this->pagarEmCheque($this->compra(1000), ['banco' => 'Bradesco', 'cheque_primeira_folha' => '777'])->assertSessionHasNoErrors();
+        $this->actingAs($this->fin)->post(route('financeiro.estornar', PagamentoCompra::first()), ['motivo' => 'Erro']);
+
+        $this->assertEquals(['Itaú' => 103, 'Bradesco' => 778], Cheque::proximasFolhas());
+    }
+
+    public function test_a_janela_de_pagar_ja_traz_a_proxima_folha_e_o_bom_para_com_a_data_de_hoje(): void
+    {
+        $this->pagarEmCheque($this->compra(9000))->assertSessionHasNoErrors();
+        $this->compra(500);
+
+        $this->actingAs($this->fin)->get(route('financeiro.fornecedor', 'VIA COMERCIO'))
+            ->assertOk()
+            ->assertSee('var PROXIMA_FOLHA = {"Ita\\u00fa":103}', false)
+            ->assertSee('name="cheque_bom_para" value="' . now('America/Sao_Paulo')->format('Y-m-d') . '"', false);
+    }
+
+    public function test_folha_usada_avisa_qual_e_a_proxima_livre(): void
+    {
+        $this->pagarEmCheque($this->compra(9000))->assertSessionHasNoErrors();
+
+        $this->pagarEmCheque($this->compra(1000), ['cheque_primeira_folha' => '102'])
+            ->assertSessionHasErrors(['cheque_primeira_folha' => 'A folha 000102 do Itaú já foi usada. A próxima folha livre desse banco é 000103.']);
+    }
+
     public function test_so_o_financeiro_ve_a_aba_cheques(): void
     {
         $this->actingAs(User::factory()->create(['is_admin' => true]))->get(route('financeiro.cheques'))->assertForbidden();

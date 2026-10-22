@@ -17,7 +17,40 @@ function meioPagamento(id, meio) {
     if (cheque) {
         cheque.style.display = meio === 'cheque' ? 'block' : 'none';
         cheque.querySelector('[name="cheque_primeira_folha"]').required = meio === 'cheque';
-        previaCheque(id);
+        sugerirFolha(id);
+    }
+}
+
+// Próxima folha de cada banco (a última usada + 1): o número já vem preenchido e segue a sequência do talão.
+var PROXIMA_FOLHA = @json(\App\Models\Cheque::proximasFolhas());
+
+function sugerirFolha(id) {
+    var caixa = document.getElementById('campo-cheque-' + id);
+    if (!caixa) {
+        return;
+    }
+    var form = caixa.closest('form');
+    var campo = form.querySelector('[name="cheque_primeira_folha"]');
+    var banco = form.querySelector('select[name="banco"]').value;
+    var dica = document.getElementById('dica-folha-' + id);
+    var proxima = PROXIMA_FOLHA[banco];
+    // Só preenche enquanto a pessoa não digitou um número por conta própria.
+    if (campo.dataset.manual !== '1') {
+        campo.value = proxima ? String(proxima).padStart(6, '0') : '';
+    }
+    if (dica) {
+        dica.textContent = !banco || banco === '__novo' ? 'Escolha o banco para continuar a sequência das folhas.'
+            : (proxima ? 'Continua a sequência do ' + banco + ' (última usada: ' + String(proxima - 1).padStart(6, '0') + '). Pode trocar se o talão for outro.'
+                : 'Primeiro cheque do ' + banco + ' no sistema: digite o número da folha. Depois ele segue sozinho.');
+    }
+    previaCheque(id);
+}
+
+// "Bom para" acompanha a data do pagamento até a pessoa mudar (cheque pré-datado).
+function bomParaSegue(campoData) {
+    var bom = campoData.form.querySelector('[name="cheque_bom_para"]');
+    if (bom && bom.dataset.manual !== '1') {
+        bom.value = campoData.value;
     }
 }
 
@@ -81,6 +114,7 @@ function bancoEscolhido(id, valor) {
     if (valor === '__novo') {
         campo.focus();
     }
+    sugerirFolha(id);
 }
 
 function formaPagamento(id, forma) {
