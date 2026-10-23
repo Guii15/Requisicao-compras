@@ -82,7 +82,10 @@
                         <p style="margin:0 0 16px; font-size:12px; color:#6b7280;">{{ $req->product_name }}</p>
                         @foreach($req->fotosConferencia as $fotoItem)
                             <img src="{{ Storage::url($fotoItem->caminho_arquivo) }}" alt="Foto da conferência"
-                                 style="width:100%; border-radius:8px; margin-bottom:12px; display:block;">
+                                 style="width:100%; border-radius:8px; margin-bottom:4px; display:block;">
+                            @if($fotoItem->created_at)
+                                <p style="margin:0 0 12px; font-size:12px; color:#6b7280;">Enviada em {{ $fotoItem->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}</p>
+                            @endif
                         @endforeach
                         <div style="text-align:right;">
                             <button type="button" onclick="document.getElementById('foto-item-{{ $req->id }}').style.display='none'"
