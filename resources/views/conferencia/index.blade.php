@@ -12,6 +12,9 @@
     $haParaConferir = $podeConferir && $todosItens->contains(fn ($r) => $r->status_conferencia === null);
     $haParcial = $podeConferir && $todosItens->contains(fn ($r) => $r->restante_de_id && $r->status_conferencia === null);
     $haParaColetar = $podeConferir && $todosItens->contains(fn ($r) => $r->status_coleta !== 'coletado');
+    // Já conferido: ainda dá para fotografar o que chegar depois (ex.: o restante de uma entrega divergente).
+    $podeAdicionarFotos = fn ($r) => $podeConferir && in_array($r->status_conferencia, ['conferido_ok', 'divergente', 'avancado_mesmo_assim'], true);
+    $haParaFotos = $todosItens->contains($podeAdicionarFotos);
 @endphp
 
 <div style="padding: 8px 0;">
@@ -191,6 +194,14 @@
                                     @endif
                                     {{-- O resultado da conferência já aparece no próprio cartão (coluna Produto e anexos). --}}
                                     @if($req->status_conferencia !== null)
+                                        @if($podeAdicionarFotos($req))
+                                            <button type="button" onclick="abrirAdicionarFotos(this)"
+                                                    data-url="{{ route('conferencia.fotos', $req) }}"
+                                                    data-produto="{{ $req->product_name }}"
+                                                    style="background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                                📷 Adicionar fotos
+                                            </button>
+                                        @endif
                                     @elseif($podeConferir)
                                         <x-editar-parcial :item="$req" />
                                         <button type="button" onclick="abrirConferir({{ $req->id }})"
@@ -392,6 +403,9 @@
 @endif
 @if($aba !== 'coleta' && $haParcial)
     @include('conferencia._modal-editar-parcial')
+@endif
+@if($aba !== 'coleta' && $haParaFotos)
+    @include('conferencia._modal-adicionar-fotos')
 @endif
 
 <script>

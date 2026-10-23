@@ -183,6 +183,38 @@ class ConferenciaController extends Controller
     }
 
     /**
+     * Fotos depois da conferência: quando o restante de uma entrega chega mais tarde (ex.: 500 de 1000),
+     * a Conferência fotografa essa segunda chegada no mesmo item. Só acrescenta fotos; a conferência registrada não muda.
+     */
+    public function adicionarFotos(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->status !== 'aprovado' || in_array($purchaseRequest->status_conferencia, [null, 'legado', 'cancelado'], true)) {
+            return redirect()->route('conferencia.index')
+                ->with('aviso', 'Só dá para adicionar fotos a um item já conferido — para conferir, use o botão Conferir.');
+        }
+
+        $request->validate([
+            'fotos'   => 'required|array|min:1|max:6',
+            'fotos.*' => 'image|mimes:jpg,jpeg,png,webp|max:15360',
+        ], [
+            'fotos.required' => 'Anexe pelo menos uma foto.',
+            'fotos.max'      => 'Envie no máximo 6 fotos por vez.',
+            'fotos.*.image'  => 'As fotos precisam ser imagens.',
+            'fotos.*.mimes'  => 'Formatos aceitos: jpg, jpeg, png, webp.',
+            'fotos.*.max'    => 'Cada foto deve ter no máximo 15MB.',
+        ]);
+
+        foreach ($request->file('fotos', []) as $foto) {
+            $purchaseRequest->fotosConferencia()->create([
+                'caminho_arquivo' => $foto->store('conferencia', 'public'),
+                'nome_original'   => $foto->getClientOriginalName(),
+            ]);
+        }
+
+        return redirect()->route('conferencia.index', ['aba' => 'conferidos'])->with('success', 'Fotos adicionadas ao item.');
+    }
+
+    /**
      * Cria o item da parte que ainda não chegou (mesmo grupo, mesma compra), para ser conferido
      * e receber entrada quando chegar. Nada da conferência/entrada/coleta do original é copiado.
      */

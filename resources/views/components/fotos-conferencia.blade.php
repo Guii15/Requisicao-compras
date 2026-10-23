@@ -13,12 +13,12 @@
     {{ $vazio }}
 @elseif($modo === 'links')
     @foreach($fotos as $i => $foto)
-        <a href="{{ Storage::url($foto->caminho_arquivo) }}" target="_blank" style="color:{{ $cor }}; font-weight:600; font-size:12.5px; text-decoration:underline; margin-right:8px; white-space:nowrap;">📷 {{ $fotos->count() > 1 ? 'Foto ' . ($i + 1) : 'Ver foto' }}</a>
+        <a href="{{ Storage::url($foto->caminho_arquivo) }}" target="_blank" @if($foto->created_at) title="Enviada em {{ $foto->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}" @endif style="color:{{ $cor }}; font-weight:600; font-size:12.5px; text-decoration:underline; margin-right:8px; white-space:nowrap;">📷 {{ $fotos->count() > 1 ? 'Foto ' . ($i + 1) : 'Ver foto' }}</a>
     @endforeach
 @else
     <div style="display:inline-flex; gap:4px; flex-wrap:wrap; justify-content:center;">
         @foreach($fotos as $foto)
-            <a href="{{ Storage::url($foto->caminho_arquivo) }}" target="_blank">
+            <a href="{{ Storage::url($foto->caminho_arquivo) }}" target="_blank" @if($foto->created_at) title="Enviada em {{ $foto->created_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i') }}" @endif>
                 <img src="{{ Storage::url($foto->caminho_arquivo) }}" alt="Foto da conferência"
                      style="width:{{ $tamanho }}px; height:{{ $tamanho }}px; object-fit:cover; border-radius:6px; border:1px solid #e5e7eb; display:inline-block;">
             </a>
