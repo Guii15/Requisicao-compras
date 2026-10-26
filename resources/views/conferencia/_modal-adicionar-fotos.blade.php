@@ -8,8 +8,9 @@
         <form method="POST" action="" enctype="multipart/form-data" id="form-adicionar-fotos" onsubmit="return protegerEnvioDuplo(this)">
             @csrf
             <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:5px; text-transform:uppercase;">Fotos (até 6)</label>
-            <input type="file" name="fotos[]" accept=".jpg,.jpeg,.png,.webp" multiple required
-                   style="width:100%; font-size:12px; color:#475569; margin-bottom:16px;">
+            <input type="file" name="fotos[]" id="campo-fotos-adicionar" accept="image/*" multiple required
+                   style="width:100%; font-size:12px; color:#475569;">
+            <button type="button" onclick="tirarFoto('campo-fotos-adicionar')" style="margin:6px 0 16px; padding:7px 14px; border-radius:6px; border:1.5px solid #05018D; background:#fff; color:#05018D; font-size:13px; font-weight:600; cursor:pointer;">📷 Tirar foto</button>
             <div style="display:flex; gap:8px; justify-content:flex-end;">
                 <button type="button" onclick="document.getElementById('modal-adicionar-fotos').style.display='none'"
                         style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">Cancelar</button>
