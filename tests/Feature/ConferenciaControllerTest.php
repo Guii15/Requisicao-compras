@@ -467,7 +467,8 @@ class ConferenciaControllerTest extends TestCase
 
         $response = $this->actingAs($conferente)->get(route('conferencia.index'));
 
-        $response->assertDontSee('capture="environment"', false);
+        // O campo da foto continua sem capture (dá para escolher da galeria); a câmera fica no botão "Tirar foto".
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*name="foto"[^>]*capture=/', $response->getContent());
     }
 
     // Desktop e celular agora são UMA marcação: a tabela "lista-resp" vira cartões no celular pelo CSS do layout.

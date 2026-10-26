@@ -407,6 +407,9 @@
 @if($aba !== 'coleta' && $haParaFotos)
     @include('conferencia._modal-adicionar-fotos')
 @endif
+@if($aba !== 'coleta' && ($haParaConferir || $haParaFotos))
+    @include('conferencia._camera')
+@endif
 
 <script>
 function toggleGrupoRequisicao(chave) {

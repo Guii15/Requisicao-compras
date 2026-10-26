@@ -51,11 +51,13 @@
 
                     <div style="margin-bottom:14px;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Foto</label>
-                        <input type="file" name="foto" id="campo-foto" accept=".jpg,.jpeg,.png,.webp" required style="width:100%; font-size:12px; color:#475569;">
+                        <input type="file" name="foto" id="campo-foto" accept="image/*" required style="width:100%; font-size:12px; color:#475569;">
+                        <button type="button" onclick="tirarFoto('campo-foto')" style="margin-top:6px; padding:7px 14px; border-radius:6px; border:1.5px solid #05018D; background:#fff; color:#05018D; font-size:13px; font-weight:600; cursor:pointer;">📷 Tirar foto</button>
                     </div>
                     <div style="margin-bottom:14px;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Fotos extras <span style="font-weight:400; color:#94a3b8;">(opcional — ex.: código de barras, até 5)</span></label>
-                        <input type="file" name="fotos_extras[]" accept=".jpg,.jpeg,.png,.webp" multiple style="width:100%; font-size:12px; color:#475569;">
+                        <input type="file" name="fotos_extras[]" id="campo-fotos-extras" accept="image/*" multiple style="width:100%; font-size:12px; color:#475569;">
+                        <button type="button" onclick="tirarFoto('campo-fotos-extras')" style="margin-top:6px; padding:7px 14px; border-radius:6px; border:1.5px solid #05018D; background:#fff; color:#05018D; font-size:13px; font-weight:600; cursor:pointer;">📷 Tirar foto</button>
                     </div>
 
                     <div id="campo-observacao" style="display:none; grid-column:1 / -1; margin-bottom:14px;">
