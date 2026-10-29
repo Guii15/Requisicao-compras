@@ -30,6 +30,7 @@
         'coleta'      => $item->data_coleta?->format('d/m/Y'),
         'entrada'     => $item->entrada_concluida_em?->timezone('America/Sao_Paulo')->format('d/m/Y'),
         'nota'        => $item->admin_note,
+        'obsVendedor' => $item->justification,
         'temDados'    => $temDados,
     ];
     $rotuloConferencia = ['conferido_ok' => 'Conferido', 'avancado_mesmo_assim' => 'Conferido com divergência', 'divergente' => 'Divergente', 'cancelado' => 'Cancelado'][$item->status_conferencia] ?? 'Não conferido';
