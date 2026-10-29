@@ -67,7 +67,7 @@
             @if($situacao)<input type="hidden" name="situacao" value="{{ $situacao }}">@endif
             <div>
                 <label style="display:block; font-size:11px; font-weight:700; color:#6b7280; margin-bottom:4px; text-transform:uppercase;">Produto</label>
-                <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Buscar produto..."
+                <input type="text" name="produto" value="{{ request('produto') }}" placeholder="Produto ou nº..."
                        style="width:100%; padding:7px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; box-sizing:border-box;">
             </div>
             <div>

@@ -119,7 +119,7 @@
             </div>
             <div>
                 <label style="display:block; font-size:13px; font-weight:500; color:#374151; margin-bottom:6px;">Produto</label>
-                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto"
+                <input type="text" name="product_name" value="{{ request('product_name') }}" placeholder="Nome do produto ou nº"
                        style="width:100%; border:1px solid #d1d5db; border-radius:7px; padding:8px 12px; font-size:14px; box-sizing:border-box;">
             </div>
             <div>

@@ -47,6 +47,7 @@ class ConferenciaController extends Controller
                 $this->whereLikeInsensitive($sub, 'product_name', $q);
                 $this->orWhereLikeInsensitive($sub, 'requester_name', $q);
                 $this->orWhereLikeInsensitive($sub, 'supplier', $q);
+                $this->orWhereNumeroRequisicao($sub, $q);
             });
         }
 
