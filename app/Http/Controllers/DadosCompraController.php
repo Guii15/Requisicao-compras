@@ -45,7 +45,10 @@ class DadosCompraController extends Controller
         }
 
         if ($request->filled('produto')) {
-            $this->whereLikeInsensitive($query, 'product_name', $request->produto);
+            $query->where(function ($sub) use ($request) {
+                $this->whereLikeInsensitive($sub, 'product_name', $request->produto);
+                $this->orWhereNumeroRequisicao($sub, $request->produto);
+            });
         }
 
         if ($request->filled('vendedor')) {

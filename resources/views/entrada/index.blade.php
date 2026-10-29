@@ -42,7 +42,7 @@
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route('entrada.index') }}" class="m-busca" style="display:flex; gap:8px; flex-wrap:wrap;">
             <input type="hidden" name="aba" value="{{ $aba }}">
-            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por produto, vendedor ou fornecedor..." data-placeholder-mobile="Produto, vendedor ou fornecedor"
+            <input type="text" name="q" value="{{ $q }}" placeholder="Buscar por nº, produto, vendedor ou fornecedor..." data-placeholder-mobile="Nº, produto, vendedor ou fornecedor"
                    style="flex:1; min-width:200px; border:1px solid #d1d5db; border-radius:7px; padding:9px 14px; font-size:14px; box-sizing:border-box;">
             <button type="submit" style="background:#05018D; color:#fff; padding:9px 20px; border:none; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;">
                 Buscar

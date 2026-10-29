@@ -42,7 +42,10 @@ class AdminController extends Controller
         }
 
         if ($request->filled('product_name')) {
-            $this->whereLikeInsensitive($query, 'product_name', $request->product_name);
+            $query->where(function ($sub) use ($request) {
+                $this->whereLikeInsensitive($sub, 'product_name', $request->product_name);
+                $this->orWhereNumeroRequisicao($sub, $request->product_name);
+            });
         }
 
         if ($request->filled('date_from')) {
