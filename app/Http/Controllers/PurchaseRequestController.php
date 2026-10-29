@@ -140,6 +140,27 @@ class PurchaseRequestController extends Controller
         return view('requests.edit', compact('purchaseRequest'));
     }
 
+    /**
+     * Só a obs do vendedor, em qualquer status: depois de aprovada o Editar some, mas a obs ainda pode estar errada.
+     */
+    public function atualizarObs(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $dados = $request->validate([
+            'justification' => 'required|string|max:500',
+        ], [
+            'justification.required' => 'O campo Obs é obrigatório.',
+            'justification.max'      => 'A obs pode ter no máximo 500 caracteres.',
+        ]);
+
+        $purchaseRequest->update(['justification' => $dados['justification']]);
+
+        return redirect()->route('requests.index')->with('success', 'Obs atualizada.');
+    }
+
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
         if ($purchaseRequest->user_id !== auth()->id()) {

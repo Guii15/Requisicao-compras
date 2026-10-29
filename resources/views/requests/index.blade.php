@@ -219,6 +219,17 @@
                                            style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap;">
                                             Editar
                                         </a>
+                                    @else
+                                        <details style="display:inline-block;">
+                                            <summary style="list-style:none; background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">Editar obs</summary>
+                                            <form method="POST" action="{{ route('requests.obs', $req) }}" style="margin-top:8px; display:flex; flex-direction:column; gap:6px; min-width:240px;">
+                                                @csrf
+                                                @method('PATCH')
+                                                <textarea name="justification" rows="3" required maxlength="500"
+                                                          style="width:100%; border:1.5px solid #e5e7eb; border-radius:8px; padding:8px 10px; font-size:13px; box-sizing:border-box; resize:vertical; font-family:inherit;">{{ $req->justification }}</textarea>
+                                                <button type="submit" style="align-self:flex-end; background:#1e3a8a; color:#fff; border:none; border-radius:9999px; padding:6px 16px; font-size:12.5px; font-weight:600; cursor:pointer;">Salvar obs</button>
+                                            </form>
+                                        </details>
                                     @endif
                                     <a href="{{ route('requests.export', $req) }}" target="_blank"
                                        style="background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; text-decoration:none; white-space:nowrap;">

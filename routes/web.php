@@ -63,6 +63,7 @@ Route::middleware(['auth', VendedorMiddleware::class])->group(function () {
     Route::get('/requisicoes', [PurchaseRequestController::class, 'index'])->name('requests.index');
     Route::get('/requisicoes/{purchaseRequest}/editar', [PurchaseRequestController::class, 'edit'])->name('requests.edit');
     Route::patch('/requisicoes/{purchaseRequest}', [PurchaseRequestController::class, 'update'])->middleware('throttle:30,1')->name('requests.update');
+    Route::patch('/requisicoes/{purchaseRequest}/obs', [PurchaseRequestController::class, 'atualizarObs'])->middleware('throttle:30,1')->name('requests.obs');
     Route::get('/requisicoes/{purchaseRequest}/exportar', [PurchaseRequestController::class, 'export'])->name('requests.export');
     Route::delete('/requisicoes/{purchaseRequest}/anexo', [PurchaseRequestController::class, 'removerAnexo'])->middleware('throttle:30,1')->name('requests.anexo.remover');
 });
