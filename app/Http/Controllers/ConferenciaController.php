@@ -7,6 +7,7 @@ use App\Models\PurchaseRequest;
 use App\Services\PushNotifier;
 use App\Support\AgrupaRequisicoesPorGrupoId;
 use App\Support\BuscaCaseInsensitive;
+use App\Support\LixeiraDeArquivos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -155,6 +156,64 @@ class ConferenciaController extends Controller
         defer(fn () => app(PushNotifier::class)->conferida($purchaseRequest));
 
         return redirect()->route('conferencia.index')->with('success', 'Conferência registrada com sucesso!');
+    }
+
+    /**
+     * Conferência feita errado: zera o que foi registrado e o item volta para Aguardando, para conferir de novo.
+     * As fotos vão para a lixeira (30 dias). Se foi "aguardar restante", o restante (que ainda não chegou) é apagado
+     * e a quantidade volta a ser a de antes. Não desfaz o que já teve entrada (nem o original cujo restante já foi conferido).
+     */
+    public function desfazer(PurchaseRequest $purchaseRequest)
+    {
+        if (!auth()->user()->podeDesfazerConferencia()) {
+            abort(403, 'Acesso restrito.');
+        }
+
+        if ($purchaseRequest->status !== 'aprovado' || in_array($purchaseRequest->status_conferencia, [null, 'legado', 'cancelado'], true)) {
+            return redirect()->route('conferencia.index')
+                ->with('aviso', 'Este item não está conferido — nada foi alterado.');
+        }
+
+        if ($purchaseRequest->entrada_concluida_em !== null) {
+            return redirect()->route('conferencia.index', ['aba' => 'conferidos'])
+                ->with('aviso', 'Este item já teve entrada, por isso a conferência não pode ser desfeita — nada foi alterado.');
+        }
+
+        $restante = $purchaseRequest->restante;
+
+        if ($restante && ($restante->status_conferencia !== null || $restante->entrada_concluida_em !== null
+            || $restante->pagamentos()->exists() || $restante->acrescimos()->exists())) {
+            return redirect()->route('conferencia.index', ['aba' => 'conferidos'])
+                ->with('aviso', 'O restante deste item já foi conferido ou lançado, por isso a conferência não pode ser desfeita — nada foi alterado.');
+        }
+
+        DB::transaction(function () use ($purchaseRequest, $restante) {
+            $dados = [
+                'status_conferencia'     => null,
+                'quantidade_recebida'    => null,
+                'observacao_conferencia' => null,
+                'conferente_id'          => null,
+            ];
+
+            if ($restante) {
+                $dados['quantity'] = $purchaseRequest->quantity + $restante->quantity;
+                // Só o item que nasceu de um restante guarda o total pedido; o original volta a não ter.
+                if ($purchaseRequest->restante_de_id === null) {
+                    $dados['quantidade_original'] = null;
+                }
+                $restante->delete();
+            }
+
+            $purchaseRequest->update($dados);
+
+            foreach ($purchaseRequest->fotosConferencia as $foto) {
+                LixeiraDeArquivos::descartar('public', $foto->caminho_arquivo);
+                $foto->delete();
+            }
+        });
+
+        return redirect()->route('conferencia.index')
+            ->with('success', 'Conferência desfeita. O item voltou para Aguardando conferência.');
     }
 
     /**

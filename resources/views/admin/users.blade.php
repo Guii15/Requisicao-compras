@@ -75,6 +75,9 @@
                                 @else
                                     <span style="background:#f3f4f6; color:#374151; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;">Vendedor</span>
                                 @endif
+                                @if($u->pode_desfazer_conferencia)
+                                    <div style="margin-top:4px; font-size:11.5px; color:#b8301a; font-weight:600;">Desfaz conferência</div>
+                                @endif
                             </td>
                             <td class="lr-acao" style="padding:12px 16px; text-align:center;">
                                 <div style="display:flex; gap:6px; justify-content:center;">
@@ -162,6 +165,10 @@
                                             <option value="admin" {{ $perfilAtual === 'admin' ? 'selected' : '' }}>Admin</option>
                                         </select>
                                     </div>
+                                    <label style="display:flex; gap:8px; align-items:center; margin:-6px 0 20px; font-size:13.5px; color:#374151; cursor:pointer;">
+                                        <input type="checkbox" name="pode_desfazer_conferencia" value="1" {{ $u->pode_desfazer_conferencia ? 'checked' : '' }}>
+                                        Pode desfazer conferência (quando conferirem errado)
+                                    </label>
                                     <div class="m-modal-acoes" style="display:flex; gap:10px; justify-content:flex-end;">
                                         <button type="button" onclick="document.getElementById('modal-perfil-{{ $u->id }}').style.display='none'"
                                                 style="padding:9px 20px; border-radius:8px; border:1.5px solid #e5e7eb; background:#fff; color:#6b7280; font-size:14px; font-weight:600; cursor:pointer;">

@@ -434,6 +434,7 @@ class AdminController extends Controller
         $user->update([
             'is_admin' => $request->perfil === 'admin',
             'role'     => in_array($request->perfil, ['conferente', 'entrada', 'financeiro', 'rma'], true) ? $request->perfil : null,
+            'pode_desfazer_conferencia' => $request->boolean('pode_desfazer_conferencia'),
         ]);
 
         return back()->with('success', 'Perfil atualizado com sucesso!');
