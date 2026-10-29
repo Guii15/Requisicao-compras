@@ -220,9 +220,9 @@
                                             Editar
                                         </a>
                                     @else
-                                        <details style="display:inline-block;">
+                                        <details style="position:relative; display:inline-block;">
                                             <summary style="list-style:none; background:#fff; color:#374151; border:1px solid #d1d5db; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">Editar obs</summary>
-                                            <form method="POST" action="{{ route('requests.obs', $req) }}" style="margin-top:8px; display:flex; flex-direction:column; gap:6px; min-width:240px;">
+                                            <form method="POST" action="{{ route('requests.obs', $req) }}" style="position:absolute; right:0; top:calc(100% + 6px); z-index:20; width:300px; max-width:80vw; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 10px 20px rgba(0,0,0,0.12); padding:10px; display:flex; flex-direction:column; gap:6px;">
                                                 @csrf
                                                 @method('PATCH')
                                                 <textarea name="justification" rows="3" required maxlength="500"

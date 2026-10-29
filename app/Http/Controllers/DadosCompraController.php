@@ -116,6 +116,8 @@ class DadosCompraController extends Controller
             'parcelas'          => 'required_if:condicao_pagamento,parcelado|nullable|integer|min:2|max:36',
             'primeiro_vencimento' => 'nullable|date',
             'pedido_compra'     =>'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:10240',
+            'admin_note'        => 'nullable|string|max:2000',
+            'justification'     => 'nullable|string|max:500',
         ], [
             'pedido_compra.mimes'        => 'O pedido de compra precisa ser PDF ou imagem (JPG, PNG, WEBP).',
             'pedido_compra.max'          => 'O pedido de compra pode ter no máximo 10 MB.',
@@ -161,6 +163,13 @@ class DadosCompraController extends Controller
             'fornecedor_id'     => $fornecedor?->id,
             'supplier_original' => $purchaseRequest->supplier_original ?? ($purchaseRequest->supplier ?: $digitado),
         ];
+
+        // Nota do comprador e obs do vendedor: corrigíveis na janela mesmo depois de conferido; quem não manda o campo não apaga o texto.
+        foreach (['admin_note', 'justification'] as $campoTexto) {
+            if ($request->has($campoTexto)) {
+                $atualizacao[$campoTexto] = $dados[$campoTexto] ?? null;
+            }
+        }
 
         if ($request->hasFile('pedido_compra')) {
             $arquivo = $request->file('pedido_compra');

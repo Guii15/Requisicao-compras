@@ -116,7 +116,16 @@
                         <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9;"><span style="color:#64748b;">Conferência</span><span id="jc-conferencia"></span></div>
                         <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="color:#64748b;">Entrada</span><span id="jc-entrada"></span></div>
                     </div>
-                    <p id="jc-nota" class="jc-caixa" style="display:none; margin:12px 0 0; padding:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#475569; font-size:13px; white-space:pre-line;"></p>
+                    <div style="margin-top:14px;">
+                        <label style="{{ $rot }}">Nota do comprador <span style="font-weight:400; color:#94a3b8;">(opcional)</span></label>
+                        <textarea name="admin_note" rows="3" maxlength="2000" placeholder="Instruções para o vendedor ou conferente..." style="{{ $cam }} resize:vertical; font-family:inherit; font-size:13px;">{{ old('admin_note') }}</textarea>
+                        @error('admin_note') <div style="{{ $err }}">{{ $message }}</div> @enderror
+                    </div>
+                    <div style="margin-top:14px;">
+                        <label style="{{ $rot }}">Obs do vendedor</label>
+                        <textarea name="justification" rows="2" maxlength="500" style="{{ $cam }} resize:vertical; font-family:inherit; font-size:13px;">{{ old('justification') }}</textarea>
+                        @error('justification') <div style="{{ $err }}">{{ $message }}</div> @enderror
+                    </div>
                 </div>
             </div>
 
@@ -165,6 +174,8 @@
             campo('parcelas').value = d.parcelas || '';
             campo('primeiro_vencimento').value = d.vencimento || '';
             campo('pedido_compra').value = '';
+            campo('admin_note').value = d.nota || '';
+            campo('justification').value = d.obsVendedor || '';
         }
         condicaoPagamento('lista');
 
@@ -183,10 +194,6 @@
             link.textContent = d.pedidoNome || 'Pedido anexado';
             document.getElementById('jc-remover-pedido').action = d.removerUrl;
         }
-
-        var nota = document.getElementById('jc-nota');
-        nota.style.display = d.nota ? 'block' : 'none';
-        nota.textContent = d.nota || '';
 
         janela.style.display = 'flex';
         document.body.style.overflow = 'hidden';
