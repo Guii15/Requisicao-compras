@@ -54,6 +54,14 @@ class SecurityHeaders
         // até o prazo vencer. O certificado é Let's Encrypt com renovação
         // automática, então o risco é baixo — mas precisa ser uma decisão
         // consciente, não um efeito colateral.
+        // Página de quem está logado não fica guardada no navegador. Sem isso,
+        // ao voltar para uma aba aberta ou usar o "voltar" no celular, o
+        // conferente via a lista antiga (com item que outro já tinha conferido).
+        // Só em HTML: download de PDF, Excel e foto segue como está.
+        if (auth()->check() && str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        }
+
         if ($request->secure()) {
             $response->headers->set(
                 'Strict-Transport-Security',
