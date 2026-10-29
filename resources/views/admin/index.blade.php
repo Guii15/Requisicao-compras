@@ -391,6 +391,12 @@
                                             </div>
 
                                             <div style="margin-bottom:14px;">
+                                                <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Obs do Vendedor</label>
+                                                <textarea name="justification" rows="2" maxlength="500"
+                                                          style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13px; color:#0f172a; resize:vertical; font-family:inherit; outline:none; box-sizing:border-box;">{{ $req->justification }}</textarea>
+                                            </div>
+
+                                            <div style="margin-bottom:14px;">
                                                 <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Nota / Despacho do Comprador</label>
                                                 <textarea name="admin_note" rows="3" placeholder="Instruções para o vendedor ou conferente..."
                                                           style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13px; color:#0f172a; resize:vertical; font-family:inherit; outline:none; box-sizing:border-box;">{{ $req->admin_note }}</textarea>

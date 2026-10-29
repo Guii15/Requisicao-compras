@@ -153,6 +153,7 @@ class AdminController extends Controller
         $request->validate([
             'status'            => 'required|in:pendente,aprovado,rejeitado',
             'admin_note'        => 'nullable|string|max:2000',
+            'justification'     => 'nullable|string|max:500',
             'supplier'          => 'required_if:status,aprovado|nullable|string|max:255',
             'codigo_fornecedor' => 'nullable|string|max:255',
             'preco_unitario'    => 'nullable|numeric|min:0',
@@ -197,6 +198,11 @@ class AdminController extends Controller
             'parcelas'           => $request->condicao_pagamento === 'parcelado' ? (int) $request->parcelas : null,
             'primeiro_vencimento' => $request->primeiro_vencimento ?: null,
         ];
+
+        // Obs do vendedor: o admin corrige pela janela Atualizar; quem não manda o campo não apaga a obs.
+        if ($request->has('justification')) {
+            $atualizacao['justification'] = $request->justification;
+        }
 
         if ($request->status === 'aprovado' && $purchaseRequest->approved_at === null) {
             $atualizacao['approved_at'] = now();

@@ -48,7 +48,8 @@ class ObsVendedorEDivergenciaTest extends TestCase
         // cartão do item + janela Atualizar (uma marcação só para PC e celular), as notas vêm com etiquetas
         $this->assertSame(2, $this->conta($html, '>VENDEDOR</span>'));
         $this->assertSame(2, $this->conta($html, '<strong>Motivo:</strong>'));
-        $this->assertSame(2, $this->conta($html, self::OBS));
+        // a obs aparece também no campo editável "Obs do Vendedor" da janela Atualizar
+        $this->assertSame(3, $this->conta($html, self::OBS));
         $this->assertSame(2, $this->conta($html, self::MOTIVO));
         $this->assertStringNotContainsString('adm-mobile-cards', $html);
         $this->assertStringNotContainsString('id="modal-m-', $html);
