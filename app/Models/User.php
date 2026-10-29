@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'role',
+        'pode_desfazer_conferencia',
     ];
 
     public function isAdmin(): bool
@@ -75,6 +76,12 @@ class User extends Authenticatable
         return $this->isFinanceiro() || $this->isSuperAdmin();
     }
 
+    /** Desfazer uma conferência feita errado: quem o super admin marcou em Usuários, e o próprio super admin. */
+    public function podeDesfazerConferencia(): bool
+    {
+        return (bool) $this->pode_desfazer_conferencia || $this->isSuperAdmin();
+    }
+
     public function isVendedor(): bool
     {
         return !$this->isAdmin() && $this->role === null;
@@ -103,6 +110,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'pode_desfazer_conferencia' => 'boolean',
         ];
     }
 

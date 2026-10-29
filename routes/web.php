@@ -118,6 +118,7 @@ Route::middleware(['auth'])->prefix('conferencia')->name('conferencia.')->group(
     Route::patch('/{purchaseRequest}', [ConferenciaController::class, 'conferir'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('conferir');
     Route::patch('/{purchaseRequest}/parcial', [ConferenciaController::class, 'editarParcial'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('editarParcial');
     Route::post('/{purchaseRequest}/fotos', [ConferenciaController::class, 'adicionarFotos'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('fotos');
+    Route::patch('/{purchaseRequest}/desfazer', [ConferenciaController::class, 'desfazer'])->middleware('throttle:30,1')->name('desfazer');
     Route::patch('/{purchaseRequest}/coleta', [ConferenciaController::class, 'registrarColeta'])->middleware([ConferenteMiddleware::class, 'throttle:60,1'])->name('coleta');
 });
 

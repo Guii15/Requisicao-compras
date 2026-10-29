@@ -15,6 +15,9 @@
     // Já conferido: ainda dá para fotografar o que chegar depois (ex.: o restante de uma entrega divergente).
     $podeAdicionarFotos = fn ($r) => $podeConferir && in_array($r->status_conferencia, ['conferido_ok', 'divergente', 'avancado_mesmo_assim'], true);
     $haParaFotos = $todosItens->contains($podeAdicionarFotos);
+    // Conferência feita errado: quem tem a permissão desfaz, e o item volta para Aguardando (não depois da entrada).
+    $podeDesfazer = fn ($r) => Auth::user()->podeDesfazerConferencia() && $r->entrada_concluida_em === null
+        && in_array($r->status_conferencia, ['conferido_ok', 'divergente', 'avancado_mesmo_assim'], true);
 @endphp
 
 <div style="padding: 8px 0;">
@@ -201,6 +204,17 @@
                                                     style="background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
                                                 📷 Adicionar fotos
                                             </button>
+                                        @endif
+                                        @if($podeDesfazer($req))
+                                            <form method="POST" action="{{ route('conferencia.desfazer', $req) }}" style="display:inline; margin:0;"
+                                                  onsubmit="return confirm('Desfazer a conferência de {{ addslashes($req->product_name) }}? O item volta para Aguardando para ser conferido de novo, e as fotos vão para a lixeira.')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                        style="background:#fff; color:#b8301a; border:1px solid #e3b4ab; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
+                                                    ↩ Desfazer conferência
+                                                </button>
+                                            </form>
                                         @endif
                                     @elseif($podeConferir)
                                         <x-editar-parcial :item="$req" />
