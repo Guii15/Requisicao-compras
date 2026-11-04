@@ -26,7 +26,7 @@ class ConferenciaController extends Controller
             : (in_array($request->query('resultado'), ['ok', 'divergente'], true) ? $request->query('resultado') : 'todos');
         $q = trim((string) $request->query('q', ''));
 
-        $query = PurchaseRequest::with(['user', 'conferente'])->where('status', 'aprovado');
+        $query = PurchaseRequest::with(['user', 'conferente', 'enviosRma'])->where('status', 'aprovado');
 
         if ($aba === 'conferidos') {
             $query->whereNotNull('status_conferencia')->where('status_conferencia', '!=', 'legado');

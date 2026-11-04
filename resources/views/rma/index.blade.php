@@ -12,6 +12,8 @@
         <p style="margin:4px 0 0; color:#6b7280; font-size:14px;">Produtos comprados que já chegaram: fornecedor, empresa da compra, data, quantidade e fotos da conferência</p>
     </div>
 
+    @include('rma._abas', ['abaRma' => 'compras'])
+
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <form method="GET" action="{{ route('rma.index') }}" class="m-busca" style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
             <div style="flex:1; min-width:200px;">
