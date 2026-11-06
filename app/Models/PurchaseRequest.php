@@ -266,4 +266,10 @@ class PurchaseRequest extends Model
     {
         return $this->hasMany(ConferenciaFoto::class);
     }
+
+    /** Envios deste item ao RMA (defeito para devolver ao fornecedor). */
+    public function enviosRma(): HasMany
+    {
+        return $this->hasMany(RmaEnvio::class);
+    }
 }

@@ -149,7 +149,13 @@ Route::middleware(['auth', FinanceiroMiddleware::class])->prefix('financeiro')->
 // Setor RMA: só leitura do que foi comprado e já chegou (sem valores em dinheiro).
 Route::middleware(['auth', RmaMiddleware::class])->prefix('rma')->name('rma.')->group(function () {
     Route::get('/', [RmaController::class, 'index'])->name('index');
+    Route::get('/envios', [RmaController::class, 'envios'])->name('envios');
+    Route::patch('/envios/{envio}', [RmaController::class, 'atualizarEnvio'])->middleware('throttle:60,1')->name('envios.update');
 });
+
+// "Enviar ao RMA": quem confere ou dá entrada (e o admin) manda um item com defeito para o setor RMA.
+Route::post('/rma/itens/{purchaseRequest}/enviar', [RmaController::class, 'enviar'])
+    ->middleware(['auth', ConferenteMiddleware::class, 'throttle:60,1'])->name('rma.enviar');
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('pendencias')->name('pendencias.')->group(function () {
     Route::get('/', [PendenciaController::class, 'index'])->name('index');

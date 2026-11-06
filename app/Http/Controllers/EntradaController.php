@@ -21,7 +21,7 @@ class EntradaController extends Controller
         };
         $q = trim((string) $request->query('q', ''));
 
-        $query = PurchaseRequest::where('status', 'aprovado');
+        $query = PurchaseRequest::with('enviosRma')->where('status', 'aprovado');
 
         if ($aba === 'divergencias') {
             // Só consulta: divergentes que ainda aguardam decisão (não podem receber entrada).

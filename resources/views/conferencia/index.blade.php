@@ -204,6 +204,7 @@
                                                     style="background:#fff; color:#05018D; border:1px solid #05018D; border-radius:9999px; padding:7px 16px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;">
                                                 📷 Adicionar fotos
                                             </button>
+                                            <x-botao-enviar-rma :item="$req" />
                                         @endif
                                         @if($podeDesfazer($req))
                                             <form method="POST" action="{{ route('conferencia.desfazer', $req) }}" style="display:inline; margin:0;"
@@ -420,6 +421,7 @@
 @endif
 @if($aba !== 'coleta' && $haParaFotos)
     @include('conferencia._modal-adicionar-fotos')
+    @include('rma._modal-enviar')
 @endif
 @if($aba !== 'coleta' && ($haParaConferir || $haParaFotos))
     @include('conferencia._camera')

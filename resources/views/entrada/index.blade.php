@@ -178,6 +178,9 @@
                                     @else
                                         <span style="align-self:center; color:#9ca3af; font-size:12px;">Aguardando conferência</span>
                                     @endif
+                                    @if($elegivelEntradaEntr)
+                                        <x-botao-enviar-rma :item="$req" />
+                                    @endif
                                 </x-item-requisicao>
                             </td>
                         </tr>
@@ -277,6 +280,11 @@
     @endif
 
 </div>
+
+@if($aba !== 'divergencias')
+    @include('rma._modal-enviar')
+    @include('conferencia._camera')
+@endif
 
 <script>
 function toggleGrupoRequisicao(chave) {
