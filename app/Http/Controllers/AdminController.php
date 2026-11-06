@@ -186,8 +186,22 @@ class AdminController extends Controller
         $digitado = trim((string) $request->supplier) ?: null;
         $fornecedor = $digitado ? $fornecedores->exato($digitado) : null;
 
+        // Preencheu tudo da compra (o mínimo que Dados da compra pede) e esqueceu o status em "Pendente":
+        // aprova sozinho. Só vale para quem já estava pendente; quem voltou uma aprovada para pendente fica como escolheu.
+        $statusFinal = $request->status;
+        $aprovadaAutomaticamente = $request->status === 'pendente'
+            && $purchaseRequest->status === 'pendente'
+            && $digitado
+            && $request->filled('preco_unitario')
+            && $request->filled('data_compra')
+            && $request->filled('condicao_pagamento');
+
+        if ($aprovadaAutomaticamente) {
+            $statusFinal = 'aprovado';
+        }
+
         $atualizacao = [
-            'status'             => $request->status,
+            'status'             => $statusFinal,
             'admin_note'         => $request->admin_note,
             'supplier'           => $fornecedor?->nome ?? ($digitado ? mb_convert_case(mb_strtolower($digitado), MB_CASE_TITLE, 'UTF-8') : null),
             'fornecedor_id'      => $fornecedor?->id,
@@ -207,9 +221,9 @@ class AdminController extends Controller
             $atualizacao['justification'] = $request->justification;
         }
 
-        if ($request->status === 'aprovado' && $purchaseRequest->approved_at === null) {
+        if ($statusFinal === 'aprovado' && $purchaseRequest->approved_at === null) {
             $atualizacao['approved_at'] = now();
-        } elseif ($request->status !== 'aprovado') {
+        } elseif ($statusFinal !== 'aprovado') {
             $atualizacao['approved_at'] = null;
         }
 
@@ -246,8 +260,12 @@ class AdminController extends Controller
 
         $purchaseRequest->update($atualizacao);
 
-        if ($request->status === 'aprovado' && !$jaEstavaAprovado) {
+        if ($statusFinal === 'aprovado' && !$jaEstavaAprovado) {
             defer(fn () => app(PushNotifier::class)->aprovada($purchaseRequest));
+        }
+
+        if ($aprovadaAutomaticamente) {
+            return back()->with('success', 'Dados da compra completos: a requisição foi aprovada automaticamente.');
         }
 
         return back()->with('success', 'Requisição atualizada com sucesso!');
