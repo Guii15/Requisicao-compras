@@ -61,7 +61,7 @@
                     </a>
                     @endif
                     @if(Auth::user()->isRma())
-                    <a href="{{ route('rma.index') }}"
+                    <a href="{{ route('rma.envios') }}"
                        style="color: {{ request()->routeIs('rma.*') ? '#ffffff' : 'rgba(255,255,255,0.65)' }};
                               background: {{ request()->routeIs('rma.*') ? 'rgba(255,255,255,0.15)' : 'transparent' }};
                               padding:6px 14px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; margin-left:4px;"
@@ -166,7 +166,7 @@
             <a href="{{ route('financeiro.index') }}" class="menu-m-link {{ request()->routeIs('financeiro.*') ? 'ativo' : '' }}">Financeiro</a>
         @endif
         @if(Auth::user()->isRma())
-            <a href="{{ route('rma.index') }}" class="menu-m-link {{ request()->routeIs('rma.*') ? 'ativo' : '' }}">RMA</a>
+            <a href="{{ route('rma.envios') }}" class="menu-m-link {{ request()->routeIs('rma.*') ? 'ativo' : '' }}">RMA</a>
         @endif
 
         <div class="menu-m-usuario">
