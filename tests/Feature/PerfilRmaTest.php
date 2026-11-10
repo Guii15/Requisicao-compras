@@ -55,7 +55,7 @@ class PerfilRmaTest extends TestCase
         $this->post(route('login.perfil.store', 'rma'), ['email' => $this->rma->email, 'password' => 'password']);
 
         $this->assertAuthenticatedAs($this->rma);
-        $this->actingAs($this->rma)->get(route('dashboard'))->assertRedirect(route('rma.index'));
+        $this->actingAs($this->rma)->get(route('dashboard'))->assertRedirect(route('rma.envios'));
     }
 
     public function test_outros_perfis_nao_entram_pelo_login_do_rma(): void
@@ -293,7 +293,7 @@ class PerfilRmaTest extends TestCase
         $this->item();
 
         $this->actingAs($this->rma)->get(route('rma.index'))
-            ->assertSee(route('rma.index'), false)
+            ->assertSee(route('rma.envios'), false)
             ->assertDontSee(route('financeiro.index'), false)
             ->assertDontSee(route('entrada.index'), false)
             ->assertDontSee(route('requests.index'), false);
