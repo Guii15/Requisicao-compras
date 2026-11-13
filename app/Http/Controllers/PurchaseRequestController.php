@@ -318,7 +318,8 @@ class PurchaseRequestController extends Controller
 
     public function baixarAnexo(PurchaseRequest $purchaseRequest)
     {
-        if ($purchaseRequest->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        // Conferência e Entrada também abrem: o anexo aparece no cartão do item nessas telas.
+        if ($purchaseRequest->user_id !== auth()->id() && !auth()->user()->isConferente()) {
             abort(403);
         }
 
