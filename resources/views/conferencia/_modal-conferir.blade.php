@@ -33,7 +33,7 @@
 
                     <div style="margin-bottom:14px;">
                         <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:5px;">Quantidade recebida</label>
-                        <input type="number" name="quantidade_recebida" id="campo-qtd" value="" min="0" required
+                        <input type="number" name="quantidade_recebida" id="campo-qtd" value="" min="0" required placeholder="Digite quanto chegou"
                                oninput="verificaDivergencia(this.value)"
                                style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box; font-weight:700;">
                     </div>
@@ -180,7 +180,8 @@
         el('conf-pedido-vazio').style.display = d.pedidoUrl ? 'none' : '';
         el('conf-notas').replaceChildren(modelo.content.cloneNode(true));
 
-        el('campo-qtd').value = d.qtd;
+        // Abre vazio: a pessoa digita o que chegou (antes vinha o pedido e um parcial passava como "OK").
+        el('campo-qtd').value = '';
         el('campo-resultado').value = 'ok';
         el('campo-acao').value = 'salvar';
         el('conf-aviso-foto').style.display = 'none';
