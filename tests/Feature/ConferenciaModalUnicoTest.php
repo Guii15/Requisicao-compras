@@ -193,4 +193,20 @@ class ConferenciaModalUnicoTest extends TestCase
             );
         }
     }
+
+    /**
+     * #4698: a quantidade vinha preenchida com o pedido (1000); chegaram 250, o conferente escreveu isso na Obs
+     * e salvou sem trocar o número, então ficou "OK 1000" e o restante nunca foi criado.
+     * Agora o campo abre vazio e a pessoa precisa digitar o que chegou.
+     */
+    public function test_quantidade_recebida_abre_vazia_para_o_conferente_digitar(): void
+    {
+        $this->aguardando(1, ['quantity' => 1000]);
+
+        $html = $this->pagina();
+
+        $this->assertStringNotContainsString("el('campo-qtd').value = d.qtd", $html);
+        $this->assertStringContainsString("el('campo-qtd').value = ''", $html);
+        $this->assertStringContainsString('placeholder="Digite quanto chegou"', $html);
+    }
 }
